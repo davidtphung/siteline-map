@@ -2072,7 +2072,7 @@ async function St(e, t, a, r) {
       uniqueFiberProviders: null,
       fccFiberProviders: [],
       note: "UNKNOWN",
-      asBuiltFiber: "UNKNOWN",
+      asBuiltFiber: "UNKNOWN — FCC BDC is availability only. OSM / OpenInfraMap telecom lines appear on the map only where mapped.",
       asBuiltFiberGrade: "UNKNOWN"
     },
     s = JSON.stringify({
@@ -2144,7 +2144,7 @@ async function St(e, t, a, r) {
     uniqueFiberProviders: p,
     fccFiberProviders: d,
     note: m,
-    asBuiltFiber: "UNKNOWN",
+    asBuiltFiber: "UNKNOWN — FCC BDC is availability only. OSM / OpenInfraMap telecom lines appear on the map only where mapped.",
     asBuiltFiberGrade: "UNKNOWN"
   }
 }
@@ -2311,7 +2311,7 @@ function Lt(e, t, a, r) {
       uniqueFiberProviders: null,
       fccFiberProviders: [],
       note: "Site brief failed to load",
-      asBuiltFiber: "UNKNOWN",
+      asBuiltFiber: "UNKNOWN — FCC BDC is availability only. OSM / OpenInfraMap telecom lines appear on the map only where mapped.",
       asBuiltFiberGrade: "UNKNOWN"
     },
     flood: {
