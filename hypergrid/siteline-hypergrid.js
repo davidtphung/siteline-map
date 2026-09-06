@@ -95,6 +95,7 @@ let commitGeo = null;
 let policyGeo = null;
 let dcFilter = 'all'; // all | ai | us
 let popup;
+let openSheetId = null; // 'layers' | 'live' | null
 
 function esc(s) {
   return String(s ?? '')
@@ -110,6 +111,27 @@ function fmtMW(v) {
   if (n >= 1000) return `${n.toLocaleString(undefined, { maximumFractionDigits: 1 })} MW`;
   if (n >= 10) return `${n.toLocaleString(undefined, { maximumFractionDigits: 1 })} MW`;
   return `${n.toLocaleString(undefined, { maximumFractionDigits: 3 })} MW`;
+}
+
+function capacityParts(v) {
+  if (v === null || v === undefined || v === '' || Number.isNaN(Number(v))) {
+    return { num: 'UNKNOWN', unit: '' };
+  }
+  const n = Number(v);
+  const digits = n >= 10 ? 1 : 3;
+  return {
+    num: n.toLocaleString(undefined, { maximumFractionDigits: digits }),
+    unit: 'MW',
+  };
+}
+
+function badgeClass(raw) {
+  const s = String(raw || '')
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-');
+  if (!s) return 'badge-other';
+  return `badge-${s}`;
 }
 
 function sumCapacity(features) {
@@ -190,11 +212,18 @@ function setLayerVisibility(id, visible) {
   map.setLayoutProperty(id, 'visibility', visible ? 'visible' : 'none');
 }
 
+function capacityHtml(v) {
+  const { num, unit } = capacityParts(v);
+  if (!unit) return `<div class="popup-capacity">${esc(num)}</div>`;
+  return `<div class="popup-capacity">${esc(num)}<span class="cap-unit">${esc(unit)}</span></div>`;
+}
+
 function popupHtmlDC(p) {
   const name = p.facility || p.id || 'Facility';
   const op = p.operator || p.parentCompany || 'UNKNOWN';
   const loc = [p.city, p.region || p.state, p.country].filter(Boolean).join(', ') || 'UNKNOWN';
   const year = p.yearOperational ?? 'UNKNOWN';
+  const status = p.status || 'UNKNOWN';
   const src = p.sourceName
     ? p.sourceUrl
       ? `<a href="${esc(p.sourceUrl)}" target="_blank" rel="noopener noreferrer">${esc(p.sourceName)}</a>`
@@ -202,14 +231,18 @@ function popupHtmlDC(p) {
     : 'UNKNOWN';
   return `
     <div class="popup-card">
-      <h3>${esc(name)}</h3>
-      <div class="popup-row"><span class="k">Operator</span><span class="v">${esc(op)}</span></div>
-      <div class="popup-row"><span class="k">Capacity</span><span class="v">${esc(fmtMW(p.capacityMW))}</span></div>
-      <div class="popup-row"><span class="k">Status</span><span class="v">${esc(p.status || 'UNKNOWN')}</span></div>
-      <div class="popup-row"><span class="k">Year</span><span class="v">${esc(year)}</span></div>
-      <div class="popup-row"><span class="k">Location</span><span class="v">${esc(loc)}</span></div>
-      <div class="popup-row"><span class="k">AI-oriented</span><span class="v">${p.aiOriented === true ? 'yes' : p.aiOriented === false ? 'no' : 'UNKNOWN'}</span></div>
-      <div class="popup-row"><span class="k">Source</span><span class="v">${src}</span></div>
+      <div class="popup-head">
+        <h3>${esc(name)}</h3>
+        <span class="popup-badge ${esc(badgeClass(status))}">${esc(status)}</span>
+      </div>
+      ${capacityHtml(p.capacityMW)}
+      <div class="popup-meta">
+        <div class="popup-row"><span class="k">Operator</span><span class="v">${esc(op)}</span></div>
+        <div class="popup-row"><span class="k">Year</span><span class="v">${esc(year)}</span></div>
+        <div class="popup-row"><span class="k">Location</span><span class="v">${esc(loc)}</span></div>
+        <div class="popup-row"><span class="k">AI-oriented</span><span class="v">${p.aiOriented === true ? 'yes' : p.aiOriented === false ? 'no' : 'UNKNOWN'}</span></div>
+        <div class="popup-row"><span class="k">Source</span><span class="v">${src}</span></div>
+      </div>
       <p class="truth">Hypergrid curated · not live telemetry</p>
     </div>`;
 }
@@ -218,6 +251,7 @@ function popupHtmlCommit(p) {
   const name = p.project || p.headline || p.id || 'Project';
   const buyer = p.buyer || p.counterparty || 'UNKNOWN';
   const loc = [p.city, p.state, p.country].filter(Boolean).join(', ') || 'UNKNOWN';
+  const status = p.status || 'UNKNOWN';
   const src = p.sourceName
     ? p.sourceUrl
       ? `<a href="${esc(p.sourceUrl)}" target="_blank" rel="noopener noreferrer">${esc(p.sourceName)}</a>`
@@ -225,14 +259,18 @@ function popupHtmlCommit(p) {
     : 'UNKNOWN';
   return `
     <div class="popup-card">
-      <h3>${esc(name)}</h3>
-      <div class="popup-row"><span class="k">Buyer</span><span class="v">${esc(buyer)}</span></div>
-      <div class="popup-row"><span class="k">Capacity</span><span class="v">${esc(fmtMW(p.capacityMW))}</span></div>
-      <div class="popup-row"><span class="k">Tech</span><span class="v">${esc(p.techType || 'UNKNOWN')}</span></div>
-      <div class="popup-row"><span class="k">Status</span><span class="v">${esc(p.status || 'UNKNOWN')}</span></div>
-      <div class="popup-row"><span class="k">Date</span><span class="v">${esc(p.date || 'UNKNOWN')}</span></div>
-      <div class="popup-row"><span class="k">Location</span><span class="v">${esc(loc)}</span></div>
-      <div class="popup-row"><span class="k">Source</span><span class="v">${src}</span></div>
+      <div class="popup-head">
+        <h3>${esc(name)}</h3>
+        <span class="popup-badge ${esc(badgeClass(status))}">${esc(status)}</span>
+      </div>
+      ${capacityHtml(p.capacityMW)}
+      <div class="popup-meta">
+        <div class="popup-row"><span class="k">Buyer</span><span class="v">${esc(buyer)}</span></div>
+        <div class="popup-row"><span class="k">Tech</span><span class="v">${esc(p.techType || 'UNKNOWN')}</span></div>
+        <div class="popup-row"><span class="k">Date</span><span class="v">${esc(p.date || 'UNKNOWN')}</span></div>
+        <div class="popup-row"><span class="k">Location</span><span class="v">${esc(loc)}</span></div>
+        <div class="popup-row"><span class="k">Source</span><span class="v">${src}</span></div>
+      </div>
       <p class="truth">Hypergrid curated · not live telemetry</p>
     </div>`;
 }
@@ -240,6 +278,7 @@ function popupHtmlCommit(p) {
 function popupHtmlPolicy(p) {
   const name = p.title || p.id || 'Policy';
   const loc = [p.jurisdiction, p.country].filter(Boolean).join(', ') || 'UNKNOWN';
+  const stance = p.stance || 'UNKNOWN';
   const src = p.sourceName
     ? p.sourceUrl
       ? `<a href="${esc(p.sourceUrl)}" target="_blank" rel="noopener noreferrer">${esc(p.sourceName)}</a>`
@@ -247,14 +286,18 @@ function popupHtmlPolicy(p) {
     : 'UNKNOWN';
   return `
     <div class="popup-card">
-      <h3>${esc(name)}</h3>
-      <div class="popup-row"><span class="k">Stance</span><span class="v">${esc(p.stance || 'UNKNOWN')}</span></div>
-      <div class="popup-row"><span class="k">Level</span><span class="v">${esc(p.level || 'UNKNOWN')}</span></div>
-      <div class="popup-row"><span class="k">Category</span><span class="v">${esc(p.category || 'UNKNOWN')}</span></div>
-      <div class="popup-row"><span class="k">Date</span><span class="v">${esc(p.date || 'UNKNOWN')}</span></div>
-      <div class="popup-row"><span class="k">Location</span><span class="v">${esc(loc)}</span></div>
-      <div class="popup-row"><span class="k">Summary</span><span class="v">${esc(p.summary || 'UNKNOWN')}</span></div>
-      <div class="popup-row"><span class="k">Source</span><span class="v">${src}</span></div>
+      <div class="popup-head">
+        <h3>${esc(name)}</h3>
+        <span class="popup-badge ${esc(badgeClass(stance))}">${esc(stance)}</span>
+      </div>
+      <div class="popup-meta">
+        <div class="popup-row"><span class="k">Level</span><span class="v">${esc(p.level || 'UNKNOWN')}</span></div>
+        <div class="popup-row"><span class="k">Category</span><span class="v">${esc(p.category || 'UNKNOWN')}</span></div>
+        <div class="popup-row"><span class="k">Date</span><span class="v">${esc(p.date || 'UNKNOWN')}</span></div>
+        <div class="popup-row"><span class="k">Location</span><span class="v">${esc(loc)}</span></div>
+        <div class="popup-row"><span class="k">Summary</span><span class="v">${esc(p.summary || 'UNKNOWN')}</span></div>
+        <div class="popup-row"><span class="k">Source</span><span class="v">${src}</span></div>
+      </div>
       <p class="truth">Hypergrid curated · not live telemetry</p>
     </div>`;
 }
@@ -374,8 +417,70 @@ function createMap(style) {
   });
 }
 
+function isMobileUi() {
+  return window.matchMedia('(max-width: 819px)').matches;
+}
+
+function setSheetButtons(active) {
+  const layersBtn = document.getElementById('btn-layers');
+  const liveBtn = document.getElementById('btn-live');
+  if (layersBtn) layersBtn.setAttribute('aria-expanded', active === 'layers' ? 'true' : 'false');
+  if (liveBtn) liveBtn.setAttribute('aria-expanded', active === 'live' ? 'true' : 'false');
+}
+
+function closeSheets() {
+  openSheetId = null;
+  document.getElementById('layers-panel')?.classList.remove('is-open');
+  document.getElementById('live-panel')?.classList.remove('is-open');
+  const backdrop = document.getElementById('sheet-backdrop');
+  if (backdrop) {
+    backdrop.classList.remove('is-visible');
+    backdrop.hidden = true;
+  }
+  setSheetButtons(null);
+}
+
+function openSheet(which) {
+  if (!isMobileUi()) return;
+  if (openSheetId === which) {
+    closeSheets();
+    return;
+  }
+  closeSheets();
+  openSheetId = which;
+  const panelId = which === 'layers' ? 'layers-panel' : 'live-panel';
+  document.getElementById(panelId)?.classList.add('is-open');
+  const backdrop = document.getElementById('sheet-backdrop');
+  if (backdrop) {
+    backdrop.hidden = false;
+    requestAnimationFrame(() => backdrop.classList.add('is-visible'));
+  }
+  setSheetButtons(which);
+}
+
+function wireSheets() {
+  document.getElementById('btn-layers')?.addEventListener('click', () => openSheet('layers'));
+  document.getElementById('btn-live')?.addEventListener('click', () => openSheet('live'));
+  document.getElementById('sheet-backdrop')?.addEventListener('click', () => closeSheets());
+  document.querySelectorAll('[data-close-sheet]').forEach((btn) => {
+    btn.addEventListener('click', () => closeSheets());
+  });
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeSheets();
+  });
+
+  const mq = window.matchMedia('(max-width: 819px)');
+  const onBreak = () => {
+    if (!mq.matches) closeSheets();
+  };
+  if (typeof mq.addEventListener === 'function') mq.addEventListener('change', onBreak);
+  else if (typeof mq.addListener === 'function') mq.addListener(onBreak);
+}
 
 function wireUi() {
+  wireSheets();
+
   document.getElementById('layer-dcs')?.addEventListener('change', (e) => {
     setLayerVisibility('hypergrid-dcs-circle', e.target.checked);
     updateStats();
@@ -561,7 +666,7 @@ async function init() {
   popup = new maplibregl.Popup({
     closeButton: true,
     closeOnClick: true,
-    maxWidth: '320px',
+    maxWidth: 'min(92vw, 320px)',
     offset: 12,
   });
 

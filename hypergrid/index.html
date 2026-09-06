@@ -2,9 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Siteline · Hypergrid overlay</title>
   <meta name="description" content="Siteline Hypergrid overlay. Curated AI datacenter, commitment, and policy layers by David T Phung (NLT143 RESEARCH). Not live telemetry." />
+  <meta name="theme-color" content="#000000" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -25,91 +26,137 @@
         <div class="titles">
           <h1>Siteline</h1>
           <p class="subtitle">Hypergrid overlay · NLT143 RESEARCH by David T Phung</p>
+          <p class="honesty-inline">Curated layers · not a full AI DC registry · not live MW</p>
         </div>
       </div>
-      <div class="honesty-pill" title="Scope and honesty">
-        Curated Hypergrid layers. Not a complete national AI DC registry. Not live MW draw.
+      <div class="topbar-actions">
+        <div class="honesty-pill" title="Scope and honesty">Curated · not live MW</div>
+        <button type="button" class="icon-btn" id="btn-layers" aria-expanded="false" aria-controls="layers-panel" aria-label="Layers">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+            <path d="M2.5 11.2L9 14.5l6.5-3.3M2.5 9L9 12.3 15.5 9M2.5 6.8L9 3.5l6.5 3.3L9 10 2.5 6.8z" stroke="currentColor" stroke-width="1.35" stroke-linejoin="round"/>
+          </svg>
+          <span class="icon-btn-label">Layers</span>
+        </button>
+        <button type="button" class="icon-btn" id="btn-live" aria-expanded="false" aria-controls="live-panel" aria-label="Live feeds">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+            <circle cx="9" cy="9" r="2.1" fill="currentColor"/>
+            <path d="M5.2 5.2a5.4 5.4 0 000 7.6M12.8 5.2a5.4 5.4 0 010 7.6M3.1 3.1a8.3 8.3 0 000 11.8M14.9 3.1a8.3 8.3 0 010 11.8" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/>
+          </svg>
+          <span class="icon-btn-label">Live</span>
+        </button>
       </div>
     </header>
 
-    <aside class="panel left-panel" aria-label="Layers and filters">
-      <section class="panel-block">
-        <h2>Layers</h2>
-        <label class="toggle-row">
-          <input type="checkbox" id="layer-dcs" checked />
-          <span class="swatch dc"></span>
-          <span>Hypergrid AI DCs</span>
-        </label>
-        <label class="toggle-row">
-          <input type="checkbox" id="layer-commitments" checked />
-          <span class="swatch commit"></span>
-          <span>Hypergrid commitments</span>
-        </label>
-        <label class="toggle-row">
-          <input type="checkbox" id="layer-policy" />
-          <span class="swatch policy"></span>
-          <span>Hypergrid policy</span>
-        </label>
-      </section>
+    <div class="sheet-backdrop" id="sheet-backdrop" hidden></div>
 
-      <section class="panel-block">
-        <h2>DC filters</h2>
-        <div class="chip-row" role="group" aria-label="Datacenter filters">
-          <button type="button" class="chip active" data-dc-filter="all">All</button>
-          <button type="button" class="chip" data-dc-filter="ai">AI-oriented only</button>
-          <button type="button" class="chip" data-dc-filter="us">United States only</button>
+    <aside class="panel left-panel" id="layers-panel" aria-label="Layers and filters">
+      <div class="sheet-chrome">
+        <div class="sheet-handle" aria-hidden="true"></div>
+        <div class="sheet-title-row">
+          <h2 class="sheet-title">Layers</h2>
+          <button type="button" class="sheet-close" data-close-sheet aria-label="Close layers">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M4 4l8 8M12 4L4 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </button>
         </div>
-      </section>
+      </div>
 
-      <section class="panel-block legend">
-        <h2>Legend</h2>
-        <div class="legend-group">
-          <p class="legend-label">DC status</p>
-          <div class="legend-item"><span class="dot operating"></span> Operating</div>
-          <div class="legend-item"><span class="dot construction"></span> Construction</div>
-          <div class="legend-item"><span class="dot announced"></span> Announced</div>
-          <div class="legend-item"><span class="dot other"></span> Other</div>
-        </div>
-        <div class="legend-group">
-          <p class="legend-label">Commitment tech</p>
-          <div class="legend-item"><span class="sq gas"></span> Gas</div>
-          <div class="legend-item"><span class="sq nuclear"></span> Nuclear / SMR</div>
-          <div class="legend-item"><span class="sq solar"></span> Solar</div>
-          <div class="legend-item"><span class="sq wind"></span> Wind</div>
-          <div class="legend-item"><span class="sq geo"></span> Geothermal</div>
-          <div class="legend-item"><span class="sq fusion"></span> Fusion</div>
-          <div class="legend-item"><span class="sq dc"></span> Datacenter</div>
-          <div class="legend-item"><span class="sq other"></span> Other / mixed</div>
-        </div>
-      </section>
+      <div class="panel-scroll">
+        <section class="panel-block">
+          <h2 class="desktop-only-heading">Layers</h2>
+          <label class="toggle-row">
+            <input type="checkbox" id="layer-dcs" checked />
+            <span class="swatch dc"></span>
+            <span>Hypergrid AI DCs</span>
+          </label>
+          <label class="toggle-row">
+            <input type="checkbox" id="layer-commitments" checked />
+            <span class="swatch commit"></span>
+            <span>Hypergrid commitments</span>
+          </label>
+          <label class="toggle-row">
+            <input type="checkbox" id="layer-policy" />
+            <span class="swatch policy"></span>
+            <span>Hypergrid policy</span>
+          </label>
+        </section>
 
-      <section class="panel-block note">
-        <p>OSM / OpenInfraMap datacenters live on main Siteline. This overlay prioritizes Hypergrid curated layers plus the UK carbon live strip.</p>
-      </section>
+        <section class="panel-block">
+          <h2>DC filters</h2>
+          <div class="chip-row" role="group" aria-label="Datacenter filters">
+            <button type="button" class="chip active" data-dc-filter="all">All</button>
+            <button type="button" class="chip" data-dc-filter="ai">AI-oriented only</button>
+            <button type="button" class="chip" data-dc-filter="us">United States only</button>
+          </div>
+        </section>
+
+        <details class="panel-block legend">
+          <summary>Legend</summary>
+          <div class="legend-body">
+            <div class="legend-group">
+              <p class="legend-label">DC status</p>
+              <div class="legend-item"><span class="dot operating"></span> Operating</div>
+              <div class="legend-item"><span class="dot construction"></span> Construction</div>
+              <div class="legend-item"><span class="dot announced"></span> Announced</div>
+              <div class="legend-item"><span class="dot other"></span> Other</div>
+            </div>
+            <div class="legend-group">
+              <p class="legend-label">Commitment tech</p>
+              <div class="legend-item"><span class="sq gas"></span> Gas</div>
+              <div class="legend-item"><span class="sq nuclear"></span> Nuclear / SMR</div>
+              <div class="legend-item"><span class="sq solar"></span> Solar</div>
+              <div class="legend-item"><span class="sq wind"></span> Wind</div>
+              <div class="legend-item"><span class="sq geo"></span> Geothermal</div>
+              <div class="legend-item"><span class="sq fusion"></span> Fusion</div>
+              <div class="legend-item"><span class="sq dc"></span> Datacenter</div>
+              <div class="legend-item"><span class="sq other"></span> Other / mixed</div>
+            </div>
+          </div>
+        </details>
+
+        <section class="panel-block note">
+          <p>OSM / OpenInfraMap datacenters live on main Siteline. This overlay prioritizes Hypergrid curated layers plus the UK carbon live strip.</p>
+        </section>
+      </div>
     </aside>
 
     <div id="map" role="application" aria-label="Siteline Hypergrid map"></div>
 
-    <aside class="panel live-panel" aria-label="Open live feeds">
-      <div class="live-head">
-        <h2>Open live feeds</h2>
-        <button type="button" id="refresh-live" class="btn-ghost">Refresh</button>
+    <aside class="panel live-panel" id="live-panel" aria-label="Open live feeds">
+      <div class="sheet-chrome">
+        <div class="sheet-handle" aria-hidden="true"></div>
+        <div class="sheet-title-row">
+          <h2 class="sheet-title">Live feeds</h2>
+          <button type="button" class="sheet-close" data-close-sheet aria-label="Close live feeds">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M4 4l8 8M12 4L4 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
       </div>
-      <div id="live-content" class="live-content">
-        <p class="muted">Loading UK Carbon Intensity…</p>
+
+      <div class="panel-scroll">
+        <div class="live-head">
+          <h2 class="desktop-only-heading">Open live feeds</h2>
+          <button type="button" id="refresh-live" class="btn-ghost">Refresh</button>
+        </div>
+        <div id="live-content" class="live-content">
+          <p class="muted">Loading UK Carbon Intensity…</p>
+        </div>
+        <p class="live-meta" id="live-meta">Auto-refresh every 5 min (UK carbon only)</p>
       </div>
-      <p class="live-meta" id="live-meta">Auto-refresh every 5 min (UK carbon only)</p>
     </aside>
 
     <div class="stats-strip" id="stats-strip" aria-live="polite">
       <div class="stat"><span class="stat-label">DCs</span><span class="stat-value" id="stat-dcs">-</span></div>
       <div class="stat"><span class="stat-label">Commitments</span><span class="stat-value" id="stat-commitments">-</span></div>
-      <div class="stat wide">
-        <span class="stat-label">Commitment MW (Hypergrid ledger, curated, not live draw)</span>
+      <div class="stat" title="Commitment MW (Hypergrid ledger, curated, not live draw)">
+        <span class="stat-label">Commit MW</span>
         <span class="stat-value" id="stat-mw">-</span>
       </div>
-      <div class="stat wide">
-        <span class="stat-label">DC registry MW (separate layer, may overlap commitments)</span>
+      <div class="stat" title="DC registry MW (separate layer, may overlap commitments)">
+        <span class="stat-label">DC MW</span>
         <span class="stat-value" id="stat-dc-mw">-</span>
       </div>
     </div>
