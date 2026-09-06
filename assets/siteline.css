@@ -109,7 +109,9 @@ button { cursor: pointer; }
   font-size: 0.72rem;
   font-weight: 500;
 }
-.nav-btn:hover { color: var(--text); }
+.nav-btn:hover {
+  color: var(--text);
+}
 .nav-btn.on {
   color: #fff;
   background: rgba(255, 255, 255, 0.1);
@@ -220,8 +222,26 @@ button { cursor: pointer; }
 }
 .health-ok { color: var(--live); border-color: rgba(61, 214, 140, 0.35); }
 .health-blocked, .health-error { color: var(--danger); }
+.truth {
+  display: inline-block;
+  margin-right: 0.4rem;
+  font-family: var(--mono);
+  font-style: normal;
+  font-size: 0.54rem;
+  letter-spacing: 0.06em;
+  font-weight: 500;
+  padding: 0.06rem 0.3rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  vertical-align: 0.08em;
+}
+.truth-live { color: var(--live); border-color: rgba(61, 214, 140, 0.4); }
+.truth-catalog { color: var(--soft); }
+.truth-proxy { color: var(--muted); }
+.truth-unknown { color: var(--muted); opacity: 0.8; }
 
 .jump-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.35rem; margin-top: 0.7rem; }
+.jump-row-3 { grid-template-columns: 1fr; }
 .jump {
   width: 100%;
   min-height: 32px;
@@ -389,7 +409,9 @@ button { cursor: pointer; }
 
 .layers-fab,
 .sheet-backdrop,
-.sheet-grab { display: none; }
+.sheet-grab {
+  display: none;
+}
 .sheet-close { display: inline-flex; align-items: center; }
 
 @media (max-width: 980px) {
@@ -398,6 +420,7 @@ button { cursor: pointer; }
   .atlas-nav { display: none; }
   .brand-kicker { font-size: 0.55rem; }
   .topbar h1 { font-size: 1.02rem; }
+
   .layers-fab {
     display: inline-flex;
     align-items: center;
@@ -416,6 +439,7 @@ button { cursor: pointer; }
     color: var(--text);
     font-size: 0.75rem;
   }
+
   .sheet-backdrop {
     display: none;
     position: absolute;
@@ -427,6 +451,7 @@ button { cursor: pointer; }
     min-height: 0;
   }
   .sheet-backdrop.show { display: block; }
+
   .sheet-grab {
     display: block;
     width: 36px;
@@ -435,6 +460,7 @@ button { cursor: pointer; }
     background: rgba(255, 255, 255, 0.22);
     margin: 0 auto 0.55rem;
   }
+
   .layer-panel,
   .brief-panel {
     left: 0;
@@ -451,6 +477,7 @@ button { cursor: pointer; }
   .brief-panel.open { transform: translateY(0); }
   .brief-panel:not(.open) { display: block; pointer-events: none; }
   .brief-empty { display: none; }
+
   .map-jump-bar { left: 0.75rem; bottom: 2.15rem; }
   .attr-data { display: none; }
 }
