@@ -127,22 +127,6 @@
           <p class="layer-hint" id="gis-status-wellsOrphan"></p>
 
           <label class="toggle-row">
-            <input type="checkbox" id="layer-nhd" data-gis="nhd" />
-            <span class="swatch nhd"></span>
-            <span class="toggle-label">NHD flowlines</span>
-            <span class="truth-chip">CATALOG</span>
-          </label>
-          <p class="layer-hint" id="gis-status-nhd"></p>
-
-          <label class="toggle-row">
-            <input type="checkbox" id="layer-fcc" data-gis="fcc" />
-            <span class="swatch fcc"></span>
-            <span class="toggle-label">FCC BDC availability</span>
-            <span class="truth-chip">CATALOG</span>
-          </label>
-          <p class="layer-hint" id="gis-status-fcc"></p>
-
-          <label class="toggle-row">
             <input type="checkbox" id="layer-osm-dc" data-gis="osmDc" />
             <span class="swatch osm-dc"></span>
             <span class="toggle-label">OSM data centers</span>
@@ -150,7 +134,51 @@
           </label>
           <p class="layer-hint" id="gis-status-osmDc"></p>
 
-          <p class="note-inline">Plant MW = nameplate catalog, not interconnect. HIFLD has no transformer MVA. FCC = availability, not as-built fiber.</p>
+          <p class="note-inline">Plant MW = nameplate catalog, not interconnect. HIFLD has no transformer MVA.</p>
+
+          <h3 class="panel-subhead">Water · cooling proxy</h3>
+          <label class="toggle-row">
+            <input type="checkbox" id="layer-nhd" checked data-gis="nhd" />
+            <span class="swatch nhd"></span>
+            <span class="toggle-label">NHD watercourses</span>
+            <span class="truth-chip">CATALOG</span>
+          </label>
+          <p class="layer-hint" id="gis-status-nhd"></p>
+
+          <label class="toggle-row">
+            <input type="checkbox" id="layer-nhd-wb" checked data-gis="nhdWaterbodies" />
+            <span class="swatch nhd-wb"></span>
+            <span class="toggle-label">NHD waterbodies</span>
+            <span class="truth-chip">CATALOG</span>
+          </label>
+          <p class="layer-hint" id="gis-status-nhdWaterbodies"></p>
+
+          <label class="toggle-row">
+            <input type="checkbox" id="layer-oim-water" checked data-gis="oimWater" />
+            <span class="swatch oim-water"></span>
+            <span class="toggle-label">OIM water utilities (OSM)</span>
+            <span class="truth-chip">CATALOG</span>
+          </label>
+          <p class="layer-hint" id="gis-status-oimWater"></p>
+
+          <h3 class="panel-subhead">Fiber · broadband</h3>
+          <label class="toggle-row">
+            <input type="checkbox" id="layer-fcc" checked data-gis="fcc" />
+            <span class="swatch fcc"></span>
+            <span class="toggle-label">FCC BDC availability</span>
+            <span class="truth-chip">CATALOG</span>
+          </label>
+          <p class="layer-hint" id="gis-status-fcc"></p>
+
+          <label class="toggle-row">
+            <input type="checkbox" id="layer-oim-telecom" checked data-gis="oimTelecom" />
+            <span class="swatch oim-telecom"></span>
+            <span class="toggle-label">OIM telecom (OSM mapped)</span>
+            <span class="truth-chip" title="OSM mapped communications only">OSM_MAPPED_COMMS</span>
+          </label>
+          <p class="layer-hint" id="gis-status-oimTelecom"></p>
+
+          <p class="note-inline">As-built fiber routes / conduit UNKNOWN. FCC is availability. OIM is OSM-mapped only.</p>
         </section>
 
         <section class="panel-block">
@@ -209,6 +237,17 @@
               <div class="legend-item"><span class="dot plants"></span> EIA plants</div>
               <div class="legend-item"><span class="dot wells-op"></span> Operating wells</div>
               <div class="legend-item"><span class="dot wells-orphan"></span> Orphaned wells</div>
+            </div>
+            <div class="legend-group">
+              <p class="legend-label">Water · cooling proxy</p>
+              <div class="legend-item"><span class="line nhd"></span> NHD watercourses</div>
+              <div class="legend-item"><span class="poly nhd-wb"></span> NHD waterbodies</div>
+              <div class="legend-item"><span class="line oim-water"></span> OIM water utilities</div>
+            </div>
+            <div class="legend-group">
+              <p class="legend-label">Fiber · broadband</p>
+              <div class="legend-item"><span class="poly fcc"></span> FCC BDC availability</div>
+              <div class="legend-item"><span class="line oim-telecom"></span> OIM telecom (OSM)</div>
             </div>
           </div>
         </details>

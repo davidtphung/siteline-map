@@ -3,8 +3,8 @@
  * NLT143 RESEARCH by David T Phung
  *
  * Honesty: plant MW = nameplate catalog not interconnect;
- * HIFLD has no transformer MVA; FCC = availability not as-built fiber.
- * Never invent MW/MVA/headroom.
+ * HIFLD has no transformer MVA; FCC = availability not as-built fiber;
+ * OIM water/telecom = OSM-mapped only. Never invent MW/MVA/headroom or as-built routes.
  */
 export const GIS_DEBOUNCE_MS = 400;
 export const GIS_RECORD_CAP = 2000;
@@ -110,16 +110,40 @@ export const GIS_LAYERS = {
   },
   nhd: {
     id: 'nhd',
-    label: 'NHD flowlines',
+    label: 'NHD watercourses',
     kind: 'arcgis',
     url: 'https://hydro.nationalmap.gov/arcgis/rest/services/nhd/MapServer/6/query',
     geom: 'line',
     sourceId: 'gis-nhd',
     layerIds: ['gis-nhd-line'],
-    defaultOn: false,
+    defaultOn: true,
     minZoom: 8,
     truth: 'CATALOG',
-    sourceNote: 'USGS NHD flowlines',
+    sourceNote: 'USGS NHD flowlines (watercourses)',
+  },
+  nhdWaterbodies: {
+    id: 'nhdWaterbodies',
+    label: 'NHD waterbodies',
+    kind: 'arcgis',
+    url: 'https://hydro.nationalmap.gov/arcgis/rest/services/nhd/MapServer/12/query',
+    geom: 'polygon',
+    sourceId: 'gis-nhd-wb',
+    layerIds: ['gis-nhd-wb-fill', 'gis-nhd-wb-outline'],
+    defaultOn: true,
+    minZoom: 8,
+    truth: 'CATALOG',
+    sourceNote: 'USGS NHD waterbodies (lakes / reservoirs)',
+  },
+  oimWater: {
+    id: 'oimWater',
+    label: 'OIM water utilities (OSM)',
+    kind: 'vector',
+    sourceId: 'oim-power',
+    layerIds: ['gis-oim-water-line', 'gis-oim-water-pt'],
+    defaultOn: true,
+    minZoom: 6,
+    truth: 'CATALOG',
+    sourceNote: 'OpenInfraMap water_pipeline · OSM-mapped only',
   },
   fcc: {
     id: 'fcc',
@@ -128,10 +152,21 @@ export const GIS_LAYERS = {
     geom: 'polygon',
     sourceId: 'gis-fcc',
     layerIds: ['gis-fcc-fill'],
-    defaultOn: false,
+    defaultOn: true,
     minZoom: 9,
     truth: 'CATALOG',
     sourceNote: 'FCC BDC Dec 2024 View (availability, not as-built fiber)',
+  },
+  oimTelecom: {
+    id: 'oimTelecom',
+    label: 'OIM telecom (OSM mapped)',
+    kind: 'vector',
+    sourceId: 'oim-power',
+    layerIds: ['gis-oim-telecom-line', 'gis-oim-telecom-mast'],
+    defaultOn: true,
+    minZoom: 6,
+    truth: 'OSM_MAPPED_COMMS',
+    sourceNote: 'OpenInfraMap telecom · OSM-mapped only · not as-built plant',
   },
   osmDc: {
     id: 'osmDc',
@@ -329,6 +364,9 @@ export function createGisController(map, popup, hooks = {}) {
   let fetching = 0;
   let oimStatus = 'pending'; // pending | ok | unknown
   let oimDetail = '';
+  // OIM water / telecom sublayer resolution (source-layer probe results)
+  const oimWaterOk = { line: null, point: null }; // resolved source-layer name or null
+  const oimTelecomOk = { line: null, mast: null };
 
   const setLoading = (on) => {
     hooks.onLoading?.(on);
@@ -420,6 +458,115 @@ export function createGisController(map, popup, hooks = {}) {
         },
         minzoom: 8,
       });
+
+      // OIM water / telecom: probe candidates; MapLibre rarely throws on missing
+      // source-layer, so prefer known TileJSON ids (verified live) and mark others UNKNOWN.
+      const OIM_KNOWN = new Set([
+        'power_line', 'power_tower', 'power_substation', 'power_substation_point',
+        'power_plant', 'power_plant_point', 'power_generator', 'power_generator_area',
+        'power_heatmap_solar', 'power_transformer', 'power_compensator', 'power_switch',
+        'telecoms_communication_line', 'telecoms_data_center', 'telecoms_mast',
+        'petroleum_pipeline', 'petroleum_well', 'petroleum_site',
+        'water_pipeline', 'water', 'rainwater',
+      ]);
+
+      const tryAddOim = (spec, candidates) => {
+        if (map.getLayer(spec.id)) {
+          return candidates.find((c) => OIM_KNOWN.has(c)) || null;
+        }
+        for (const sl of candidates) {
+          if (!OIM_KNOWN.has(sl)) continue;
+          try {
+            add({ ...spec, 'source-layer': sl });
+            return sl;
+          } catch (err) {
+            if (map.getLayer(spec.id)) {
+              try { map.removeLayer(spec.id); } catch (_) { /* ignore */ }
+            }
+          }
+        }
+        // No known candidate: record UNKNOWN without adding a broken layer
+        return null;
+      };
+
+      if (!oimWaterOk.line) {
+        oimWaterOk.line = tryAddOim(
+          {
+            id: 'gis-oim-water-line',
+            type: 'line',
+            source: 'oim-power',
+            layout: { visibility: enabled.oimWater ? 'visible' : 'none' },
+            paint: {
+              'line-color': '#56b6c2',
+              'line-width': ['interpolate', ['linear'], ['zoom'], 6, 0.8, 12, 1.6, 16, 2.4],
+              'line-opacity': 0.85,
+            },
+            minzoom: 6,
+          },
+          ['water_pipeline', 'pipeline_water', 'waterway'],
+        );
+      }
+
+      // Water towers / treatment points are not in OIM TileJSON; leave UNKNOWN
+      if (oimWaterOk.point === null && !map.getLayer('gis-oim-water-pt')) {
+        oimWaterOk.point = tryAddOim(
+          {
+            id: 'gis-oim-water-pt',
+            type: 'circle',
+            source: 'oim-power',
+            layout: { visibility: enabled.oimWater ? 'visible' : 'none' },
+            paint: {
+              'circle-radius': 3.5,
+              'circle-color': '#4fc3f7',
+              'circle-opacity': 0.85,
+              'circle-stroke-width': 0.8,
+              'circle-stroke-color': 'rgba(0,0,0,0.45)',
+            },
+            minzoom: 9,
+          },
+          ['water_tower', 'water_treatment', 'water_point'],
+        );
+        // Explicit UNKNOWN if none matched (do not invent)
+        if (oimWaterOk.point === null) oimWaterOk.point = false;
+      }
+
+      if (!oimTelecomOk.line) {
+        oimTelecomOk.line = tryAddOim(
+          {
+            id: 'gis-oim-telecom-line',
+            type: 'line',
+            source: 'oim-power',
+            layout: { visibility: enabled.oimTelecom ? 'visible' : 'none' },
+            paint: {
+              'line-color': '#c678dd',
+              'line-width': ['interpolate', ['linear'], ['zoom'], 6, 0.7, 12, 1.5, 16, 2.2],
+              'line-opacity': 0.8,
+            },
+            minzoom: 6,
+          },
+          ['telecoms_communication_line', 'telecom_line', 'communication_line'],
+        );
+      }
+
+      if (!oimTelecomOk.mast) {
+        oimTelecomOk.mast = tryAddOim(
+          {
+            id: 'gis-oim-telecom-mast',
+            type: 'circle',
+            source: 'oim-power',
+            layout: { visibility: enabled.oimTelecom ? 'visible' : 'none' },
+            paint: {
+              'circle-radius': 3.2,
+              'circle-color': '#c678dd',
+              'circle-opacity': 0.9,
+              'circle-stroke-width': 0.9,
+              'circle-stroke-color': 'rgba(0,0,0,0.5)',
+            },
+            minzoom: 8,
+          },
+          ['telecoms_mast', 'telecom_mast', 'telecoms_data_center', 'data_center'],
+        );
+      }
     }
 
     const emptySrc = (id) => {
@@ -434,6 +581,7 @@ export function createGisController(map, popup, hooks = {}) {
     emptySrc('gis-wells-op');
     emptySrc('gis-wells-orphan');
     emptySrc('gis-nhd');
+    emptySrc('gis-nhd-wb');
     emptySrc('gis-fcc');
     emptySrc('gis-osm-dc');
 
@@ -564,10 +712,35 @@ export function createGisController(map, popup, hooks = {}) {
       source: 'gis-nhd',
       layout: { visibility: enabled.nhd ? 'visible' : 'none' },
       paint: {
-        'line-color': '#38bdf8',
-        'line-width': 1.2,
-        'line-opacity': 0.8,
+        'line-color': '#4fc3f7',
+        'line-width': 1.3,
+        'line-opacity': 0.82,
       },
+    });
+
+    addL({
+      id: 'gis-nhd-wb-fill',
+      type: 'fill',
+      source: 'gis-nhd-wb',
+      layout: { visibility: enabled.nhdWaterbodies ? 'visible' : 'none' },
+      paint: {
+        'fill-color': '#4fc3f7',
+        'fill-opacity': 0.22,
+      },
+      minzoom: 8,
+    });
+
+    addL({
+      id: 'gis-nhd-wb-outline',
+      type: 'line',
+      source: 'gis-nhd-wb',
+      layout: { visibility: enabled.nhdWaterbodies ? 'visible' : 'none' },
+      paint: {
+        'line-color': '#56b6c2',
+        'line-width': 0.9,
+        'line-opacity': 0.75,
+      },
+      minzoom: 8,
     });
 
     addL({
@@ -579,13 +752,13 @@ export function createGisController(map, popup, hooks = {}) {
         'fill-color': [
           'case',
           ['>', ['coalesce', ['to-number', ['get', 'ServedBSLsFiber']], 0], 0],
-          '#22d3ee',
+          '#5eead4',
           ['>', ['coalesce', ['to-number', ['get', 'ServedBSLs']], 0], 0],
-          '#64748b',
+          '#2dd4bf',
           '#334155',
         ],
-        'fill-opacity': 0.28,
-        'fill-outline-color': '#94a3b8',
+        'fill-opacity': 0.18,
+        'fill-outline-color': 'rgba(94, 234, 212, 0.35)',
       },
     });
 
@@ -664,9 +837,43 @@ export function createGisController(map, popup, hooks = {}) {
       {
         id: 'gis-nhd-line',
         html: (p) =>
-          popupGis(val(p, 'gnis_name', 'GNIS_NAME') || 'NHD flowline', [
+          popupGis(val(p, 'gnis_name', 'GNIS_NAME') || 'NHD watercourse', [
             popupRow('FType', esc(val(p, 'ftype', 'FType', 'fcode') || 'UNKNOWN')),
-          ], 'USGS NHD · CATALOG'),
+          ], 'USGS NHD watercourses · CATALOG'),
+      },
+      {
+        id: 'gis-nhd-wb-fill',
+        html: (p) =>
+          popupGis(val(p, 'gnis_name', 'GNIS_NAME') || 'NHD waterbody', [
+            popupRow('FType', esc(val(p, 'ftype', 'FType', 'FTYPE') || 'UNKNOWN')),
+            popupRow('Area km2', esc(val(p, 'areasqkm', 'AREASQKM') ?? 'UNKNOWN')),
+          ], 'USGS NHD waterbodies · CATALOG'),
+      },
+      {
+        id: 'gis-oim-water-line',
+        html: (p) =>
+          popupGis('OIM water pipeline', [
+            popupRow('Name', esc(val(p, 'name', 'Name') || 'UNKNOWN')),
+            popupRow('Operator', esc(val(p, 'operator', 'Operator') || 'UNKNOWN')),
+            popupRow('Note', 'OSM-mapped only · not utility ownership'),
+          ], 'OpenInfraMap water_pipeline · CATALOG'),
+      },
+      {
+        id: 'gis-oim-telecom-line',
+        html: (p) =>
+          popupGis('OIM telecom line', [
+            popupRow('Name', esc(val(p, 'name', 'Name') || 'UNKNOWN')),
+            popupRow('Operator', esc(val(p, 'operator', 'Operator') || 'UNKNOWN')),
+            popupRow('Note', 'OSM-mapped only · not as-built fiber'),
+          ], 'OpenInfraMap telecom · OSM_MAPPED_COMMS'),
+      },
+      {
+        id: 'gis-oim-telecom-mast',
+        html: (p) =>
+          popupGis(val(p, 'name', 'Name') || 'OIM telecom mast', [
+            popupRow('Operator', esc(val(p, 'operator', 'Operator') || 'UNKNOWN')),
+            popupRow('Note', 'OSM-mapped only · not as-built plant'),
+          ], 'OpenInfraMap telecoms_mast · OSM_MAPPED_COMMS'),
       },
       {
         id: 'gis-fcc-fill',
@@ -721,10 +928,15 @@ export function createGisController(map, popup, hooks = {}) {
     abort = new AbortController();
     const { signal } = abort;
 
-    // Static layer visibility (topo / oim)
+    // Static layer visibility (topo / oim power / oim water / oim telecom)
     setVis(map, 'gis-topo', enabled.topo);
     setVis(map, 'gis-oim-line', enabled.oim && oimStatus === 'ok');
     setVis(map, 'gis-oim-sub', enabled.oim && oimStatus === 'ok');
+    setVis(map, 'gis-oim-water-line', enabled.oimWater && !!oimWaterOk.line);
+    setVis(map, 'gis-oim-water-pt', enabled.oimWater && !!oimWaterOk.point);
+    setVis(map, 'gis-oim-telecom-line', enabled.oimTelecom && !!oimTelecomOk.line);
+    setVis(map, 'gis-oim-telecom-mast', enabled.oimTelecom && !!oimTelecomOk.mast);
+
     if (enabled.oim) {
       if (oimStatus === 'ok') setStatus('oim', 'ok', oimDetail);
       else setStatus('oim', 'unknown', oimDetail || 'OIM: UNKNOWN (tile CORS)');
@@ -733,6 +945,34 @@ export function createGisController(map, popup, hooks = {}) {
     }
     if (enabled.topo) setStatus('topo', 'ok', 'USGS topo underlay');
     else setStatus('topo', 'off', '');
+
+    if (enabled.oimWater) {
+      const parts = [];
+      if (oimWaterOk.line) parts.push(oimWaterOk.line);
+      else parts.push('pipeline UNKNOWN');
+      if (oimWaterOk.point) parts.push(oimWaterOk.point);
+      else parts.push('towers/treatment UNKNOWN');
+      const any = !!(oimWaterOk.line || oimWaterOk.point);
+      setStatus('oimWater', any ? 'ok' : 'unknown', parts.join(' · '));
+    } else {
+      setStatus('oimWater', 'off', '');
+    }
+
+    if (enabled.oimTelecom) {
+      const parts = [];
+      if (oimTelecomOk.line) parts.push(oimTelecomOk.line);
+      else parts.push('comms line UNKNOWN');
+      if (oimTelecomOk.mast) parts.push(oimTelecomOk.mast);
+      else parts.push('mast UNKNOWN');
+      const any = !!(oimTelecomOk.line || oimTelecomOk.mast);
+      setStatus(
+        'oimTelecom',
+        any ? 'ok' : 'unknown',
+        `${parts.join(' · ')} · OSM mapped only`,
+      );
+    } else {
+      setStatus('oimTelecom', 'off', '');
+    }
 
     const tasks = [];
 
@@ -809,6 +1049,7 @@ export function createGisController(map, popup, hooks = {}) {
       'wellsOp',
       'wellsOrphan',
       'nhd',
+      'nhdWaterbodies',
       'fcc',
     ]) {
       runArc(key);
@@ -867,6 +1108,14 @@ export function createGisController(map, popup, hooks = {}) {
     if (id === 'oim') {
       setVis(map, 'gis-oim-line', enabled.oim && oimStatus === 'ok');
       setVis(map, 'gis-oim-sub', enabled.oim && oimStatus === 'ok');
+    }
+    if (id === 'oimWater') {
+      setVis(map, 'gis-oim-water-line', enabled.oimWater && !!oimWaterOk.line);
+      setVis(map, 'gis-oim-water-pt', enabled.oimWater && !!oimWaterOk.point);
+    }
+    if (id === 'oimTelecom') {
+      setVis(map, 'gis-oim-telecom-line', enabled.oimTelecom && !!oimTelecomOk.line);
+      setVis(map, 'gis-oim-telecom-mast', enabled.oimTelecom && !!oimTelecomOk.mast);
     }
     scheduleRefresh();
   }
