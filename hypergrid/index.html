@@ -26,11 +26,11 @@
         <div class="titles">
           <h1>Siteline</h1>
           <p class="subtitle">Hypergrid overlay · NLT143 RESEARCH by David T Phung</p>
-          <p class="honesty-inline">Curated layers · not a full AI DC registry · not live MW</p>
+          <p class="honesty-inline">GIS · grid + Hypergrid curated · not live MW</p>
         </div>
       </div>
       <div class="topbar-actions">
-        <div class="honesty-pill" title="Scope and honesty">Curated · not live MW</div>
+        <div class="honesty-pill" title="Scope and honesty">CATALOG GIS · curated Hypergrid · not live MW</div>
         <button type="button" class="icon-btn" id="btn-layers" aria-expanded="false" aria-controls="layers-panel" aria-label="Layers">
           <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
             <path d="M2.5 11.2L9 14.5l6.5-3.3M2.5 9L9 12.3 15.5 9M2.5 6.8L9 3.5l6.5 3.3L9 10 2.5 6.8z" stroke="currentColor" stroke-width="1.35" stroke-linejoin="round"/>
@@ -63,27 +63,117 @@
       </div>
 
       <div class="panel-scroll">
+        <p class="gis-loading" id="gis-loading" hidden aria-live="polite">loading GIS…</p>
+
         <section class="panel-block">
-          <h2 class="desktop-only-heading">Layers</h2>
+          <h2>Basemap</h2>
+          <label class="toggle-row">
+            <input type="checkbox" id="layer-topo" checked data-gis="topo" />
+            <span class="swatch topo"></span>
+            <span class="toggle-label">USGS topo underlay</span>
+            <span class="truth-chip" title="Public tile catalog">CATALOG</span>
+          </label>
+          <p class="layer-hint" id="gis-status-topo"></p>
+        </section>
+
+        <section class="panel-block">
+          <h2>GIS · grid</h2>
+          <label class="toggle-row">
+            <input type="checkbox" id="layer-oim" checked data-gis="oim" />
+            <span class="swatch oim"></span>
+            <span class="toggle-label">OpenInfraMap power</span>
+            <span class="truth-chip">CATALOG</span>
+          </label>
+          <p class="layer-hint" id="gis-status-oim"></p>
+
+          <label class="toggle-row">
+            <input type="checkbox" id="layer-tx" checked data-gis="transmission" />
+            <span class="swatch tx"></span>
+            <span class="toggle-label">HIFLD transmission</span>
+            <span class="truth-chip">CATALOG</span>
+          </label>
+          <p class="layer-hint" id="gis-status-transmission"></p>
+
+          <label class="toggle-row">
+            <input type="checkbox" id="layer-subs" checked data-gis="substations" />
+            <span class="swatch subs"></span>
+            <span class="toggle-label">HIFLD substations</span>
+            <span class="truth-chip">CATALOG</span>
+          </label>
+          <p class="layer-hint" id="gis-status-substations"></p>
+
+          <label class="toggle-row">
+            <input type="checkbox" id="layer-plants" checked data-gis="plants" />
+            <span class="swatch plants"></span>
+            <span class="toggle-label">EIA plants</span>
+            <span class="truth-chip">CATALOG</span>
+          </label>
+          <p class="layer-hint" id="gis-status-plants"></p>
+
+          <label class="toggle-row">
+            <input type="checkbox" id="layer-wells-op" data-gis="wellsOp" />
+            <span class="swatch wells-op"></span>
+            <span class="toggle-label">NETL operating wells</span>
+            <span class="truth-chip">CATALOG</span>
+          </label>
+          <p class="layer-hint" id="gis-status-wellsOp"></p>
+
+          <label class="toggle-row">
+            <input type="checkbox" id="layer-wells-orphan" data-gis="wellsOrphan" />
+            <span class="swatch wells-orphan"></span>
+            <span class="toggle-label">NETL orphaned wells</span>
+            <span class="truth-chip">CATALOG</span>
+          </label>
+          <p class="layer-hint" id="gis-status-wellsOrphan"></p>
+
+          <label class="toggle-row">
+            <input type="checkbox" id="layer-nhd" data-gis="nhd" />
+            <span class="swatch nhd"></span>
+            <span class="toggle-label">NHD flowlines</span>
+            <span class="truth-chip">CATALOG</span>
+          </label>
+          <p class="layer-hint" id="gis-status-nhd"></p>
+
+          <label class="toggle-row">
+            <input type="checkbox" id="layer-fcc" data-gis="fcc" />
+            <span class="swatch fcc"></span>
+            <span class="toggle-label">FCC BDC availability</span>
+            <span class="truth-chip">CATALOG</span>
+          </label>
+          <p class="layer-hint" id="gis-status-fcc"></p>
+
+          <label class="toggle-row">
+            <input type="checkbox" id="layer-osm-dc" data-gis="osmDc" />
+            <span class="swatch osm-dc"></span>
+            <span class="toggle-label">OSM data centers</span>
+            <span class="truth-chip">CATALOG</span>
+          </label>
+          <p class="layer-hint" id="gis-status-osmDc"></p>
+
+          <p class="note-inline">Plant MW = nameplate catalog, not interconnect. HIFLD has no transformer MVA. FCC = availability, not as-built fiber.</p>
+        </section>
+
+        <section class="panel-block">
+          <h2>Hypergrid · curated</h2>
           <label class="toggle-row">
             <input type="checkbox" id="layer-dcs" checked />
             <span class="swatch dc"></span>
-            <span>Hypergrid AI DCs</span>
+            <span class="toggle-label">Hypergrid AI DCs</span>
           </label>
           <label class="toggle-row">
             <input type="checkbox" id="layer-commitments" checked />
             <span class="swatch commit"></span>
-            <span>Hypergrid commitments</span>
+            <span class="toggle-label">Hypergrid commitments</span>
           </label>
           <label class="toggle-row">
             <input type="checkbox" id="layer-policy" />
             <span class="swatch policy"></span>
-            <span>Hypergrid policy</span>
+            <span class="toggle-label">Hypergrid policy</span>
           </label>
         </section>
 
         <section class="panel-block">
-          <h2>DC filters</h2>
+          <h2>Filters</h2>
           <div class="chip-row" role="group" aria-label="Datacenter filters">
             <button type="button" class="chip active" data-dc-filter="all">All</button>
             <button type="button" class="chip" data-dc-filter="ai">AI-oriented only</button>
@@ -112,11 +202,19 @@
               <div class="legend-item"><span class="sq dc"></span> Datacenter</div>
               <div class="legend-item"><span class="sq other"></span> Other / mixed</div>
             </div>
+            <div class="legend-group">
+              <p class="legend-label">GIS · grid</p>
+              <div class="legend-item"><span class="line tx"></span> Transmission (voltage)</div>
+              <div class="legend-item"><span class="sq subs"></span> Substations</div>
+              <div class="legend-item"><span class="dot plants"></span> EIA plants</div>
+              <div class="legend-item"><span class="dot wells-op"></span> Operating wells</div>
+              <div class="legend-item"><span class="dot wells-orphan"></span> Orphaned wells</div>
+            </div>
           </div>
         </details>
 
         <section class="panel-block note">
-          <p>OSM / OpenInfraMap datacenters live on main Siteline. This overlay prioritizes Hypergrid curated layers plus the UK carbon live strip.</p>
+          <p>Public GIS · grid restored alongside Hypergrid curated layers and the UK carbon live strip. OSM Overpass DCs are OFF by default (rate-limit sensitive).</p>
         </section>
       </div>
     </aside>
@@ -164,7 +262,9 @@
     <footer class="footer">
       <span>Built by <a href="https://x.com/davidtphung" target="_blank" rel="noopener noreferrer">David T Phung</a></span>
       <span class="sep">·</span>
-      <span>Data: <a href="https://hypergrid.davidtphung.com/" target="_blank" rel="noopener noreferrer">HYPERGRID</a></span>
+      <span>USGS · EIA · HIFLD · NETL · NHD · FCC · Hypergrid · UK ESO</span>
+      <span class="sep">·</span>
+      <span><a href="https://hypergrid.davidtphung.com/" target="_blank" rel="noopener noreferrer">HYPERGRID</a></span>
     </footer>
   </div>
 

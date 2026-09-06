@@ -3,6 +3,7 @@
  * NLT143 RESEARCH by David T Phung
  */
 import maplibregl from 'https://esm.sh/maplibre-gl@4.7.1';
+import { createGisController, GIS_LAYERS } from './siteline-gis.js';
 
 const DC_URL = './data/hypergrid-datacenters.geojson';
 const COMMIT_URL = './data/hypergrid-commitments.geojson';
@@ -96,6 +97,7 @@ let policyGeo = null;
 let dcFilter = 'all'; // all | ai | us
 let popup;
 let openSheetId = null; // 'layers' | 'live' | null
+let gisController = null;
 
 function esc(s) {
   return String(s ?? '')
@@ -478,8 +480,43 @@ function wireSheets() {
   else if (typeof mq.addListener === 'function') mq.addListener(onBreak);
 }
 
+function setGisStatus(id, state, detail) {
+  const el = document.getElementById(`gis-status-${id}`);
+  if (!el) return;
+  el.className = 'layer-hint';
+  if (!state || state === 'off') {
+    el.textContent = '';
+    return;
+  }
+  el.classList.add(`is-${state}`);
+  if (state === 'loading') el.textContent = detail || 'loading…';
+  else if (state === 'idle') el.textContent = detail || '';
+  else if (state === 'ok') el.textContent = detail || 'ok';
+  else if (state === 'empty') el.textContent = detail || '0 in view';
+  else if (state === 'cors') el.textContent = detail || 'CORS / UNKNOWN';
+  else if (state === 'unknown') el.textContent = detail || 'UNKNOWN';
+  else el.textContent = detail || state;
+}
+
+function setGisLoading(on) {
+  const el = document.getElementById('gis-loading');
+  if (!el) return;
+  el.hidden = !on;
+}
+
+function wireGisToggles() {
+  document.querySelectorAll('[data-gis]').forEach((input) => {
+    input.addEventListener('change', (e) => {
+      const id = e.target.getAttribute('data-gis');
+      if (!id || !gisController) return;
+      gisController.setEnabled(id, e.target.checked);
+    });
+  });
+}
+
 function wireUi() {
   wireSheets();
+  wireGisToggles();
 
   document.getElementById('layer-dcs')?.addEventListener('change', (e) => {
     setLayerVisibility('hypergrid-dcs-circle', e.target.checked);
@@ -705,6 +742,27 @@ async function init() {
     }
 
     addHypergridLayers();
+
+    // GIS · grid (bbox query layers + topo / OIM). Keep Hypergrid on top.
+    if (!gisController) {
+      gisController = createGisController(map, popup, {
+        onLoading: setGisLoading,
+        onStatus: setGisStatus,
+      });
+      // Sync checkbox defaults from GIS_LAYERS / DOM
+      document.querySelectorAll('[data-gis]').forEach((input) => {
+        const id = input.getAttribute('data-gis');
+        if (!id) return;
+        const def = GIS_LAYERS[id];
+        if (def) {
+          input.checked = !!def.defaultOn;
+          gisController.setEnabled(id, input.checked);
+        }
+      });
+    } else {
+      gisController.refresh();
+    }
+
     await refreshLiveFeeds();
   }
 
