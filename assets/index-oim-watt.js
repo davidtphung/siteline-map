@@ -367,46 +367,6 @@ function Ft(e, t, a) {
     detail: "OpenInfraMap tiles failed. Layer marked UNKNOWN."
   }))
 }
-async function Wt(e) {
-  var p, d, m, b, N, S, L, l, W;
-  const t = e.ymin.toFixed(5),
-    a = e.xmin.toFixed(5),
-    r = e.ymax.toFixed(5),
-    o = e.xmax.toFixed(5),
-    s = `
-[out:json][timeout:25];
-(
-  way["communication"="line"](${t},${a},${r},${o});
-  way["telecom"="line"](${t},${a},${r},${o});
-  way["communication"="cable"](${t},${a},${r},${o});
-);
-out tags center 40;
-`.trim();
-  const i = await oe(se(E.overpass, {
-      data: s
-    })),
-    u = [];
-  for (const h of i.elements || []) {
-    const w = h.lat ?? ((p = h.center) == null ? void 0 : p.lat),
-      v = h.lon ?? ((d = h.center) == null ? void 0 : d.lon);
-    if (w == null || v == null) continue;
-    const f = (h.tags || {});
-    u.push({
-      osmId: `${h.type}/${h.id}`,
-      lon: v,
-      lat: w,
-      name: ((b = f.name) == null ? void 0 : b.trim()) || null,
-      operator: ((S = f.operator) == null ? void 0 : S.trim()) || null,
-      ref: ((l = f.ref) == null ? void 0 : l.trim()) || null
-    });
-    if (u.length >= 40) break
-  }
-  return {
-    lines: u,
-    asOf: Xe((W = i.osm3s) == null ? void 0 : W.timestamp_osm_base)
-  }
-}
-
 function Ze(e) {
   return {
     type: "FeatureCollection",
@@ -1509,7 +1469,7 @@ function st({
         value: e.broadband.note
       }),       n(y, {
         label: "As-built fiber / conduit",
-        value: e.broadband.asBuiltFiber || "UNKNOWN",
+        value: e.broadband.asBuiltFiber || "UNKNOWN — FCC BDC is availability only. OSM / OpenInfraMap telecom lines appear on the map only where mapped.",
         grade: e.broadband.asBuiltFiberGrade || "UNKNOWN"
       }), n("div", {
         className: "section-label",
@@ -2241,18 +2201,8 @@ async function Ot(e, t, a = he, r) {
     o.push(`Flood: ${U(g,"hazards.fema.gov").message}`), s.push("FEMA flood flag")
   }
   const h = await St(e, t, o, s);
-  try {
-    const {
-      lines: qt,
-      asOf: qtAsOf
-    } = await Wt(P(e, t, a));
-    qt.length ? (h.asBuiltFiber = `${qt.length} OSM / OpenInfraMap mapped telecom line(s) in search window · as-of ${qtAsOf}`, h.asBuiltFiberGrade = "CATALOG", (() => {
-      const idx = s.findIndex(g => typeof g == "string" && g.startsWith("As-built fiber"));
-      idx >= 0 && s.splice(idx, 1)
-    })()) : (h.asBuiltFiber = "UNKNOWN — no OSM / OpenInfraMap telecom line in search window. FCC BDC is availability only.", h.asBuiltFiberGrade = "UNKNOWN")
-  } catch (g) {
-    o.push(`OSM / OpenInfraMap telecom: ${U(g,"overpass-api.de").message}`), h.asBuiltFiber = "UNKNOWN", h.asBuiltFiberGrade = "UNKNOWN"
-  }
+  h.asBuiltFiber = "UNKNOWN — FCC BDC is availability only. OSM / OpenInfraMap telecom lines appear on the map only where mapped.";
+  h.asBuiltFiberGrade = "UNKNOWN";
   const w = {
       focused: !!(r != null && r.datacenter),
       name: ((M = r == null ? void 0 : r.datacenter) == null ? void 0 : M.name) ?? null,
