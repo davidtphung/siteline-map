@@ -1,1 +1,1 @@
-PLACEHOLDER_READ_FROM_DISK
+var Ee=Object.defineProperty;var We=(e,t,a)=>t in e?Ee(e,t,{enumerable:!0,configurable:!0,writable:!0,value:a}):e[t]=a;var pe=(e,t,a)=>We(e,typeof t!="symbol"?t+"":t,a);import{jsxs as A,jsx as n,Fragment as Fe}from"react/jsx-runtime";import{useRef as K,useEffect as z,useState as I,useCallback as $,StrictMode as Te}from"react";import{createRoot as xe}from"react-dom/client";import Q from"maplibre-gl";SEE_DISK_FILE
