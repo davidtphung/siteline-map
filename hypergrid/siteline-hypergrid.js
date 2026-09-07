@@ -3,9 +3,9 @@
  * NLT143 RESEARCH by David T Phung
  */
 import maplibregl from 'https://esm.sh/maplibre-gl@4.7.1';
-import { createGisController, GIS_LAYERS } from 'https://cdn.jsdelivr.net/gh/davidtphung/siteline-map@hypergrid-live/hypergrid/siteline-gis.js';
+import { createGisController, GIS_LAYERS } from 'https://cdn.jsdelivr.net/gh/davidtphung/siteline-map@03cd533b2079081d4b04085589663ab80040e03a/hypergrid/siteline-gis.js';
 
-const CDN_HYPERGRID = 'https://cdn.jsdelivr.net/gh/davidtphung/siteline-map@hypergrid-live/hypergrid';
+const CDN_HYPERGRID = 'https://cdn.jsdelivr.net/gh/davidtphung/siteline-map@03cd533b2079081d4b04085589663ab80040e03a/hypergrid';
 const DC_URL = `${CDN_HYPERGRID}/data/hypergrid-datacenters.geojson`;
 const COMMIT_URL = `${CDN_HYPERGRID}/data/hypergrid-commitments.geojson`;
 const POLICY_URL = `${CDN_HYPERGRID}/data/hypergrid-policy.geojson`;
