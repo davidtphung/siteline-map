@@ -1,5 +1,5 @@
-/** Siteline enhance base64 loader (instrument tray). */
-const PARTS = ['siteline-enhance.b0.txt', 'siteline-enhance.b1.txt', 'siteline-enhance.b2.txt', 'siteline-enhance.b3.txt', 'siteline-enhance.b4.txt', 'siteline-enhance.b5.txt', 'siteline-enhance.b6.txt', 'siteline-enhance.b7.txt', 'siteline-enhance.b8.txt', 'siteline-enhance.b9.txt', 'siteline-enhance.b10.txt'];
+/** Siteline enhance gzip+b64 multi-part loader (instrument tray). */
+const PARTS = ['siteline-enhance.gz0.txt', 'siteline-enhance.gz1.txt', 'siteline-enhance.gz2.txt', 'siteline-enhance.gz3.txt', 'siteline-enhance.gz4.txt'];
 (async () => {
   try {
     const base = new URL('.', import.meta.url);
@@ -12,10 +12,9 @@ const PARTS = ['siteline-enhance.b0.txt', 'siteline-enhance.b1.txt', 'siteline-e
       ),
     );
     const b64 = texts.join('').replace(/\s+/g, '');
-    const bin = atob(b64);
-    const bytes = new Uint8Array(bin.length);
-    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-    const code = new TextDecoder().decode(bytes);
+    const bin = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+    const stream = new Blob([bin]).stream().pipeThrough(new DecompressionStream('gzip'));
+    const code = await new Response(stream).text();
     const s = document.createElement('script');
     s.textContent = code;
     document.head.appendChild(s);
