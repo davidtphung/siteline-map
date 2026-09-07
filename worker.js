@@ -9,7 +9,7 @@ const BRAND_ROUTES = {
   "/favicon-32.png": ["/brand/favicon-32.png.b64"],
   "/apple-touch-icon.png": ["/brand/apple-touch-icon.png.b64"],
   "/icon-192.png": ["/brand/icon-192.png.b64"],
-  "/og-image.png": ["/brand/og-image.png.b64"],
+  "/og-image.png": ["/brand/og-image.png.b64.part1", "/brand/og-image.png.b64.part2"],
 };
 
 function corsHeaders(request) {
