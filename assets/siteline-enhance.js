@@ -1,5 +1,5 @@
-/** Siteline enhance base64 loader (Observe|GIS). */
-const PARTS = ["siteline-enhance.b0.txt", "siteline-enhance.b1.txt", "siteline-enhance.b2.txt", "siteline-enhance.b3.txt", "siteline-enhance.b4.txt", "siteline-enhance.b5.txt", "siteline-enhance.b6.txt", "siteline-enhance.b7.txt", "siteline-enhance.b8.txt", "siteline-enhance.b9.txt", "siteline-enhance.b10.txt"];
+/** Siteline enhance base64 loader (instrument tray). */
+const PARTS = ['siteline-enhance.b0.txt', 'siteline-enhance.b1.txt', 'siteline-enhance.b2.txt', 'siteline-enhance.b3.txt', 'siteline-enhance.b4.txt', 'siteline-enhance.b5.txt', 'siteline-enhance.b6.txt', 'siteline-enhance.b7.txt', 'siteline-enhance.b8.txt', 'siteline-enhance.b9.txt', 'siteline-enhance.b10.txt'];
 (async () => {
   try {
     const base = new URL('.', import.meta.url);
