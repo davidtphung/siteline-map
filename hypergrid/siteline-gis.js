@@ -4,7 +4,8 @@
  *
  * Honesty: plant MW = nameplate catalog not interconnect;
  * HIFLD has no transformer MVA; FCC = availability not as-built fiber;
- * OIM water/telecom = OSM-mapped only. Never invent MW/MVA/headroom or as-built routes.
+ * OIM water/telecom = OSM-mapped only. EPQS = point elevation only.
+ * Never invent MW/MVA/headroom or as-built routes.
  */
 export const GIS_DEBOUNCE_MS = 400;
 export const GIS_RECORD_CAP = 2000;
@@ -18,6 +19,7 @@ export const ESRI_TOPO_TILES = [
 export const OIM_TILES = ['https://openinframap.org/tiles/{z}/{x}/{y}.pbf'];
 export const OIM_TILEJSON = 'https://openinframap.org/map.json';
 export const OVERPASS_URL = 'https://overpass-api.de/api/interpreter';
+export const EPQS_URL = 'https://epqs.nationalmap.gov/v1/json';
 
 const FCC_BASE =
   'https://services8.arcgis.com/peDZJliSvYims39Q/arcgis/rest/services/FCC_Broadband_Data_Collection_December_2024_View/FeatureServer';
@@ -168,6 +170,45 @@ export const GIS_LAYERS = {
     truth: 'OSM_MAPPED_COMMS',
     sourceNote: 'OpenInfraMap telecom · OSM-mapped only · not as-built plant',
   },
+  wellsNm: {
+    id: 'wellsNm',
+    label: 'NM OCD wells',
+    kind: 'arcgis',
+    url: 'https://services5.arcgis.com/f4lpEvI6fkgVYigk/ArcGIS/rest/services/New_Mexico_Oil_and_Gas_Wells__Nov2024/FeatureServer/30/query',
+    geom: 'point',
+    sourceId: 'gis-wells-nm',
+    layerIds: ['gis-wells-nm-pt'],
+    defaultOn: false,
+    minZoom: 7,
+    truth: 'CATALOG',
+    sourceNote: 'NM OCD wells Nov2024',
+  },
+  wellsCo: {
+    id: 'wellsCo',
+    label: 'CO OGCC wells',
+    kind: 'arcgis',
+    url: 'https://data.dnrgis.state.co.us/arcgis/rest/services/DNR_Public/OGCC_Wells/FeatureServer/0/query',
+    geom: 'point',
+    sourceId: 'gis-wells-co',
+    layerIds: ['gis-wells-co-pt'],
+    defaultOn: false,
+    minZoom: 7,
+    truth: 'CATALOG',
+    sourceNote: 'CO OGCC wells',
+  },
+  flood: {
+    id: 'flood',
+    label: 'FEMA flood (NFHL)',
+    kind: 'arcgis',
+    url: 'https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/28/query',
+    geom: 'polygon',
+    sourceId: 'gis-flood',
+    layerIds: ['gis-flood-fill', 'gis-flood-outline'],
+    defaultOn: false,
+    minZoom: 9,
+    truth: 'CATALOG',
+    sourceNote: 'FEMA NFHL flood hazard zones',
+  },
   osmDc: {
     id: 'osmDc',
     label: 'OSM data centers',
@@ -305,6 +346,27 @@ out center tags 200;
   }
   return { type: 'FeatureCollection', features };
 }
+
+
+async function fetchEpqsElevation(lng, lat, signal) {
+  const url = new URL(EPQS_URL);
+  url.searchParams.set('x', String(lng));
+  url.searchParams.set('y', String(lat));
+  url.searchParams.set('units', 'Feet');
+  url.searchParams.set('wkid', '4326');
+  const res = await fetch(url.toString(), {
+    method: 'GET',
+    mode: 'cors',
+    credentials: 'omit',
+    signal,
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const json = await res.json();
+  const raw = typeof json.value === 'string' ? parseFloat(json.value) : json.value;
+  return typeof raw === 'number' && !Number.isNaN(raw) ? raw : null;
+}
+
+export { fetchEpqsElevation };
 
 function setVis(map, layerId, on) {
   if (!map.getLayer(layerId)) return;
@@ -580,6 +642,9 @@ export function createGisController(map, popup, hooks = {}) {
     emptySrc('gis-plants');
     emptySrc('gis-wells-op');
     emptySrc('gis-wells-orphan');
+    emptySrc('gis-wells-nm');
+    emptySrc('gis-wells-co');
+    emptySrc('gis-flood');
     emptySrc('gis-nhd');
     emptySrc('gis-nhd-wb');
     emptySrc('gis-fcc');
@@ -876,6 +941,42 @@ export function createGisController(map, popup, hooks = {}) {
           ], 'OpenInfraMap telecoms_mast · OSM_MAPPED_COMMS'),
       },
       {
+        id: 'gis-wells-nm-pt',
+        html: (p) =>
+          popupGis('NM OCD well', [
+            popupRow('API', esc(val(p, 'api', 'API', 'api_number', 'API_NUMBER') || 'UNKNOWN')),
+            popupRow('Status', esc(val(p, 'status', 'STATUS', 'well_status') || 'UNKNOWN')),
+            popupRow('Operator', esc(val(p, 'operator', 'OPERATOR', 'ogrid_name') || 'UNKNOWN')),
+          ], 'NM OCD wells · CATALOG'),
+      },
+      {
+        id: 'gis-wells-co-pt',
+        html: (p) =>
+          popupGis('CO OGCC well', [
+            popupRow('API', esc(val(p, 'api', 'API', 'API_Label', 'api_label') || 'UNKNOWN')),
+            popupRow('Facil_Stat', esc(val(p, 'Facil_Stat', 'facil_stat', 'status') || 'UNKNOWN')),
+            popupRow('Operator', esc(val(p, 'Operator', 'operator', 'OPERATOR') || 'UNKNOWN')),
+          ], 'CO OGCC wells · CATALOG'),
+      },
+      {
+        id: 'gis-flood-fill',
+        html: (p) =>
+          popupGis('FEMA flood (NFHL)', [
+            popupRow('Zone', esc(val(p, 'FLD_ZONE', 'fld_zone') || 'UNKNOWN')),
+            popupRow('Subtype', esc(val(p, 'ZONE_SUBTY', 'zone_subty') || 'UNKNOWN')),
+            popupRow('SFHA', esc(val(p, 'SFHA_TF', 'sfha_tf') || 'UNKNOWN')),
+          ], 'FEMA NFHL · CATALOG'),
+      },
+      {
+        id: 'gis-flood-outline',
+        html: (p) =>
+          popupGis('FEMA flood (NFHL)', [
+            popupRow('Zone', esc(val(p, 'FLD_ZONE', 'fld_zone') || 'UNKNOWN')),
+            popupRow('Subtype', esc(val(p, 'ZONE_SUBTY', 'zone_subty') || 'UNKNOWN')),
+            popupRow('SFHA', esc(val(p, 'SFHA_TF', 'sfha_tf') || 'UNKNOWN')),
+          ], 'FEMA NFHL · CATALOG'),
+      },
+      {
         id: 'gis-fcc-fill',
         html: (p) =>
           popupGis('FCC BDC availability', [
@@ -1048,6 +1149,9 @@ export function createGisController(map, popup, hooks = {}) {
       'plants',
       'wellsOp',
       'wellsOrphan',
+      'wellsNm',
+      'wellsCo',
+      'flood',
       'nhd',
       'nhdWaterbodies',
       'fcc',
@@ -1149,8 +1253,183 @@ export function createGisController(map, popup, hooks = {}) {
       scheduleRefresh();
     });
 
+  function collectInteractiveLayerIds(extra = []) {
+    const ids = [];
+    const push = (lid) => {
+      if (lid && map.getLayer(lid) && !ids.includes(lid)) ids.push(lid);
+    };
+    for (const def of Object.values(GIS_LAYERS)) {
+      for (const lid of def.layerIds || []) push(lid);
+    }
+    for (const lid of [
+      'gis-oim-line',
+      'gis-oim-sub',
+      'gis-oim-water-line',
+      'gis-oim-water-pt',
+      'gis-oim-telecom-line',
+      'gis-oim-telecom-mast',
+    ]) {
+      push(lid);
+    }
+    for (const lid of extra) push(lid);
+    return ids;
+  }
+
+  function nearbyHitCounts(point, extraLayers = []) {
+    const layers = collectInteractiveLayerIds(extraLayers);
+    if (!layers.length) return [];
+    const pad = 14;
+    const box = [
+      [point.x - pad, point.y - pad],
+      [point.x + pad, point.y + pad],
+    ];
+    let feats = [];
+    try {
+      feats = map.queryRenderedFeatures(box, { layers });
+    } catch (_) {
+      feats = [];
+    }
+    const byLabel = new Map();
+    const labelFor = (layerId) => {
+      for (const def of Object.values(GIS_LAYERS)) {
+        if ((def.layerIds || []).includes(layerId)) return def.label;
+      }
+      if (layerId.startsWith('gis-oim-water')) return 'OIM water';
+      if (layerId.startsWith('gis-oim-telecom')) return 'OIM telecom';
+      if (layerId.startsWith('gis-oim')) return 'OpenInfraMap power';
+      if (layerId.startsWith('hypergrid-dcs')) return 'Hypergrid AI DCs';
+      if (layerId.startsWith('hypergrid-commit')) return 'Hypergrid commitments';
+      if (layerId.startsWith('hypergrid-policy')) return 'Hypergrid policy';
+      return layerId;
+    };
+    for (const f of feats) {
+      const lid = f.layer?.id;
+      if (!lid) continue;
+      const label = labelFor(lid);
+      byLabel.set(label, (byLabel.get(label) || 0) + 1);
+    }
+    return [...byLabel.entries()]
+      .map(([label, count]) => ({ label, count }))
+      .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
+  }
+
+  let pinMarker = null;
+  let pinAbort = null;
+  let pinBriefBound = false;
+
+  function hidePinBrief() {
+    const el = hooks.pinBriefEl || document.getElementById('pin-brief');
+    if (el) {
+      el.hidden = true;
+      el.innerHTML = '';
+    }
+    if (pinMarker) {
+      pinMarker.remove();
+      pinMarker = null;
+    }
+  }
+
+  function renderPinBrief(el, { lng, lat, elevFt, hits, loading, error }) {
+    const elevTxt =
+      loading
+        ? 'loading…'
+        : elevFt == null
+          ? 'UNKNOWN'
+          : `${Math.round(elevFt).toLocaleString()} ft`;
+    const hitRows =
+      hits && hits.length
+        ? hits
+            .slice(0, 8)
+            .map(
+              (h) =>
+                `<div class="pin-brief-hit"><span>${esc(h.label)}</span><strong>${h.count}</strong></div>`,
+            )
+            .join('')
+        : '<p class="pin-brief-note">No enabled layer hits in pin neighborhood.</p>';
+    el.innerHTML = `
+      <div class="pin-brief-chrome">
+        <div class="pin-brief-title-row">
+          <h3>Pinned · CATALOG</h3>
+          <button type="button" class="pin-brief-close" aria-label="Close pin brief">×</button>
+        </div>
+      </div>
+      <div class="pin-brief-body">
+        <div class="pin-brief-row"><span>Coordinates</span><strong>${lat.toFixed(5)}, ${lng.toFixed(5)}</strong></div>
+        <div class="pin-brief-row"><span>Elevation</span><strong>${esc(elevTxt)}</strong></div>
+        <p class="pin-brief-note">EPQS point elevation only · USGS National Map</p>
+        ${error ? `<p class="pin-brief-error">${esc(error)}</p>` : ''}
+        <div class="pin-brief-subhead">Nearby enabled hits</div>
+        ${hitRows}
+        <p class="pin-brief-note">Hit counts from visible rendered features near pin. Not a full inventory.</p>
+      </div>`;
+    el.hidden = false;
+    el.querySelector('.pin-brief-close')?.addEventListener('click', () => hidePinBrief());
+  }
+
+  function bindPinBrief() {
+    if (pinBriefBound) return;
+    pinBriefBound = true;
+    const extra = () => hooks.extraInteractiveLayers?.() || hooks.extraInteractiveLayers || [];
+
+    map.on('click', async (e) => {
+      const layerIds = collectInteractiveLayerIds(extra());
+      let hitsAtPoint = [];
+      try {
+        hitsAtPoint = layerIds.length
+          ? map.queryRenderedFeatures(e.point, { layers: layerIds })
+          : [];
+      } catch (_) {
+        hitsAtPoint = [];
+      }
+      if (hitsAtPoint.length) return;
+
+      const el = hooks.pinBriefEl || document.getElementById('pin-brief');
+      if (!el) return;
+
+      const { lng, lat } = e.lngLat;
+      if (pinAbort) pinAbort.abort();
+      pinAbort = new AbortController();
+
+      if (pinMarker) {
+        pinMarker.remove();
+        pinMarker = null;
+      }
+      const MarkerCtor = hooks.Marker;
+      if (MarkerCtor) {
+        try {
+          pinMarker = new MarkerCtor({ color: '#4da3ff' })
+            .setLngLat([lng, lat])
+            .addTo(map);
+        } catch (_) {
+          pinMarker = null;
+        }
+      }
+
+      try { popup.remove(); } catch (_) { /* ignore */ }
+
+      const hits = nearbyHitCounts(e.point, extra());
+      renderPinBrief(el, { lng, lat, elevFt: null, hits, loading: true });
+
+      try {
+        const elev = await fetchEpqsElevation(lng, lat, pinAbort.signal);
+        renderPinBrief(el, { lng, lat, elevFt: elev, hits, loading: false });
+      } catch (err) {
+        if (pinAbort.signal.aborted) return;
+        renderPinBrief(el, {
+          lng,
+          lat,
+          elevFt: null,
+          hits,
+          loading: false,
+          error: err?.message || 'EPQS failed',
+        });
+      }
+    });
+  }
+
   ensureSourcesAndLayers();
   bindPopups();
+  bindPinBrief();
   map.on('moveend', scheduleRefresh);
   scheduleRefresh();
 
@@ -1159,5 +1438,6 @@ export function createGisController(map, popup, hooks = {}) {
     isEnabled,
     refresh: scheduleRefresh,
     getOimStatus: () => ({ status: oimStatus, detail: oimDetail }),
+    hidePinBrief,
   };
 }

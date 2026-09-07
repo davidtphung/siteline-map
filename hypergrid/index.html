@@ -126,6 +126,23 @@
           </label>
           <p class="layer-hint" id="gis-status-wellsOrphan"></p>
 
+          <h3 class="panel-subhead">State wells</h3>
+          <label class="toggle-row">
+            <input type="checkbox" id="layer-wells-nm" data-gis="wellsNm" />
+            <span class="swatch wells-nm"></span>
+            <span class="toggle-label">NM OCD wells</span>
+            <span class="truth-chip">CATALOG</span>
+          </label>
+          <p class="layer-hint" id="gis-status-wellsNm"></p>
+
+          <label class="toggle-row">
+            <input type="checkbox" id="layer-wells-co" data-gis="wellsCo" />
+            <span class="swatch wells-co"></span>
+            <span class="toggle-label">CO OGCC wells</span>
+            <span class="truth-chip">CATALOG</span>
+          </label>
+          <p class="layer-hint" id="gis-status-wellsCo"></p>
+
           <label class="toggle-row">
             <input type="checkbox" id="layer-osm-dc" data-gis="osmDc" />
             <span class="swatch osm-dc"></span>
@@ -179,6 +196,18 @@
           <p class="layer-hint" id="gis-status-oimTelecom"></p>
 
           <p class="note-inline">As-built fiber routes / conduit UNKNOWN. FCC is availability. OIM is OSM-mapped only.</p>
+        </section>
+
+        <section class="panel-block">
+          <h2>Hazards</h2>
+          <label class="toggle-row">
+            <input type="checkbox" id="layer-flood" data-gis="flood" />
+            <span class="swatch flood"></span>
+            <span class="toggle-label">FEMA flood (NFHL)</span>
+            <span class="truth-chip">CATALOG</span>
+          </label>
+          <p class="layer-hint" id="gis-status-flood"></p>
+          <p class="note-inline">FEMA NFHL flood hazard zones. OFF by default. Zoom 9+.</p>
         </section>
 
         <section class="panel-block">
@@ -237,6 +266,12 @@
               <div class="legend-item"><span class="dot plants"></span> EIA plants</div>
               <div class="legend-item"><span class="dot wells-op"></span> Operating wells</div>
               <div class="legend-item"><span class="dot wells-orphan"></span> Orphaned wells</div>
+              <div class="legend-item"><span class="dot wells-nm"></span> NM OCD wells</div>
+              <div class="legend-item"><span class="dot wells-co"></span> CO OGCC wells</div>
+            </div>
+            <div class="legend-group">
+              <p class="legend-label">Hazards</p>
+              <div class="legend-item"><span class="poly flood"></span> FEMA flood (NFHL)</div>
             </div>
             <div class="legend-group">
               <p class="legend-label">Water · cooling proxy</p>
@@ -253,7 +288,7 @@
         </details>
 
         <section class="panel-block note">
-          <p>Public GIS · grid restored alongside Hypergrid curated layers and the UK carbon live strip. OSM Overpass DCs are OFF by default (rate-limit sensitive).</p>
+          <p>Public GIS · grid restored alongside Hypergrid curated layers and the UK carbon live strip. OSM Overpass DCs, state wells, and FEMA flood are OFF by default. Click empty map for EPQS elevation pin brief.</p>
         </section>
       </div>
     </aside>
@@ -298,10 +333,12 @@
       </div>
     </div>
 
+    <aside class="pin-brief" id="pin-brief" hidden aria-live="polite" aria-label="Pinned location brief"></aside>
+
     <footer class="footer">
       <span>Built by <a href="https://x.com/davidtphung" target="_blank" rel="noopener noreferrer">David T Phung</a></span>
       <span class="sep">·</span>
-      <span>USGS · EIA · HIFLD · NETL · NHD · FCC · Hypergrid · UK ESO</span>
+      <span>USGS · EIA · HIFLD · NETL · NHD · FCC · FEMA · EPQS · Hypergrid · UK ESO</span>
       <span class="sep">·</span>
       <span><a href="https://hypergrid.davidtphung.com/" target="_blank" rel="noopener noreferrer">HYPERGRID</a></span>
     </footer>

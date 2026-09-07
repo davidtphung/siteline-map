@@ -748,6 +748,14 @@ async function init() {
       gisController = createGisController(map, popup, {
         onLoading: setGisLoading,
         onStatus: setGisStatus,
+        pinBriefEl: document.getElementById('pin-brief'),
+        Marker: maplibregl.Marker,
+        extraInteractiveLayers: () => [
+          'hypergrid-dcs-circle',
+          'hypergrid-commit-square',
+          'hypergrid-commit-halo',
+          'hypergrid-policy-diamond',
+        ],
       });
       // Sync checkbox defaults from GIS_LAYERS / DOM
       document.querySelectorAll('[data-gis]').forEach((input) => {
