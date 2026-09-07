@@ -5,11 +5,11 @@ const KARDASHEV = "https://data.kardashevlabs.org";
 const CAISO = "https://www.caiso.com/outlook/current";
 
 const BRAND_ROUTES = {
-  "/favicon-16.png": "/brand/favicon-16.png.b64",
-  "/favicon-32.png": "/brand/favicon-32.png.b64",
-  "/apple-touch-icon.png": "/brand/apple-touch-icon.png.b64",
-  "/icon-192.png": "/brand/icon-192.png.b64",
-  "/og-image.png": "/brand/og-image.png.b64",
+  "/favicon-16.png": ["/brand/favicon-16.png.b64"],
+  "/favicon-32.png": ["/brand/favicon-32.png.b64"],
+  "/apple-touch-icon.png": ["/brand/apple-touch-icon.png.b64"],
+  "/icon-192.png": ["/brand/icon-192.png.b64"],
+  "/og-image.png": ["/brand/og-image.png.b64.part1", "/brand/og-image.png.b64.part2"],
 };
 
 function corsHeaders(request) {
@@ -22,10 +22,13 @@ function corsHeaders(request) {
   };
 }
 
-async function serveBrandPng(env, request, b64Path) {
-  const res = await env.ASSETS.fetch(new URL(b64Path, request.url));
-  if (!res.ok) return new Response("Brand asset missing", { status: 404 });
-  const b64 = (await res.text()).trim();
+async function serveBrandPng(env, request, b64Paths) {
+  let b64 = "";
+  for (const b64Path of b64Paths) {
+    const res = await env.ASSETS.fetch(new URL(b64Path, request.url));
+    if (!res.ok) return new Response("Brand asset missing: " + b64Path, { status: 404 });
+    b64 += (await res.text()).trim();
+  }
   const bin = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
   return new Response(bin, {
     status: 200,
