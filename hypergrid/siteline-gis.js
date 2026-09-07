@@ -1,1 +1,1 @@
-PLACEHOLDER_WILL_FAIL
+__LOAD_FROM__:/tmp/mcp_content_1.json
