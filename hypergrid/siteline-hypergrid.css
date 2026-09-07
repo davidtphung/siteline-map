@@ -955,7 +955,7 @@ details.legend[open] > summary::after { content: "−"; }
   left: calc(0.65rem + var(--safe-left));
   bottom: calc(var(--footer-h) + 3.55rem + var(--safe-bottom));
   width: min(22rem, calc(100vw - 1.4rem));
-  max-height: min(42vh, 22rem);
+  max-height: min(52vh, 28rem);
   overflow: auto;
   background: rgba(7, 8, 10, 0.94);
   border: 1px solid var(--line);
@@ -1032,6 +1032,16 @@ details.legend[open] > summary::after { content: "−"; }
   color: var(--muted);
   font-size: 0.68rem;
   line-height: 1.35;
+}
+.pin-brief-honesty {
+  margin: 0.45rem 0 0.15rem;
+  padding: 0.4rem 0.45rem;
+  border-radius: 8px;
+  border: 1px solid rgba(198, 120, 221, 0.35);
+  background: rgba(198, 120, 221, 0.08);
+  color: #e5c7ef;
+  font-size: 0.66rem;
+  line-height: 1.4;
 }
 .pin-brief-error {
   margin: 0.35rem 0 0;
