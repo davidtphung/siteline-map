@@ -3,12 +3,13 @@
  * NLT143 RESEARCH by David T Phung
  */
 import maplibregl from 'https://esm.sh/maplibre-gl@4.7.1';
-import { createGisController, GIS_LAYERS } from './siteline-gis.js';
+import { createGisController, GIS_LAYERS } from 'https://cdn.jsdelivr.net/gh/davidtphung/siteline-map@hypergrid-live/hypergrid/siteline-gis.js';
 
-const DC_URL = './data/hypergrid-datacenters.geojson';
-const COMMIT_URL = './data/hypergrid-commitments.geojson';
-const POLICY_URL = './data/hypergrid-policy.geojson';
-const AI_ORIENTED_URL = './data/hypergrid-ai-oriented.geojson';
+const CDN_HYPERGRID = 'https://cdn.jsdelivr.net/gh/davidtphung/siteline-map@hypergrid-live/hypergrid';
+const DC_URL = `${CDN_HYPERGRID}/data/hypergrid-datacenters.geojson`;
+const COMMIT_URL = `${CDN_HYPERGRID}/data/hypergrid-commitments.geojson`;
+const POLICY_URL = `${CDN_HYPERGRID}/data/hypergrid-policy.geojson`;
+const AI_ORIENTED_URL = `${CDN_HYPERGRID}/data/hypergrid-ai-oriented.geojson`;
 
 const CARTO_VECTOR = 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
 const CARTO_RASTER_STYLE = {
