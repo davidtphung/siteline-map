@@ -19,4 +19,5 @@ class SitelineMap extends OriginalMap {
 }
 
 maplibregl.Map = SitelineMap;
+try { window.maplibregl = maplibregl; } catch (_) {}
 export default maplibregl;
