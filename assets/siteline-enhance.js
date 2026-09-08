@@ -5,7 +5,7 @@ const PARTS = ['siteline-enhance.gz0.txt', 'siteline-enhance.gz1.txt', 'siteline
     const base = new URL('.', import.meta.url);
     const texts = await Promise.all(
       PARTS.map((p) =>
-        fetch(new URL(p, base)).then((r) => {
+        fetch(new URL(p + '?v=atlas-one', base)).then((r) => {
           if (!r.ok) throw new Error(p + ' ' + r.status);
           return r.text();
         }),
