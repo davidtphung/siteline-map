@@ -54,7 +54,7 @@
       (function () {
         var style = document.createElement("style");
         style.id = "sl-boot-dead-css";
-        style.textContent = "html.sl-boot-dead .boot-veil,html.sl-boot-dead .boot-veil *{animation:none!important;opacity:0!important;visibility:hidden!important;display:none!important;pointer-events:none!important}";
+        style.textContent = "html.sl-boot-dead .boot-veil,html.sl-boot-dead .boot-veil *{animation:none!important;opacity:0!important;visibility:hidden!important;display:none!important;pointer-events:none!important}#sl-map-fallback{position:fixed;inset:0;z-index:2;background:#0b0d10}";
         document.head.appendChild(style);
         function kill() {
           if (!document.documentElement.classList.contains("sl-boot-dead")) {
@@ -64,10 +64,12 @@
         window.setTimeout(kill, 700);
         window.setTimeout(kill, 1600);
         window.setTimeout(kill, 4000);
+
+
       })();
     </script>
 
     <script type="module" crossorigin src="./assets/index-CxleVYPI.js?v=gis-on"></script>
-    <script type="module" src="./assets/siteline-enhance.js?v=boot-dead"></script>
+    <script type="module" src="./assets/siteline-enhance.js?v=noloop"></script>
   </body>
 </html>
