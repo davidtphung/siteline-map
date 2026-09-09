@@ -7,69 +7,38 @@
     <meta name="theme-color" content="#05070a" />
     <meta name="color-scheme" content="dark" />
     <title>Siteline</title>
-
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <link rel="manifest" href="/site.webmanifest" />
-
-    <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="Siteline" />
-    <meta property="og:title" content="Siteline" />
-    <meta property="og:description" content="Pin a site. Read the lines. Grid, power, fiber, and OpenInfraMap." />
-    <meta property="og:url" content="https://siteline.nlt143.energy/" />
-    <meta property="og:image" content="https://siteline.nlt143.energy/og-image.png?v=2" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-    <meta property="og:locale" content="en_US" />
-
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Siteline" />
-    <meta name="twitter:description" content="Pin a site. Read the lines. Grid, power, fiber, and OpenInfraMap." />
-    <meta name="twitter:image" content="https://siteline.nlt143.energy/og-image.png?v=2" />
-    <meta name="twitter:creator" content="@davidtphung" />
-
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" />
-    <link rel="stylesheet" href="./assets/siteline.css?v=boot-dead" />
-    <script type="importmap">
-      {
-        "imports": {
-          "react": "https://esm.sh/react@19.2.8",
-          "react/jsx-runtime": "https://esm.sh/react@19.2.8/jsx-runtime",
-          "react-dom": "https://esm.sh/react-dom@19.2.8",
-          "react-dom/client": "https://esm.sh/react-dom@19.2.8/client",
-          "maplibre-gl": "./assets/maplibre-siteline-hook.js?v=map-live"
-        }
+    <style>
+      html, body { margin: 0; height: 100%; background: #05070a; color: #fff; font: 500 13px/1.4 Inter, system-ui, sans-serif; }
+      #sl-live-map { position: fixed; inset: 0; }
+      #sl-live-bar {
+        position: fixed; z-index: 5; left: 12px; top: 12px;
+        max-width: min(420px, calc(100vw - 24px));
+        padding: 10px 12px; border-radius: 8px;
+        background: rgba(5,7,10,0.88); border: 1px solid rgba(255,255,255,0.1);
       }
-    </script>
+      #sl-live-bar h1 { margin: 0 0 4px; font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; }
+      #sl-live-status { margin: 0; color: #cbd5e1; font-size: 12px; }
+      #sl-live-legend { margin: 8px 0 0; color: #94a3b8; font-size: 11px; }
+      #sl-live-card {
+        position: fixed; z-index: 6; right: 12px; top: 12px;
+        width: min(280px, calc(100vw - 24px));
+        padding: 10px 12px; border-radius: 8px;
+        background: rgba(5,7,10,0.92); border: 1px solid rgba(255,255,255,0.12);
+      }
+      #sl-live-card strong { display: block; margin-bottom: 6px; }
+      #sl-live-card p { margin: 0; color: #e2e8f0; }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
-
-    <script>
-      (function () {
-        var style = document.createElement("style");
-        style.id = "sl-boot-dead-css";
-        style.textContent = "html.sl-boot-dead .boot-veil,html.sl-boot-dead .boot-veil *{animation:none!important;opacity:0!important;visibility:hidden!important;display:none!important;pointer-events:none!important}#sl-map-fallback{position:fixed;inset:0;z-index:2;background:#0b0d10}";
-        document.head.appendChild(style);
-        function kill() {
-          if (!document.documentElement.classList.contains("sl-boot-dead")) {
-            document.documentElement.classList.add("sl-boot-dead");
-          }
-        }
-        window.setTimeout(kill, 700);
-        window.setTimeout(kill, 1600);
-        window.setTimeout(kill, 4000);
-
-
-      })();
-    </script>
-
-    <script type="module" crossorigin src="./assets/index-CxleVYPI.js?v=gis-on"></script>
-    <script type="module" src="./assets/siteline-enhance.js?v=noloop"></script>
+    <div id="sl-live-map"></div>
+    <div id="sl-live-bar">
+      <h1>Siteline</h1>
+      <p id="sl-live-status">Starting map...</p>
+      <p id="sl-live-legend">Blue plants, amber lines and substations, cyan broadband, pink data centers. Pan to load the view.</p>
+    </div>
+    <div id="sl-live-card" hidden></div>
+    <script type="module" src="./assets/siteline-live.js?v=live-map"></script>
   </body>
 </html>
