@@ -9,7 +9,7 @@
     <title>Siteline</title>
 
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
@@ -34,7 +34,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" />
-    <link rel="stylesheet" href="./assets/siteline.css?v=tray-back" />
+    <link rel="stylesheet" href="./assets/siteline.css?v=mon-1823" />
     <script type="importmap">
       {
         "imports": {
@@ -42,27 +42,14 @@
           "react/jsx-runtime": "https://esm.sh/react@19.2.8/jsx-runtime",
           "react-dom": "https://esm.sh/react-dom@19.2.8",
           "react-dom/client": "https://esm.sh/react-dom@19.2.8/client",
-          "maplibre-gl": "./assets/maplibre-siteline-hook.js?v=map-live"
+          "maplibre-gl": "./assets/maplibre-siteline-hook.js?v=mon-1823"
         }
       }
     </script>
   </head>
   <body>
     <div id="root"></div>
-    <script>
-      (function () {
-        var style = document.createElement("style");
-        style.id = "sl-boot-dead-css";
-        style.textContent = "html.sl-boot-dead .boot-veil,html.sl-boot-dead .boot-veil *{animation:none!important;opacity:0!important;visibility:hidden!important;display:none!important;pointer-events:none!important}";
-        document.head.appendChild(style);
-        function kill() {
-          document.documentElement.classList.add("sl-boot-dead");
-        }
-        window.setTimeout(kill, 700);
-        window.setTimeout(kill, 1600);
-      })();
-    </script>
-    <script type="module" crossorigin src="./assets/index-CxleVYPI.js?v=gis-on"></script>
-    <script type="module" src="./assets/siteline-enhance.js?v=noloop"></script>
+    <script type="module" crossorigin src="./assets/index-CxleVYPI.js?v=mon-1823"></script>
+    <script type="module" src="./assets/siteline-enhance.js?v=mon-1823"></script>
   </body>
 </html>
