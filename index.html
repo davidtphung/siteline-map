@@ -54,7 +54,7 @@
       (function () {
         var style = document.createElement("style");
         style.id = "sl-boot-dead-css";
-        style.textContent = "html.sl-boot-dead .boot-veil,html.sl-boot-dead .boot-veil *{animation:none!important;opacity:0!important;visibility:hidden!important;display:none!important;pointer-events:none!important}";
+        style.textContent = "html.sl-boot-dead .boot-veil,html.sl-boot-dead .boot-veil *{animation:none!important;opacity:0!important;visibility:hidden!important;display:none!important;pointer-events:none!important}#sl-map-fallback{position:fixed;inset:0;z-index:2;background:#0b0d10}";
         document.head.appendChild(style);
         function kill() {
           if (!document.documentElement.classList.contains("sl-boot-dead")) {
@@ -64,6 +64,56 @@
         window.setTimeout(kill, 700);
         window.setTimeout(kill, 1600);
         window.setTimeout(kill, 4000);
+
+        var OSM = {
+          version: 8,
+          sources: {
+            osm: {
+              type: "raster",
+              tiles: ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"],
+              tileSize: 256,
+              attribution: "OpenStreetMap"
+            }
+          },
+          layers: [{ id: "osm", type: "raster", source: "osm" }]
+        };
+
+        function paintFallback() {
+          if (document.querySelector(".maplibregl-canvas")) {
+            var live = window.__SITELINE_MAP__;
+            if (live && typeof live.resize === "function") {
+              try { live.resize(); } catch (e) {}
+              try {
+                if (typeof live.isStyleLoaded === "function" && !live.isStyleLoaded() && typeof live.setStyle === "function") {
+                  live.setStyle(OSM);
+                }
+              } catch (e2) {}
+            }
+            return;
+          }
+          if (document.getElementById("sl-map-fallback")) return;
+          var host = document.querySelector(".map-root") || document.getElementById("root");
+          if (!host) return;
+          var box = document.createElement("div");
+          box.id = "sl-map-fallback";
+          host.appendChild(box);
+          import("https://esm.sh/maplibre-gl@4.7.1").then(function (mod) {
+            var ml = mod.default || mod;
+            if (!ml || !ml.Map) return;
+            var map = new ml.Map({
+              container: box,
+              style: OSM,
+              center: [-98.35, 39.5],
+              zoom: 3.6,
+              attributionControl: true,
+              dragRotate: false
+            });
+            map.on("load", function () { try { map.resize(); } catch (e) {} });
+            window.__SITELINE_MAP__ = window.__SITELINE_MAP__ || map;
+          }).catch(function () {});
+        }
+        window.setTimeout(paintFallback, 2200);
+        window.setTimeout(paintFallback, 5000);
       })();
     </script>
 
