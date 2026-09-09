@@ -9,7 +9,7 @@ document.head.appendChild(atlas);
   try {
     const texts = await Promise.all(
       PARTS.map((p) =>
-        fetch(new URL(p + '?v=gis-back2', base)).then((r) => {
+        fetch(new URL(p + '?v=boot-kill', base)).then((r) => {
           if (!r.ok) throw new Error(p + ' ' + r.status);
           return r.text();
         }),
