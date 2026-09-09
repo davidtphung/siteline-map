@@ -3,6 +3,16 @@ import maplibregl from "https://esm.sh/maplibre-gl@4.7.1";
 
 const OriginalMap = maplibregl.Map;
 
+const setLayout = OriginalMap.prototype.setLayoutProperty;
+OriginalMap.prototype.setLayoutProperty = function (id, name, value) {
+  if (name === "visibility") {
+    try {
+      if (this.getLayer(id) && this.getLayoutProperty(id, "visibility") === value) return;
+    } catch (_) {}
+  }
+  return setLayout.call(this, id, name, value);
+};
+
 class SitelineMap extends OriginalMap {
   constructor(options) {
     super(options);
