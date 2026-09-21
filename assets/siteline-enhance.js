@@ -1,15 +1,16 @@
 /** Siteline enhance gzip+b64 multi-part loader (instrument tray). */
 const PARTS = ['siteline-enhance.gz0.txt', 'siteline-enhance.gz1.txt', 'siteline-enhance.gz2.txt', 'siteline-enhance.gz3.txt', 'siteline-enhance.gz4.txt'];
+const ASSET_V = 'gas-subsea-1';
 const base = new URL('.', import.meta.url);
 const atlas = document.createElement('link');
 atlas.rel = 'stylesheet';
-atlas.href = new URL('siteline-atlas.css?v=card-1952', base).href;
+atlas.href = new URL('siteline-atlas.css?v=' + ASSET_V, base).href;
 document.head.appendChild(atlas);
 (async () => {
   try {
     const texts = await Promise.all(
       PARTS.map((p) =>
-        fetch(new URL(p + '?v=card-1952', base)).then((r) => {
+        fetch(new URL(p + '?v=' + ASSET_V, base)).then((r) => {
           if (!r.ok) throw new Error(p + ' ' + r.status);
           return r.text();
         }),
