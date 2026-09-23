@@ -1,0 +1,25 @@
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_DB: wells
+      POSTGRES_PASSWORD: wells
+    ports:
+      - "5432:5432"
+    volumes:
+      - well_pg:/var/lib/postgresql/data
+      - ./schema/001_init.sql:/docker-entrypoint-initdb.d/001_init.sql:ro
+  api:
+    build:
+      context: ../..
+      dockerfile: services/well-intel/Dockerfile
+    environment:
+      DATABASE_URL: postgresql://postgres:wells@db:5432/wells
+      WELLS_RULES_PATH: /srv/config/well-status-rules.json
+      WELLS_FIXTURE_PATH: /srv/well-intel/fixtures/cameron/raw_wells.json
+    ports:
+      - "8088:8088"
+    depends_on:
+      - db
+volumes:
+  well_pg:

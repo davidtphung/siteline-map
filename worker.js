@@ -74,6 +74,17 @@ export default {
       return proxyGet(`${KARDASHEV}${rest}${url.search}`, request);
     }
 
+    if (path.startsWith("/api/wells") || path.startsWith("/api/gas-wells") || path.startsWith("/api/sites") || path === "/api/sources" || path === "/api/imports" || path === "/api/methodology" || path === "/api/quality-report" || path === "/api/health") {
+      const origin = env.WELL_INTEL_ORIGIN;
+      if (!origin) {
+        return new Response(JSON.stringify({ error: "WELL_INTEL_ORIGIN is not configured", fallback: "/data/cameron-wells.geojson" }), {
+          status: 404,
+          headers: { "Content-Type": "application/json", ...corsHeaders(request) },
+        });
+      }
+      return proxyGet(`${origin.replace(/\/$/, "")}${path}${url.search}`, request);
+    }
+
     if (path.startsWith("/api/caiso/")) {
       const file = path.replace(/^\/api\/caiso\//, "").replace(/[^a-z0-9_.-]/gi, "");
       if (!file.endsWith(".csv")) {
