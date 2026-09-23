@@ -68,6 +68,41 @@ export function filterFeatures(features, flags, statuses) {
   });
 }
 
+export function featureHaystack(feature, rules) {
+  const props = feature?.properties || {};
+  const status = rules?.statuses?.[props.status_code]?.label || props.status_label || "";
+  return [
+    status,
+    props.status_code,
+    props.api_raw,
+    props.api_normalized,
+    props.operator_name,
+    props.lease_name,
+    props.well_number,
+    props.commodity,
+    props.commodity_group,
+    props.county_name,
+    props.freshness,
+  ]
+    .filter((part) => part != null && String(part).trim() !== "")
+    .join(" ")
+    .toLowerCase();
+}
+
+/** Card-only text find. Commodity flags stay on filterFeatures. */
+export function filterFeaturesByText(features, query, rules) {
+  const terms = String(query || "")
+    .trim()
+    .toLowerCase()
+    .split(/\s+/)
+    .filter(Boolean);
+  if (!terms.length) return features;
+  return features.filter((feature) => {
+    const hay = featureHaystack(feature, rules);
+    return terms.every((term) => hay.includes(term));
+  });
+}
+
 export function countsByStatus(features) {
   const counts = {};
   for (const feature of features) {

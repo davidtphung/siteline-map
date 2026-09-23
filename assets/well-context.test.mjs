@@ -6,6 +6,7 @@ import {
   contextTitle,
   countsByStatus,
   filterFeatures,
+  filterFeaturesByText,
   flagsFromSearch,
   resetGasFlags,
   separatedCounts,
@@ -64,6 +65,20 @@ test("one mile ring uses projected miles and excludes the oil shut-in from gas c
   assert.ok(sep.gas.well_count > 0);
   assert.ok(sep.oil.well_count > 0);
   assert.notEqual(sep.gas.well_count, sep.oil.well_count);
+});
+
+test("card text filter matches status, API, and operator without changing flags", () => {
+  const flags = flagsFromSearch("", rules);
+  const gas = filterFeatures(fc.features, flags);
+  const orphan = filterFeaturesByText(gas, "orphan", rules);
+  assert.equal(orphan.length, 1);
+  assert.equal(orphan[0].properties.status_code, "orphan");
+  const api = filterFeaturesByText(fc.features, "06100001", rules);
+  assert.equal(api.length, 1);
+  assert.equal(api[0].properties.api_raw, "06100001");
+  const none = filterFeaturesByText(gas, "water supply", rules);
+  assert.equal(none.length, 0);
+  assert.equal(filterFeaturesByText(gas, "   ", rules).length, gas.length);
 });
 
 test("disclaimers are present and non-PA labels do not say abandoned", () => {
