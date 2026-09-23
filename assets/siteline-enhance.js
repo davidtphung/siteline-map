@@ -178,7 +178,7 @@ function bootPlaceSearch() {
   align-items: center;
   gap: 8px;
   height: 36px;
-  padding: 0 12px 0 10px;
+  padding: 0 4px 0 10px;
   border-radius: 999px;
   border: 1px solid rgba(255,255,255,0.12);
   background: rgba(5, 6, 8, 0.9);
@@ -195,10 +195,37 @@ function bootPlaceSearch() {
   background: transparent;
   color: #fff;
   font: 500 13px/1.2 Inter, system-ui, sans-serif;
+  appearance: none;
+  -webkit-appearance: none;
 }
 #sl-place-input::placeholder { color: rgba(255,255,255,0.42); }
+#sl-place-input::-webkit-search-decoration,
+#sl-place-input::-webkit-search-cancel-button,
+#sl-place-input::-webkit-search-results-button {
+  display: none;
+  -webkit-appearance: none;
+}
+#sl-place-go {
+  flex: 0 0 auto;
+  appearance: none;
+  -webkit-appearance: none;
+  height: 28px;
+  min-width: 40px;
+  margin: 0;
+  padding: 0 11px;
+  border: 0;
+  border-radius: 999px;
+  background: #4da3ff;
+  color: #041018;
+  font: 600 12px/1 Inter, system-ui, sans-serif;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+}
+#sl-place-go:hover,
+#sl-place-go:focus-visible { background: #8cc6ff; }
 #sl-place-note {
   margin: 5px 2px 0;
+  min-height: 2.7em;
   color: rgba(255,255,255,0.48);
   font: 500 10px/1.35 "JetBrains Mono", ui-monospace, monospace;
   letter-spacing: 0.01em;
@@ -249,6 +276,7 @@ function bootPlaceSearch() {
     width: auto;
     min-width: 0;
   }
+  #sl-place-go { min-width: 44px; height: 30px; }
 }
 `;
   document.head.appendChild(style);
@@ -258,7 +286,8 @@ function bootPlaceSearch() {
   root.innerHTML =
     '<form id="sl-place-form" role="search">' +
     '<svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><circle cx="6" cy="6" r="4.25" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M9.2 9.2 L12 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>' +
-    '<input id="sl-place-input" type="search" role="combobox" aria-expanded="false" aria-controls="sl-place-list" aria-autocomplete="list" aria-describedby="sl-place-note" placeholder="Search address or place" autocomplete="off" spellcheck="false" />' +
+    '<input id="sl-place-input" type="search" enterkeyhint="search" role="combobox" aria-expanded="false" aria-controls="sl-place-list" aria-autocomplete="list" aria-describedby="sl-place-note" placeholder="Search address or place" autocomplete="off" spellcheck="false" />' +
+    '<button id="sl-place-go" type="submit">Go</button>' +
     '</form>' +
     '<p id="sl-place-note" class="sl-place-note"></p>' +
     '<ul id="sl-place-list" role="listbox" hidden></ul>';
@@ -267,7 +296,18 @@ function bootPlaceSearch() {
   const input = root.querySelector('#sl-place-input');
   const list = root.querySelector('#sl-place-list');
   const note = root.querySelector('#sl-place-note');
-  const ui = { hits: [], active: -1, timer: 0, controller: null, marker: null, token: 0, chosenAt: 0 };
+  const form = root.querySelector('#sl-place-form');
+  const ui = { hits: [], active: -1, timer: 0, controller: null, marker: null, token: 0, chosenAt: 0, shownQuery: '', searching: false };
+  let modPromise = null;
+  const loadMod = () => {
+    if (!modPromise) {
+      modPromise = import('./place-search.mjs?v=search-2').catch((err) => {
+        modPromise = null;
+        throw err;
+      });
+    }
+    return modPromise;
+  };
 
   const areaNow = () => {
     let site = null;
@@ -299,9 +339,18 @@ function bootPlaceSearch() {
   const biasNote = (extra) => {
     const area = areaNow();
     const bias = area.label === 'site area' ? 'Biased to the site area.' : 'Biased to the map view.';
-    note.textContent = extra || 'OpenStreetMap geocoder. Approximate, not a survey pin. ' + bias;
+    const base = extra || 'OpenStreetMap geocoder. Approximate, not a survey pin. ' + bias;
+    const next = ui.searching ? 'Searching\u2026 ' + base : base;
+    if (note.textContent !== next) note.textContent = next;
   };
   biasNote();
+
+  const sharesPrefix = (next, prev) => {
+    const a = String(next || '').trim().toLowerCase();
+    const b = String(prev || '').trim().toLowerCase();
+    if (a.length < 3 || b.length < 3) return false;
+    return a.startsWith(b) || b.startsWith(a);
+  };
 
   const closeList = () => {
     list.hidden = true;
@@ -335,7 +384,7 @@ function bootPlaceSearch() {
       title.textContent = hit.title;
       const sub = document.createElement('span');
       sub.className = 'sl-place-sub';
-      sub.textContent = hit.outside ? (hit.subtitle ? hit.subtitle + ' · outside this view' : 'outside this view') : hit.subtitle;
+      sub.textContent = hit.outside ? (hit.subtitle ? hit.subtitle + ' \u00b7 outside this view' : 'outside this view') : hit.subtitle;
       button.append(title, sub);
       button.addEventListener('mousedown', (event) => event.preventDefault());
       button.addEventListener('click', () => choose(index));
@@ -354,7 +403,13 @@ function bootPlaceSearch() {
     const now = Date.now();
     if (now - ui.chosenAt < 350) return;
     ui.chosenAt = now;
-    input.value = hit.title;
+    window.clearTimeout(ui.timer);
+    ui.controller?.abort();
+    ui.searching = false;
+    ui.shownQuery = hit.title;
+    ui.suppress = true;
+    if (input.value !== hit.title) input.value = hit.title;
+    ui.suppress = false;
     closeList();
     if (hit.outside) biasNote('OpenStreetMap match is outside this view. Approximate, not a survey pin.');
     else biasNote();
@@ -396,24 +451,35 @@ function bootPlaceSearch() {
     }
   };
 
-  const runSearch = async (raw) => {
-    const query = raw.trim();
+  const runSearch = async (raw, pickBest) => {
+    const query = String(raw || '').trim();
+    const keep = ui.hits.length && sharesPrefix(query, ui.shownQuery);
     ui.controller?.abort();
+    window.clearTimeout(ui.timer);
     if (query.length < 3) {
+      ui.searching = false;
       ui.hits = [];
+      ui.shownQuery = '';
       closeList();
       biasNote();
       return;
     }
+    if (!keep) {
+      ui.hits = [];
+      ui.active = -1;
+      ui.shownQuery = '';
+      closeList();
+    }
     const controller = new AbortController();
     ui.controller = controller;
     const token = ++ui.token;
+    ui.searching = true;
+    biasNote();
     const area = areaNow();
     try {
-      const mod = await import('./place-search.mjs?v=cards-3');
+      const mod = await loadMod();
       ui.zoomForKind = mod.zoomForKind;
       if (controller.signal.aborted || token !== ui.token) return;
-      const expanded = mod.expandUsRoadQuery(query);
       let queryArea = area;
       if (area.kind === 'site' && area.strict) {
         const padded = mod.padArea(area.strict);
@@ -427,14 +493,25 @@ function bootPlaceSearch() {
           frame: area.frame,
         };
       }
-      const hits = await fetchPlaces(expanded.query, queryArea, controller.signal, mod);
+      const hits = await fetchPlaces(query, queryArea, controller.signal, mod);
       if (controller.signal.aborted || token !== ui.token) return;
-      ui.hits = hits.slice(0, 6);
+      ui.searching = false;
+      ui.shownQuery = query;
+      ui.hits = hits;
       ui.active = ui.hits.length ? 0 : -1;
+      if (pickBest && ui.hits[0]) {
+        const chosenAt = ui.chosenAt;
+        choose(0);
+        if (ui.chosenAt !== chosenAt) return;
+      }
       paintList();
+      biasNote();
     } catch (err) {
       if (err?.name === 'AbortError' || token !== ui.token) return;
+      ui.searching = false;
       ui.hits = [];
+      ui.shownQuery = query;
+      ui.active = -1;
       list.hidden = false;
       list.innerHTML = '';
       const item = document.createElement('li');
@@ -442,41 +519,45 @@ function bootPlaceSearch() {
       item.style.cssText = 'padding:0.45rem 0.55rem;color:rgba(255,255,255,0.55);font:500 12px/1.3 Inter,system-ui,sans-serif;';
       list.appendChild(item);
       input.setAttribute('aria-expanded', 'true');
+      biasNote();
     }
   };
 
-  input.addEventListener('input', () => {
+  const commitSearch = () => {
+    const query = input.value.trim();
+    const fresh = !list.hidden && !ui.searching && query === ui.shownQuery && ui.active >= 0 && ui.hits[ui.active];
     window.clearTimeout(ui.timer);
-    ui.timer = window.setTimeout(() => runSearch(input.value), 320);
+    if (fresh) {
+      choose(ui.active);
+      return;
+    }
+    runSearch(input.value, true);
+  };
+
+  input.addEventListener('input', () => {
+    if (ui.suppress) return;
+    window.clearTimeout(ui.timer);
+    ui.timer = window.setTimeout(() => runSearch(input.value, false), 300);
   });
   input.addEventListener('focus', () => biasNote());
-  root.querySelector('#sl-place-form').addEventListener('submit', (event) => {
+  form.addEventListener('submit', (event) => {
     event.preventDefault();
-    if (ui.active >= 0 && ui.hits[ui.active]) choose(ui.active);
-    else {
-      window.clearTimeout(ui.timer);
-      runSearch(input.value).then(() => {
-        if (ui.hits[0]) choose(0);
-      });
-    }
+    commitSearch();
   });
   input.addEventListener('keydown', (event) => {
     if (event.key === 'ArrowDown') {
       event.preventDefault();
-      if (!ui.hits.length) return;
+      if (!ui.hits.length || list.hidden) return;
       ui.active = Math.min(ui.hits.length - 1, ui.active + 1);
       paintList();
     } else if (event.key === 'ArrowUp') {
       event.preventDefault();
-      if (!ui.hits.length) return;
+      if (!ui.hits.length || list.hidden) return;
       ui.active = Math.max(0, ui.active - 1);
       paintList();
     } else if (event.key === 'Escape') {
       closeList();
       biasNote();
-    } else if (event.key === 'Enter' && ui.active >= 0) {
-      event.preventDefault();
-      choose(ui.active);
     }
   });
   document.addEventListener('pointerdown', (event) => {
@@ -516,31 +597,75 @@ function bootPlaceSearch() {
   };
 }
 
-async function fetchPlaces(query, area, signal, mod) {
+async function nominatimRows(params, signal, mod) {
+  const res = await fetch('https://nominatim.openstreetmap.org/search?' + params.toString(), {
+    signal,
+    headers: { Accept: 'application/json' },
+  });
+  if (!res.ok) throw new Error('nominatim ' + res.status);
+  return mod.parseNominatim(await res.json());
+}
+
+const cityHintCache = new Map();
+
+async function nearbyCity(area, signal) {
+  const center = area?.center;
+  if (!center || center.length < 2) return '';
+  const lat = Number(center[1]);
+  const lon = Number(center[0]);
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return '';
+  const key = lat.toFixed(2) + ',' + lon.toFixed(2);
+  if (cityHintCache.has(key)) return cityHintCache.get(key);
   const params = new URLSearchParams({
     format: 'jsonv2',
-    q: query,
-    limit: '6',
+    lat: String(lat),
+    lon: String(lon),
+    zoom: '12',
     addressdetails: '1',
-    countrycodes: 'us',
   });
-  const box = mod.viewboxParam(area);
-  if (box) {
-    params.set('viewbox', box);
-    params.set('bounded', '0');
-  }
+  const res = await fetch('https://nominatim.openstreetmap.org/reverse?' + params.toString(), {
+    signal,
+    headers: { Accept: 'application/json' },
+  });
+  if (!res.ok) return '';
+  const addr = (await res.json()).address || {};
+  const place = addr.city || addr.town || addr.village || addr.hamlet || addr.municipality || addr.county || '';
+  const hint = [place, addr.state || ''].filter(Boolean).join(', ');
+  if (hint) cityHintCache.set(key, hint);
+  return hint;
+}
+
+async function fetchPlaces(query, area, signal, mod) {
+  const plan = mod.nominatimSearchParams(query, area);
   try {
-    const res = await fetch('https://nominatim.openstreetmap.org/search?' + params.toString(), {
-      signal,
-      headers: { Accept: 'application/json' },
-    });
-    if (!res.ok) throw new Error('nominatim ' + res.status);
-    const hits = mod.rankHits(mod.parseNominatim(await res.json()), area);
-    if (hits.length) return hits;
+    let rows = await nominatimRows(plan.params, signal, mod);
+    if (!rows.length && plan.structured) {
+      const free = mod.nominatimSearchParams(plan.query, area, { freeText: true });
+      rows = await nominatimRows(free.params, signal, mod);
+    }
+    if (!rows.length && plan.road) {
+      let hint = '';
+      try {
+        hint = await nearbyCity(area, signal);
+      } catch (err) {
+        if (err?.name === 'AbortError') throw err;
+      }
+      const retry = mod.roadQueryWithPlace(plan.roadQuery, hint || mod.texasHint(area));
+      if (retry && retry.toLowerCase() !== String(plan.roadQuery || '').toLowerCase()) {
+        const again = mod.nominatimSearchParams(retry, area, { freeText: true });
+        rows = await nominatimRows(again.params, signal, mod);
+      }
+    }
+    const ranked = mod.rankHits(rows, area, query);
+    if (ranked.length) return ranked;
   } catch (err) {
     if (err?.name === 'AbortError') throw err;
   }
-  const photon = new URLSearchParams({ q: query, limit: '6', lang: 'en' });
+  const photon = new URLSearchParams({
+    q: plan.roadQuery || plan.query || query,
+    limit: '8',
+    lang: 'en',
+  });
   if (area?.center) {
     photon.set('lat', String(area.center[1]));
     photon.set('lon', String(area.center[0]));
@@ -550,5 +675,5 @@ async function fetchPlaces(query, area, signal, mod) {
     headers: { Accept: 'application/json' },
   });
   if (!res.ok) throw new Error('photon ' + res.status);
-  return mod.rankHits(mod.parsePhoton(await res.json()), area);
+  return mod.rankHits(mod.parsePhoton(await res.json()), area, query);
 }
