@@ -1,0 +1,1489 @@
+{
+  "type": "FeatureCollection",
+  "name": "cameron-wells",
+  "crs_distance": "EPSG:3081",
+  "dataset_origin": "fixture",
+  "as_of": "2026-09-23",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "tx-061-06100001",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -97.65997464899895,
+          26.191081150989547
+        ]
+      },
+      "properties": {
+        "api_raw": "06100001",
+        "api_normalized": "06100001",
+        "api10_raw": "",
+        "api10_normalized": "",
+        "symnum": 5,
+        "symnum_raw_label": "Gas Well",
+        "symnum_role": "producing",
+        "commodity": "gas",
+        "commodity_raw": "Gas Well",
+        "commodity_source": "rrc_symnum",
+        "commodity_confidence": "high",
+        "commodity_group": "gas",
+        "is_gas_related": true,
+        "is_oil_related": false,
+        "is_mixed_oil_gas": false,
+        "status_code": "historical_gas_unconfirmed",
+        "status_label": "Historical gas well \u2014 status unconfirmed",
+        "status_color": "#9aa3b2",
+        "pa_confirmed": false,
+        "review_needed": false,
+        "conflict": "",
+        "evidence": [
+          "no_current_schedule"
+        ],
+        "freshness": "Freshness unknown",
+        "rules_version": "2026-09-23.1",
+        "observations": [],
+        "completions": [],
+        "id": "tx-061-06100001",
+        "county_code": "061",
+        "county_name": "Cameron",
+        "state": "TX",
+        "lease_name": "Fixture Lease 1",
+        "well_number": "1",
+        "operator_name": "Fixture Operator",
+        "dataset_origin": "fixture",
+        "rrc_viewer_url": "https://gis.rrc.texas.gov/GISViewer/",
+        "source_of_record": "Texas RRC",
+        "lon": -97.65997464899895,
+        "lat": 26.191081150989547
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "tx-061-06100002",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -97.65983098295177,
+          26.197207702777185
+        ]
+      },
+      "properties": {
+        "api_raw": "06100002",
+        "api_normalized": "06100002",
+        "api10_raw": "",
+        "api10_normalized": "",
+        "symnum": 5,
+        "symnum_raw_label": "Gas Well",
+        "symnum_role": "producing",
+        "commodity": "gas",
+        "commodity_raw": "Gas Well",
+        "commodity_source": "rrc_symnum",
+        "commodity_confidence": "high",
+        "commodity_group": "gas",
+        "is_gas_related": true,
+        "is_oil_related": false,
+        "is_mixed_oil_gas": false,
+        "status_code": "current_gas_schedule",
+        "status_label": "Current gas well on RRC schedule",
+        "status_color": "#7dcea0",
+        "pa_confirmed": false,
+        "review_needed": false,
+        "conflict": "",
+        "evidence": [
+          "rrc_schedule"
+        ],
+        "freshness": "Within freshness window",
+        "rules_version": "2026-09-23.1",
+        "observations": [
+          {
+            "kind": "schedule",
+            "source": "rrc_gas_schedule",
+            "observed_at": "2026-06-01",
+            "commodity": "gas"
+          }
+        ],
+        "completions": [],
+        "id": "tx-061-06100002",
+        "county_code": "061",
+        "county_name": "Cameron",
+        "state": "TX",
+        "lease_name": "Fixture Lease 2",
+        "well_number": "1",
+        "operator_name": "Fixture Operator",
+        "dataset_origin": "fixture",
+        "rrc_viewer_url": "https://gis.rrc.texas.gov/GISViewer/",
+        "source_of_record": "Texas RRC",
+        "lon": -97.65983098295177,
+        "lat": 26.197207702777185
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "tx-061-06100003",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -97.65500691279661,
+          26.18990460021411
+        ]
+      },
+      "properties": {
+        "api_raw": "06100003",
+        "api_normalized": "06100003",
+        "api10_raw": "",
+        "api10_normalized": "",
+        "symnum": 4,
+        "symnum_raw_label": "Oil Well",
+        "symnum_role": "producing",
+        "commodity": "oil",
+        "commodity_raw": "Oil Well",
+        "commodity_source": "rrc_symnum",
+        "commodity_confidence": "high",
+        "commodity_group": "oil",
+        "is_gas_related": false,
+        "is_oil_related": true,
+        "is_mixed_oil_gas": false,
+        "status_code": "historical_oil_unconfirmed",
+        "status_label": "Historical oil well \u2014 status unconfirmed",
+        "status_color": "#9aa3b2",
+        "pa_confirmed": false,
+        "review_needed": false,
+        "conflict": "",
+        "evidence": [
+          "no_current_schedule"
+        ],
+        "freshness": "Freshness unknown",
+        "rules_version": "2026-09-23.1",
+        "observations": [],
+        "completions": [],
+        "id": "tx-061-06100003",
+        "county_code": "061",
+        "county_name": "Cameron",
+        "state": "TX",
+        "lease_name": "Fixture Lease 3",
+        "well_number": "1",
+        "operator_name": "Fixture Operator",
+        "dataset_origin": "fixture",
+        "rrc_viewer_url": "https://gis.rrc.texas.gov/GISViewer/",
+        "source_of_record": "Texas RRC",
+        "lon": -97.65500691279661,
+        "lat": 26.18990460021411
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "tx-061-06100004",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -97.64002770859787,
+          26.18961718103517
+        ]
+      },
+      "properties": {
+        "api_raw": "06100004",
+        "api_normalized": "06100004",
+        "api10_raw": "",
+        "api10_normalized": "",
+        "symnum": 4,
+        "symnum_raw_label": "Oil Well",
+        "symnum_role": "producing",
+        "commodity": "oil",
+        "commodity_raw": "Oil Well",
+        "commodity_source": "rrc_symnum",
+        "commodity_confidence": "high",
+        "commodity_group": "oil",
+        "is_gas_related": false,
+        "is_oil_related": true,
+        "is_mixed_oil_gas": false,
+        "status_code": "current_oil_schedule",
+        "status_label": "Current oil well on RRC schedule",
+        "status_color": "#7aa2e3",
+        "pa_confirmed": false,
+        "review_needed": false,
+        "conflict": "",
+        "evidence": [
+          "rrc_schedule"
+        ],
+        "freshness": "Within freshness window",
+        "rules_version": "2026-09-23.1",
+        "observations": [
+          {
+            "kind": "schedule",
+            "source": "rrc_oil_schedule",
+            "observed_at": "2026-06-01",
+            "commodity": "oil"
+          }
+        ],
+        "completions": [],
+        "id": "tx-061-06100004",
+        "county_code": "061",
+        "county_name": "Cameron",
+        "state": "TX",
+        "lease_name": "Fixture Lease 4",
+        "well_number": "2",
+        "operator_name": "Fixture Operator",
+        "dataset_origin": "fixture",
+        "rrc_viewer_url": "https://gis.rrc.texas.gov/GISViewer/",
+        "source_of_record": "Texas RRC",
+        "lon": -97.64002770859787,
+        "lat": 26.18961718103517
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "tx-061-06100005",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -97.66019011500327,
+          26.181891417438028
+        ]
+      },
+      "properties": {
+        "api_raw": "06100005",
+        "api_normalized": "06100005",
+        "api10_raw": "",
+        "api10_normalized": "",
+        "symnum": 6,
+        "symnum_raw_label": "Oil/Gas Well",
+        "symnum_role": "producing",
+        "commodity": "oil_and_gas",
+        "commodity_raw": "Oil/Gas Well",
+        "commodity_source": "rrc_symnum",
+        "commodity_confidence": "high",
+        "commodity_group": "mixed",
+        "is_gas_related": false,
+        "is_oil_related": false,
+        "is_mixed_oil_gas": true,
+        "status_code": "historical_mixed_unconfirmed",
+        "status_label": "Historical oil and gas well \u2014 status unconfirmed",
+        "status_color": "#9aa3b2",
+        "pa_confirmed": false,
+        "review_needed": false,
+        "conflict": "",
+        "evidence": [
+          "no_current_schedule"
+        ],
+        "freshness": "Freshness unknown",
+        "rules_version": "2026-09-23.1",
+        "observations": [],
+        "completions": [],
+        "id": "tx-061-06100005",
+        "county_code": "061",
+        "county_name": "Cameron",
+        "state": "TX",
+        "lease_name": "Fixture Lease 5",
+        "well_number": "1",
+        "operator_name": "Fixture Operator",
+        "dataset_origin": "fixture",
+        "rrc_viewer_url": "https://gis.rrc.texas.gov/GISViewer/",
+        "source_of_record": "Texas RRC",
+        "lon": -97.66019011500327,
+        "lat": 26.181891417438028
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "tx-061-06100006",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -97.64776177444345,
+          26.20058225098805
+        ]
+      },
+      "properties": {
+        "api_raw": "06100006",
+        "api_normalized": "06100006",
+        "api10_raw": "",
+        "api10_normalized": "",
+        "symnum": 5,
+        "symnum_raw_label": "Gas Well",
+        "symnum_role": "producing",
+        "commodity": "oil_and_gas",
+        "commodity_raw": "Gas Well",
+        "commodity_source": "rrc_completions",
+        "commodity_confidence": "medium",
+        "commodity_group": "mixed",
+        "is_gas_related": false,
+        "is_oil_related": false,
+        "is_mixed_oil_gas": true,
+        "status_code": "historical_mixed_unconfirmed",
+        "status_label": "Historical oil and gas well \u2014 status unconfirmed",
+        "status_color": "#9aa3b2",
+        "pa_confirmed": false,
+        "review_needed": true,
+        "conflict": "",
+        "evidence": [
+          "no_current_schedule"
+        ],
+        "freshness": "Freshness unknown",
+        "rules_version": "2026-09-23.1",
+        "observations": [],
+        "completions": [
+          {
+            "fluid": "oil",
+            "completion_date": "2014-02-01"
+          },
+          {
+            "fluid": "gas",
+            "completion_date": "2016-08-01"
+          }
+        ],
+        "id": "tx-061-06100006",
+        "county_code": "061",
+        "county_name": "Cameron",
+        "state": "TX",
+        "lease_name": "Fixture Lease 6",
+        "well_number": "1H",
+        "operator_name": "Fixture Operator",
+        "dataset_origin": "fixture",
+        "rrc_viewer_url": "https://gis.rrc.texas.gov/GISViewer/",
+        "source_of_record": "Texas RRC",
+        "lon": -97.64776177444345,
+        "lat": 26.20058225098805
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "tx-061-06100007",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -97.6639522967381,
+          26.191878094193076
+        ]
+      },
+      "properties": {
+        "api_raw": "06100007",
+        "api_normalized": "06100007",
+        "api10_raw": "",
+        "api10_normalized": "",
+        "symnum": 8,
+        "symnum_raw_label": "Plugged Gas Well",
+        "symnum_role": "plugged_symbol",
+        "commodity": "gas",
+        "commodity_raw": "Plugged Gas Well",
+        "commodity_source": "rrc_symnum",
+        "commodity_confidence": "high",
+        "commodity_group": "gas",
+        "is_gas_related": true,
+        "is_oil_related": false,
+        "is_mixed_oil_gas": false,
+        "status_code": "historical_gas_unconfirmed",
+        "status_label": "Historical gas well \u2014 status unconfirmed",
+        "status_color": "#9aa3b2",
+        "pa_confirmed": false,
+        "review_needed": true,
+        "conflict": "",
+        "evidence": [
+          "plugged_symbol_without_pa_evidence"
+        ],
+        "freshness": "May be stale",
+        "rules_version": "2026-09-23.1",
+        "observations": [
+          {
+            "kind": "note",
+            "source": "rrc_well_layer_symbol",
+            "observed_at": "2024-01-01",
+            "text": "plugged and abandoned"
+          }
+        ],
+        "completions": [],
+        "id": "tx-061-06100007",
+        "county_code": "061",
+        "county_name": "Cameron",
+        "state": "TX",
+        "lease_name": "Fixture Lease 7",
+        "well_number": "1",
+        "operator_name": "Fixture Operator",
+        "dataset_origin": "fixture",
+        "rrc_viewer_url": "https://gis.rrc.texas.gov/GISViewer/",
+        "source_of_record": "Texas RRC",
+        "lon": -97.6639522967381,
+        "lat": 26.191878094193076
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "tx-061-06100008",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -97.65694068690638,
+          26.192645663172506
+        ]
+      },
+      "properties": {
+        "api_raw": "06100008",
+        "api_normalized": "06100008",
+        "api10_raw": "",
+        "api10_normalized": "",
+        "symnum": 8,
+        "symnum_raw_label": "Plugged Gas Well",
+        "symnum_role": "plugged_symbol",
+        "commodity": "gas",
+        "commodity_raw": "Plugged Gas Well",
+        "commodity_source": "rrc_symnum",
+        "commodity_confidence": "high",
+        "commodity_group": "gas",
+        "is_gas_related": true,
+        "is_oil_related": false,
+        "is_mixed_oil_gas": false,
+        "status_code": "plugged_abandoned_confirmed",
+        "status_label": "Plugged & abandoned \u2014 confirmed",
+        "status_color": "#5c6b7a",
+        "pa_confirmed": true,
+        "review_needed": false,
+        "conflict": "",
+        "evidence": [
+          "explicit_pa_evidence"
+        ],
+        "freshness": "May be stale",
+        "rules_version": "2026-09-23.1",
+        "observations": [
+          {
+            "kind": "plug_date",
+            "source": "rrc_statewide_api",
+            "plug_date": "2019-04-02",
+            "observed_at": "2019-04-02"
+          }
+        ],
+        "completions": [],
+        "id": "tx-061-06100008",
+        "county_code": "061",
+        "county_name": "Cameron",
+        "state": "TX",
+        "lease_name": "Fixture Lease 8",
+        "well_number": "1",
+        "operator_name": "Fixture Operator",
+        "dataset_origin": "fixture",
+        "rrc_viewer_url": "https://gis.rrc.texas.gov/GISViewer/",
+        "source_of_record": "Texas RRC",
+        "lon": -97.65694068690638,
+        "lat": 26.192645663172506
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "tx-061-06100009",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -97.67495832809628,
+          26.19118594149359
+        ]
+      },
+      "properties": {
+        "api_raw": "06100009",
+        "api_normalized": "06100009",
+        "api10_raw": "",
+        "api10_normalized": "",
+        "symnum": 7,
+        "symnum_raw_label": "Plugged Oil Well",
+        "symnum_role": "plugged_symbol",
+        "commodity": "oil",
+        "commodity_raw": "Plugged Oil Well",
+        "commodity_source": "rrc_symnum",
+        "commodity_confidence": "high",
+        "commodity_group": "oil",
+        "is_gas_related": false,
+        "is_oil_related": true,
+        "is_mixed_oil_gas": false,
+        "status_code": "plugged_abandoned_confirmed",
+        "status_label": "Plugged & abandoned \u2014 confirmed",
+        "status_color": "#5c6b7a",
+        "pa_confirmed": true,
+        "review_needed": false,
+        "conflict": "",
+        "evidence": [
+          "explicit_pa_evidence"
+        ],
+        "freshness": "May be stale",
+        "rules_version": "2026-09-23.1",
+        "observations": [
+          {
+            "kind": "plug_document",
+            "source": "rrc_imaged_record",
+            "source_url": "https://rrc.texas.gov/resource-center/research/data-sets-available-for-download/",
+            "observed_at": "2018-11-15",
+            "text": "W-3 plug record image"
+          }
+        ],
+        "completions": [],
+        "id": "tx-061-06100009",
+        "county_code": "061",
+        "county_name": "Cameron",
+        "state": "TX",
+        "lease_name": "Fixture Lease 9",
+        "well_number": "3",
+        "operator_name": "Fixture Operator",
+        "dataset_origin": "fixture",
+        "rrc_viewer_url": "https://gis.rrc.texas.gov/GISViewer/",
+        "source_of_record": "Texas RRC",
+        "lon": -97.67495832809628,
+        "lat": 26.19118594149359
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "tx-061-06100010",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -97.65965996694084,
+          26.204499662119378
+        ]
+      },
+      "properties": {
+        "api_raw": "06100010",
+        "api_normalized": "06100010",
+        "api10_raw": "",
+        "api10_normalized": "",
+        "symnum": 19,
+        "symnum_raw_label": "Shut-In Well (Oil)",
+        "symnum_role": "shut_in",
+        "commodity": "oil",
+        "commodity_raw": "Shut-In Well (Oil)",
+        "commodity_source": "rrc_symnum",
+        "commodity_confidence": "high",
+        "commodity_group": "oil",
+        "is_gas_related": false,
+        "is_oil_related": true,
+        "is_mixed_oil_gas": false,
+        "status_code": "inactive_oil",
+        "status_label": "Inactive oil well / shut-in",
+        "status_color": "#d6c07a",
+        "pa_confirmed": false,
+        "review_needed": false,
+        "conflict": "",
+        "evidence": [
+          "shut_in"
+        ],
+        "freshness": "Freshness unknown",
+        "rules_version": "2026-09-23.1",
+        "observations": [],
+        "completions": [],
+        "id": "tx-061-06100010",
+        "county_code": "061",
+        "county_name": "Cameron",
+        "state": "TX",
+        "lease_name": "Fixture Lease 10",
+        "well_number": "1",
+        "operator_name": "Fixture Operator",
+        "dataset_origin": "fixture",
+        "rrc_viewer_url": "https://gis.rrc.texas.gov/GISViewer/",
+        "source_of_record": "Texas RRC",
+        "lon": -97.65965996694084,
+        "lat": 26.204499662119378
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "tx-061-06100011",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -97.65947174065506,
+          26.212524301395856
+        ]
+      },
+      "properties": {
+        "api_raw": "06100011",
+        "api_normalized": "06100011",
+        "api10_raw": "",
+        "api10_normalized": "",
+        "symnum": 20,
+        "symnum_raw_label": "Shut-In Well (Gas)",
+        "symnum_role": "shut_in",
+        "commodity": "gas",
+        "commodity_raw": "Shut-In Well (Gas)",
+        "commodity_source": "rrc_symnum",
+        "commodity_confidence": "high",
+        "commodity_group": "gas",
+        "is_gas_related": true,
+        "is_oil_related": false,
+        "is_mixed_oil_gas": false,
+        "status_code": "inactive_gas",
+        "status_label": "Inactive gas well / shut-in",
+        "status_color": "#d6c07a",
+        "pa_confirmed": false,
+        "review_needed": false,
+        "conflict": "",
+        "evidence": [
+          "shut_in"
+        ],
+        "freshness": "Freshness unknown",
+        "rules_version": "2026-09-23.1",
+        "observations": [],
+        "completions": [],
+        "id": "tx-061-06100011",
+        "county_code": "061",
+        "county_name": "Cameron",
+        "state": "TX",
+        "lease_name": "Fixture Lease 11",
+        "well_number": "1",
+        "operator_name": "Fixture Operator",
+        "dataset_origin": "fixture",
+        "rrc_viewer_url": "https://gis.rrc.texas.gov/GISViewer/",
+        "source_of_record": "Texas RRC",
+        "lon": -97.65947174065506,
+        "lat": 26.212524301395856
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "tx-061-06100012",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -97.6560901730014,
+          26.186319874221468
+        ]
+      },
+      "properties": {
+        "api_raw": "06100012",
+        "api_normalized": "06100012",
+        "api10_raw": "",
+        "api10_normalized": "",
+        "symnum": 5,
+        "symnum_raw_label": "Gas Well",
+        "symnum_role": "producing",
+        "commodity": "gas",
+        "commodity_raw": "Gas Well",
+        "commodity_source": "rrc_symnum",
+        "commodity_confidence": "high",
+        "commodity_group": "gas",
+        "is_gas_related": true,
+        "is_oil_related": false,
+        "is_mixed_oil_gas": false,
+        "status_code": "orphan",
+        "status_label": "Orphan well, natural gas",
+        "status_color": "#3db8c9",
+        "pa_confirmed": false,
+        "review_needed": false,
+        "conflict": "",
+        "evidence": [
+          "rrc_orphan_list"
+        ],
+        "freshness": "Within freshness window",
+        "rules_version": "2026-09-23.1",
+        "observations": [
+          {
+            "kind": "orphan",
+            "source": "rrc_orphan_wells",
+            "observed_at": "2026-03-01"
+          }
+        ],
+        "completions": [],
+        "id": "tx-061-06100012",
+        "county_code": "061",
+        "county_name": "Cameron",
+        "state": "TX",
+        "lease_name": "Fixture Lease 12",
+        "well_number": "1",
+        "operator_name": "Fixture Operator",
+        "dataset_origin": "fixture",
+        "rrc_viewer_url": "https://gis.rrc.texas.gov/GISViewer/",
+        "source_of_record": "Texas RRC",
+        "lon": -97.6560901730014,
+        "lat": 26.186319874221468
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "tx-061-06100013",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -97.65286135048221,
+          26.196173109934808
+        ]
+      },
+      "properties": {
+        "api_raw": "06100013",
+        "api_normalized": "06100013",
+        "api10_raw": "",
+        "api10_normalized": "",
+        "symnum": 8,
+        "symnum_raw_label": "Plugged Gas Well",
+        "symnum_role": "plugged_symbol",
+        "commodity": "gas",
+        "commodity_raw": "Plugged Gas Well",
+        "commodity_source": "rrc_symnum",
+        "commodity_confidence": "high",
+        "commodity_group": "gas",
+        "is_gas_related": true,
+        "is_oil_related": false,
+        "is_mixed_oil_gas": false,
+        "status_code": "plugged_abandoned_confirmed",
+        "status_label": "Plugged & abandoned \u2014 confirmed",
+        "status_color": "#5c6b7a",
+        "pa_confirmed": true,
+        "review_needed": false,
+        "conflict": "",
+        "evidence": [
+          "explicit_pa_evidence"
+        ],
+        "freshness": "Within freshness window",
+        "rules_version": "2026-09-23.1",
+        "observations": [
+          {
+            "kind": "orphan",
+            "source": "rrc_orphan_wells",
+            "observed_at": "2026-03-01"
+          },
+          {
+            "kind": "plug_date",
+            "source": "rrc_statewide_api",
+            "plug_date": "2017-05-09",
+            "observed_at": "2017-05-09"
+          }
+        ],
+        "completions": [],
+        "id": "tx-061-06100013",
+        "county_code": "061",
+        "county_name": "Cameron",
+        "state": "TX",
+        "lease_name": "Fixture Lease 13",
+        "well_number": "1",
+        "operator_name": "Fixture Operator",
+        "dataset_origin": "fixture",
+        "rrc_viewer_url": "https://gis.rrc.texas.gov/GISViewer/",
+        "source_of_record": "Texas RRC",
+        "lon": -97.65286135048221,
+        "lat": 26.196173109934808
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "tx-061-06100014",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -97.66803106563611,
+          26.18835029882597
+        ]
+      },
+      "properties": {
+        "api_raw": "06100014",
+        "api_normalized": "06100014",
+        "api10_raw": "",
+        "api10_normalized": "",
+        "symnum": 3,
+        "symnum_raw_label": "Dry Hole",
+        "symnum_role": "dry_hole",
+        "commodity": "dry_hole_or_nonproductive",
+        "commodity_raw": "Dry Hole",
+        "commodity_source": "rrc_symnum",
+        "commodity_confidence": "high",
+        "commodity_group": "other",
+        "is_gas_related": false,
+        "is_oil_related": false,
+        "is_mixed_oil_gas": false,
+        "status_code": "dry_hole",
+        "status_label": "Dry hole",
+        "status_color": "#a8b0bd",
+        "pa_confirmed": false,
+        "review_needed": false,
+        "conflict": "",
+        "evidence": [],
+        "freshness": "Freshness unknown",
+        "rules_version": "2026-09-23.1",
+        "observations": [],
+        "completions": [],
+        "id": "tx-061-06100014",
+        "county_code": "061",
+        "county_name": "Cameron",
+        "state": "TX",
+        "lease_name": "Fixture Lease 14",
+        "well_number": "1",
+        "operator_name": "Fixture Operator",
+        "dataset_origin": "fixture",
+        "rrc_viewer_url": "https://gis.rrc.texas.gov/GISViewer/",
+        "source_of_record": "Texas RRC",
+        "lon": -97.66803106563611,
+        "lat": 26.18835029882597
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "tx-061-06100015",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -97.6594239978103,
+          26.171961987504147
+        ]
+      },
+      "properties": {
+        "api_raw": "06100015",
+        "api_normalized": "06100015",
+        "api10_raw": "",
+        "api10_normalized": "",
+        "symnum": 9,
+        "symnum_raw_label": "Canceled / Abandoned Location",
+        "symnum_role": "canceled",
+        "commodity": "unknown",
+        "commodity_raw": "Canceled / Abandoned Location",
+        "commodity_source": "rrc_symnum",
+        "commodity_confidence": "high",
+        "commodity_group": "other",
+        "is_gas_related": false,
+        "is_oil_related": false,
+        "is_mixed_oil_gas": false,
+        "status_code": "canceled_location",
+        "status_label": "Canceled location",
+        "status_color": "#6b7280",
+        "pa_confirmed": false,
+        "review_needed": false,
+        "conflict": "",
+        "evidence": [],
+        "freshness": "Freshness unknown",
+        "rules_version": "2026-09-23.1",
+        "observations": [],
+        "completions": [],
+        "id": "tx-061-06100015",
+        "county_code": "061",
+        "county_name": "Cameron",
+        "state": "TX",
+        "lease_name": "Fixture Lease 15",
+        "well_number": "1",
+        "operator_name": "Fixture Operator",
+        "dataset_origin": "fixture",
+        "rrc_viewer_url": "https://gis.rrc.texas.gov/GISViewer/",
+        "source_of_record": "Texas RRC",
+        "lon": -97.6594239978103,
+        "lat": 26.171961987504147
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "tx-061-06100016",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -97.63004162051138,
+          26.18942455173818
+        ]
+      },
+      "properties": {
+        "api_raw": "06100016",
+        "api_normalized": "06100016",
+        "api10_raw": "",
+        "api10_normalized": "",
+        "symnum": 11,
+        "symnum_raw_label": "Injection/Disposal Well",
+        "symnum_role": "injection",
+        "commodity": "injection_or_disposal",
+        "commodity_raw": "Injection/Disposal Well",
+        "commodity_source": "rrc_symnum",
+        "commodity_confidence": "high",
+        "commodity_group": "other",
+        "is_gas_related": false,
+        "is_oil_related": false,
+        "is_mixed_oil_gas": false,
+        "status_code": "injection_or_disposal",
+        "status_label": "Injection or disposal well",
+        "status_color": "#c4b5a0",
+        "pa_confirmed": false,
+        "review_needed": false,
+        "conflict": "",
+        "evidence": [],
+        "freshness": "Freshness unknown",
+        "rules_version": "2026-09-23.1",
+        "observations": [],
+        "completions": [],
+        "id": "tx-061-06100016",
+        "county_code": "061",
+        "county_name": "Cameron",
+        "state": "TX",
+        "lease_name": "Fixture Lease 16",
+        "well_number": "1",
+        "operator_name": "Fixture Operator",
+        "dataset_origin": "fixture",
+        "rrc_viewer_url": "https://gis.rrc.texas.gov/GISViewer/",
+        "source_of_record": "Texas RRC",
+        "lon": -97.63004162051138,
+        "lat": 26.18942455173818
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "tx-061-06100017",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -97.68492377718164,
+          26.192275878233392
+        ]
+      },
+      "properties": {
+        "api_raw": "06100017",
+        "api_normalized": "06100017",
+        "api10_raw": "",
+        "api10_normalized": "",
+        "symnum": 21,
+        "symnum_raw_label": "Injection/Disposal from Oil",
+        "symnum_role": "injection",
+        "commodity": "injection_or_disposal",
+        "commodity_raw": "Injection/Disposal from Oil",
+        "commodity_source": "rrc_symnum",
+        "commodity_confidence": "high",
+        "commodity_group": "other",
+        "is_gas_related": false,
+        "is_oil_related": false,
+        "is_mixed_oil_gas": false,
+        "status_code": "injection_or_disposal",
+        "status_label": "Injection or disposal well",
+        "status_color": "#c4b5a0",
+        "pa_confirmed": false,
+        "review_needed": false,
+        "conflict": "",
+        "evidence": [],
+        "freshness": "Freshness unknown",
+        "rules_version": "2026-09-23.1",
+        "observations": [],
+        "completions": [],
+        "id": "tx-061-06100017",
+        "county_code": "061",
+        "county_name": "Cameron",
+        "state": "TX",
+        "lease_name": "Fixture Lease 17",
+        "well_number": "1",
+        "operator_name": "Fixture Operator",
+        "dataset_origin": "fixture",
+        "rrc_viewer_url": "https://gis.rrc.texas.gov/GISViewer/",
+        "source_of_record": "Texas RRC",
+        "lon": -97.68492377718164,
+        "lat": 26.192275878233392
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "tx-061-06100018",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -97.66191280416369,
+          26.19364194725883
+        ]
+      },
+      "properties": {
+        "api_raw": "06100018",
+        "api_normalized": "06100018",
+        "api10_raw": "",
+        "api10_normalized": "",
+        "symnum": 2,
+        "symnum_raw_label": "Permitted Location",
+        "symnum_role": "permitted",
+        "commodity": "gas",
+        "commodity_raw": "Permitted Location",
+        "commodity_source": "rrc_permit",
+        "commodity_confidence": "medium",
+        "commodity_group": "gas",
+        "is_gas_related": true,
+        "is_oil_related": false,
+        "is_mixed_oil_gas": false,
+        "status_code": "permitted_drilling_gas",
+        "status_label": "Permitted / drilling, gas",
+        "status_color": "#8ec5ff",
+        "pa_confirmed": false,
+        "review_needed": false,
+        "conflict": "",
+        "evidence": [],
+        "freshness": "Freshness unknown",
+        "rules_version": "2026-09-23.1",
+        "observations": [],
+        "completions": [],
+        "id": "tx-061-06100018",
+        "county_code": "061",
+        "county_name": "Cameron",
+        "state": "TX",
+        "lease_name": "Fixture Lease 18",
+        "well_number": "1",
+        "operator_name": "Fixture Operator",
+        "dataset_origin": "fixture",
+        "rrc_viewer_url": "https://gis.rrc.texas.gov/GISViewer/",
+        "source_of_record": "Texas RRC",
+        "lon": -97.66191280416369,
+        "lat": 26.19364194725883
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "tx-061-06100019",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -97.65809714963781,
+          26.271090636908234
+        ]
+      },
+      "properties": {
+        "api_raw": "06100019",
+        "api_normalized": "06100019",
+        "api10_raw": "",
+        "api10_normalized": "",
+        "symnum": 75,
+        "symnum_raw_label": "Water Supply from Gas",
+        "symnum_role": "water",
+        "commodity": "water",
+        "commodity_raw": "Water Supply from Gas",
+        "commodity_source": "rrc_symnum",
+        "commodity_confidence": "high",
+        "commodity_group": "other",
+        "is_gas_related": false,
+        "is_oil_related": false,
+        "is_mixed_oil_gas": false,
+        "status_code": "water_supply",
+        "status_label": "Water supply well",
+        "status_color": "#8fb8c9",
+        "pa_confirmed": false,
+        "review_needed": false,
+        "conflict": "",
+        "evidence": [],
+        "freshness": "Freshness unknown",
+        "rules_version": "2026-09-23.1",
+        "observations": [],
+        "completions": [],
+        "id": "tx-061-06100019",
+        "county_code": "061",
+        "county_name": "Cameron",
+        "state": "TX",
+        "lease_name": "Fixture Lease 19",
+        "well_number": "1",
+        "operator_name": "Fixture Operator",
+        "dataset_origin": "fixture",
+        "rrc_viewer_url": "https://gis.rrc.texas.gov/GISViewer/",
+        "source_of_record": "Texas RRC",
+        "lon": -97.65809714963781,
+        "lat": 26.271090636908234
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "tx-061-06100020",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -97.65902251622066,
+          26.189079978538633
+        ]
+      },
+      "properties": {
+        "api_raw": "06100020",
+        "api_normalized": "06100020",
+        "api10_raw": "",
+        "api10_normalized": "",
+        "symnum": 5,
+        "symnum_raw_label": "Gas Well",
+        "symnum_role": "producing",
+        "commodity": "gas",
+        "commodity_raw": "Gas Well",
+        "commodity_source": "rrc_symnum",
+        "commodity_confidence": "high",
+        "commodity_group": "gas",
+        "is_gas_related": true,
+        "is_oil_related": false,
+        "is_mixed_oil_gas": false,
+        "status_code": "current_gas_schedule",
+        "status_label": "Current gas well on RRC schedule",
+        "status_color": "#7dcea0",
+        "pa_confirmed": false,
+        "review_needed": false,
+        "conflict": "",
+        "evidence": [
+          "rrc_schedule"
+        ],
+        "freshness": "May be stale",
+        "rules_version": "2026-09-23.1",
+        "observations": [
+          {
+            "kind": "schedule",
+            "source": "rrc_gas_schedule",
+            "observed_at": "2020-01-01",
+            "commodity": "gas"
+          }
+        ],
+        "completions": [],
+        "id": "tx-061-06100020",
+        "county_code": "061",
+        "county_name": "Cameron",
+        "state": "TX",
+        "lease_name": "Fixture Lease 20",
+        "well_number": "1",
+        "operator_name": "Fixture Operator",
+        "dataset_origin": "fixture",
+        "rrc_viewer_url": "https://gis.rrc.texas.gov/GISViewer/",
+        "source_of_record": "Texas RRC",
+        "lon": -97.65902251622066,
+        "lat": 26.189079978538633
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "tx-061-06100021",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -97.65541096953828,
+          26.19396846965621
+        ]
+      },
+      "properties": {
+        "api_raw": "06100021",
+        "api_normalized": "06100021",
+        "api10_raw": "",
+        "api10_normalized": "",
+        "symnum": 20,
+        "symnum_raw_label": "Shut-In Well (Gas)",
+        "symnum_role": "shut_in",
+        "commodity": "gas",
+        "commodity_raw": "Shut-In Well (Gas)",
+        "commodity_source": "rrc_symnum",
+        "commodity_confidence": "high",
+        "commodity_group": "gas",
+        "is_gas_related": true,
+        "is_oil_related": false,
+        "is_mixed_oil_gas": false,
+        "status_code": "unknown_review",
+        "status_label": "Unknown, review needed",
+        "status_color": "#e7d7b1",
+        "pa_confirmed": false,
+        "review_needed": true,
+        "conflict": "schedule_shut_in_tie",
+        "evidence": [
+          "schedule_shut_in_tie"
+        ],
+        "freshness": "May be stale",
+        "rules_version": "2026-09-23.1",
+        "observations": [
+          {
+            "kind": "schedule",
+            "source": "rrc_gas_schedule",
+            "observed_at": "2024-05-01"
+          },
+          {
+            "kind": "shut_in",
+            "source": "rrc_inactive_aging",
+            "observed_at": "2024-05-01"
+          }
+        ],
+        "completions": [],
+        "id": "tx-061-06100021",
+        "county_code": "061",
+        "county_name": "Cameron",
+        "state": "TX",
+        "lease_name": "Fixture Lease 21",
+        "well_number": "1",
+        "operator_name": "Fixture Operator",
+        "dataset_origin": "fixture",
+        "rrc_viewer_url": "https://gis.rrc.texas.gov/GISViewer/",
+        "source_of_record": "Texas RRC",
+        "lon": -97.65541096953828,
+        "lat": 26.19396846965621
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "tx-061-06100022",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -97.66280595429939,
+          26.19816581805392
+        ]
+      },
+      "properties": {
+        "api_raw": "06100022",
+        "api_normalized": "06100022",
+        "api10_raw": "",
+        "api10_normalized": "",
+        "symnum": 20,
+        "symnum_raw_label": "Shut-In Well (Gas)",
+        "symnum_role": "shut_in",
+        "commodity": "gas",
+        "commodity_raw": "Shut-In Well (Gas)",
+        "commodity_source": "rrc_symnum",
+        "commodity_confidence": "high",
+        "commodity_group": "gas",
+        "is_gas_related": true,
+        "is_oil_related": false,
+        "is_mixed_oil_gas": false,
+        "status_code": "current_gas_schedule",
+        "status_label": "Current gas well on RRC schedule",
+        "status_color": "#7dcea0",
+        "pa_confirmed": false,
+        "review_needed": false,
+        "conflict": "",
+        "evidence": [
+          "newer_schedule"
+        ],
+        "freshness": "Within freshness window",
+        "rules_version": "2026-09-23.1",
+        "observations": [
+          {
+            "kind": "shut_in",
+            "source": "rrc_inactive_aging",
+            "observed_at": "2020-02-01"
+          },
+          {
+            "kind": "schedule",
+            "source": "rrc_gas_schedule",
+            "observed_at": "2026-06-01"
+          }
+        ],
+        "completions": [],
+        "id": "tx-061-06100022",
+        "county_code": "061",
+        "county_name": "Cameron",
+        "state": "TX",
+        "lease_name": "Fixture Lease 22",
+        "well_number": "1",
+        "operator_name": "Fixture Operator",
+        "dataset_origin": "fixture",
+        "rrc_viewer_url": "https://gis.rrc.texas.gov/GISViewer/",
+        "source_of_record": "Texas RRC",
+        "lon": -97.66280595429939,
+        "lat": 26.19816581805392
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "tx-061-06100023",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -97.65107606827958,
+          26.18712526865104
+        ]
+      },
+      "properties": {
+        "api_raw": "06100023",
+        "api_normalized": "06100023",
+        "api10_raw": "",
+        "api10_normalized": "",
+        "symnum": 5,
+        "symnum_raw_label": "Gas Well",
+        "symnum_role": "producing",
+        "commodity": "gas",
+        "commodity_raw": "Gas Well",
+        "commodity_source": "rrc_symnum",
+        "commodity_confidence": "high",
+        "commodity_group": "gas",
+        "is_gas_related": true,
+        "is_oil_related": false,
+        "is_mixed_oil_gas": false,
+        "status_code": "inactive_gas",
+        "status_label": "Inactive gas well / shut-in",
+        "status_color": "#d6c07a",
+        "pa_confirmed": false,
+        "review_needed": false,
+        "conflict": "",
+        "evidence": [
+          "newer_shut_in"
+        ],
+        "freshness": "Within freshness window",
+        "rules_version": "2026-09-23.1",
+        "observations": [
+          {
+            "kind": "schedule",
+            "source": "rrc_gas_schedule",
+            "observed_at": "2020-02-01"
+          },
+          {
+            "kind": "shut_in",
+            "source": "rrc_inactive_aging",
+            "observed_at": "2026-07-01"
+          }
+        ],
+        "completions": [],
+        "id": "tx-061-06100023",
+        "county_code": "061",
+        "county_name": "Cameron",
+        "state": "TX",
+        "lease_name": "Fixture Lease 23",
+        "well_number": "1",
+        "operator_name": "Fixture Operator",
+        "dataset_origin": "fixture",
+        "rrc_viewer_url": "https://gis.rrc.texas.gov/GISViewer/",
+        "source_of_record": "Texas RRC",
+        "lon": -97.65107606827958,
+        "lat": 26.18712526865104
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "tx-061-06100024",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -97.64533963525516,
+          26.176198979432023
+        ]
+      },
+      "properties": {
+        "api_raw": "06100024",
+        "api_normalized": "06100024",
+        "api10_raw": "",
+        "api10_normalized": "",
+        "symnum": 8,
+        "symnum_raw_label": "Plugged Gas Well",
+        "symnum_role": "plugged_symbol",
+        "commodity": "gas",
+        "commodity_raw": "Plugged Gas Well",
+        "commodity_source": "rrc_symnum",
+        "commodity_confidence": "high",
+        "commodity_group": "gas",
+        "is_gas_related": true,
+        "is_oil_related": false,
+        "is_mixed_oil_gas": false,
+        "status_code": "plugged_abandoned_confirmed",
+        "status_label": "Plugged & abandoned \u2014 confirmed",
+        "status_color": "#5c6b7a",
+        "pa_confirmed": true,
+        "review_needed": true,
+        "conflict": "schedule_newer_than_plug",
+        "evidence": [
+          "explicit_pa_evidence",
+          "schedule_newer_than_plug"
+        ],
+        "freshness": "Within freshness window",
+        "rules_version": "2026-09-23.1",
+        "observations": [
+          {
+            "kind": "plug_date",
+            "source": "rrc_statewide_api",
+            "plug_date": "2018-01-15",
+            "observed_at": "2018-01-15"
+          },
+          {
+            "kind": "schedule",
+            "source": "rrc_gas_schedule",
+            "observed_at": "2026-06-01"
+          }
+        ],
+        "completions": [],
+        "id": "tx-061-06100024",
+        "county_code": "061",
+        "county_name": "Cameron",
+        "state": "TX",
+        "lease_name": "Fixture Lease 24",
+        "well_number": "1",
+        "operator_name": "Fixture Operator",
+        "dataset_origin": "fixture",
+        "rrc_viewer_url": "https://gis.rrc.texas.gov/GISViewer/",
+        "source_of_record": "Texas RRC",
+        "lon": -97.64533963525516,
+        "lat": 26.176198979432023
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "tx-061-06100025",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -97.66611813964545,
+          26.184708472877585
+        ]
+      },
+      "properties": {
+        "api_raw": "06100025",
+        "api_normalized": "06100025",
+        "api10_raw": "",
+        "api10_normalized": "",
+        "symnum": 2,
+        "symnum_raw_label": "Permitted Location",
+        "symnum_role": "permitted",
+        "commodity": "unknown",
+        "commodity_raw": "Permitted Location",
+        "commodity_source": "unresolved",
+        "commodity_confidence": "low",
+        "commodity_group": "other",
+        "is_gas_related": false,
+        "is_oil_related": false,
+        "is_mixed_oil_gas": false,
+        "status_code": "permitted_drilling_unknown",
+        "status_label": "Permitted / drilling, commodity unconfirmed",
+        "status_color": "#8ec5ff",
+        "pa_confirmed": false,
+        "review_needed": true,
+        "conflict": "",
+        "evidence": [],
+        "freshness": "Freshness unknown",
+        "rules_version": "2026-09-23.1",
+        "observations": [],
+        "completions": [],
+        "id": "tx-061-06100025",
+        "county_code": "061",
+        "county_name": "Cameron",
+        "state": "TX",
+        "lease_name": "Fixture Lease 25",
+        "well_number": "1",
+        "operator_name": "Fixture Operator",
+        "dataset_origin": "fixture",
+        "rrc_viewer_url": "https://gis.rrc.texas.gov/GISViewer/",
+        "source_of_record": "Texas RRC",
+        "lon": -97.66611813964545,
+        "lat": 26.184708472877585
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "tx-061-06100026",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -97.65949012574734,
+          26.190440948510318
+        ]
+      },
+      "properties": {
+        "api_raw": "06100026",
+        "api_normalized": "06100026",
+        "api10_raw": "0610002601",
+        "api10_normalized": "0610002601",
+        "symnum": 5,
+        "symnum_raw_label": "Gas Well",
+        "symnum_role": "producing",
+        "commodity": "gas",
+        "commodity_raw": "Gas Well",
+        "commodity_source": "rrc_symnum",
+        "commodity_confidence": "high",
+        "commodity_group": "gas",
+        "is_gas_related": true,
+        "is_oil_related": false,
+        "is_mixed_oil_gas": false,
+        "status_code": "historical_gas_unconfirmed",
+        "status_label": "Historical gas well \u2014 status unconfirmed",
+        "status_color": "#9aa3b2",
+        "pa_confirmed": false,
+        "review_needed": false,
+        "conflict": "",
+        "evidence": [
+          "no_current_schedule"
+        ],
+        "freshness": "Freshness unknown",
+        "rules_version": "2026-09-23.1",
+        "observations": [],
+        "completions": [],
+        "id": "tx-061-06100026",
+        "county_code": "061",
+        "county_name": "Cameron",
+        "state": "TX",
+        "lease_name": "Fixture Lease 26",
+        "well_number": "1",
+        "operator_name": "Fixture Operator",
+        "dataset_origin": "fixture",
+        "rrc_viewer_url": "https://gis.rrc.texas.gov/GISViewer/",
+        "source_of_record": "Texas RRC",
+        "lon": -97.65949012574734,
+        "lat": 26.190440948510318
+      }
+    }
+  ]
+}

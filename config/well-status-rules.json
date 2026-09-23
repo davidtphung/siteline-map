@@ -1,0 +1,120 @@
+{
+  "version": "2026-09-23.1",
+  "crs": "EPSG:3081",
+  "crs_name": "NAD83 / Texas Centric Mapping System (Lambert)",
+  "stale_after_days": 400,
+  "meters_per_mile": 1609.344,
+  "rings_miles": [0.25, 0.5, 1, 5, 10],
+  "cameron": {
+    "county_code": "061",
+    "county_name": "Cameron",
+    "fips_note": "RRC county code 061. Well-layer archive name well061.zip.",
+    "center": [-97.66, 26.19],
+    "zoom": 10,
+    "jump_label": "Cameron",
+    "jump_subtitle": "Harlingen-Rio Hondo"
+  },
+  "defaults": {
+    "include_gas": true,
+    "include_oil": false,
+    "include_mixed": false,
+    "include_other": false
+  },
+  "commodity_groups": {
+    "gas": ["gas"],
+    "oil": ["oil"],
+    "mixed": ["oil_and_gas"],
+    "other": ["injection_or_disposal", "water", "dry_hole_or_nonproductive", "unknown", "other"]
+  },
+  "commodities": [
+    "gas",
+    "oil",
+    "oil_and_gas",
+    "injection_or_disposal",
+    "water",
+    "dry_hole_or_nonproductive",
+    "unknown",
+    "other"
+  ],
+  "pa_evidence_sources": [
+    "rrc_statewide_api",
+    "rrc_wellbore",
+    "rrc_imaged_record",
+    "rrc_plug_record"
+  ],
+  "disclaimers": [
+    "Texas RRC is the system of record for Texas wells.",
+    "NETL, HIFLD, New Mexico OCD, and Colorado OGCC are not status authority for Texas.",
+    "Inactive is not abandoned.",
+    "Orphan is not abandoned.",
+    "Historical and missing status are not abandoned.",
+    "Plugged and abandoned is confirmed only with explicit official RRC evidence.",
+    "Well proximity is not gas deliverability, capacity, pressure, or service.",
+    "Well proximity is not oil liability.",
+    "EIA natural gas pipelines are public pipeline context, separate from wells."
+  ],
+  "titles": {
+    "gas": "Gas well context",
+    "oil": "Oil well context",
+    "both": "Oil & gas well context"
+  },
+  "orphan_labels": {
+    "gas": "Orphan well, natural gas",
+    "oil": "Orphan well, oil",
+    "oil_and_gas": "Orphan well, oil and gas",
+    "other": "Orphan well, commodity unconfirmed"
+  },
+  "statuses": {
+    "current_gas_schedule": {"label": "Current gas well on RRC schedule", "color": "#7dcea0"},
+    "current_oil_schedule": {"label": "Current oil well on RRC schedule", "color": "#7aa2e3"},
+    "current_mixed_schedule": {"label": "Current oil and gas well on RRC schedule", "color": "#b9a6e8"},
+    "inactive_gas": {"label": "Inactive gas well / shut-in", "color": "#d6c07a"},
+    "inactive_oil": {"label": "Inactive oil well / shut-in", "color": "#d6c07a"},
+    "inactive_mixed": {"label": "Inactive oil and gas well / shut-in", "color": "#d6c07a"},
+    "historical_gas_unconfirmed": {"label": "Historical gas well — status unconfirmed", "color": "#9aa3b2"},
+    "historical_oil_unconfirmed": {"label": "Historical oil well — status unconfirmed", "color": "#9aa3b2"},
+    "historical_mixed_unconfirmed": {"label": "Historical oil and gas well — status unconfirmed", "color": "#9aa3b2"},
+    "plugged_abandoned_confirmed": {"label": "Plugged & abandoned — confirmed", "color": "#5c6b7a"},
+    "orphan": {"label": "Orphan well", "color": "#3db8c9"},
+    "dry_hole": {"label": "Dry hole", "color": "#a8b0bd"},
+    "permitted_drilling_gas": {"label": "Permitted / drilling, gas", "color": "#8ec5ff"},
+    "permitted_drilling_oil": {"label": "Permitted / drilling, oil", "color": "#8ec5ff"},
+    "permitted_drilling_unknown": {"label": "Permitted / drilling, commodity unconfirmed", "color": "#8ec5ff"},
+    "canceled_location": {"label": "Canceled location", "color": "#6b7280"},
+    "injection_or_disposal": {"label": "Injection or disposal well", "color": "#c4b5a0"},
+    "water_supply": {"label": "Water supply well", "color": "#8fb8c9"},
+    "unknown_review": {"label": "Unknown, review needed", "color": "#e7d7b1"}
+  },
+  "symnum": {
+    "2": {"raw_label": "Permitted Location", "role": "permitted", "commodity": null},
+    "3": {"raw_label": "Dry Hole", "role": "dry_hole", "commodity": "dry_hole_or_nonproductive"},
+    "4": {"raw_label": "Oil Well", "role": "producing", "commodity": "oil"},
+    "5": {"raw_label": "Gas Well", "role": "producing", "commodity": "gas"},
+    "6": {"raw_label": "Oil/Gas Well", "role": "producing", "commodity": "oil_and_gas"},
+    "7": {"raw_label": "Plugged Oil Well", "role": "plugged_symbol", "commodity": "oil"},
+    "8": {"raw_label": "Plugged Gas Well", "role": "plugged_symbol", "commodity": "gas"},
+    "9": {"raw_label": "Canceled / Abandoned Location", "role": "canceled", "commodity": "unknown"},
+    "10": {"raw_label": "Plugged Oil/Gas Well", "role": "plugged_symbol", "commodity": "oil_and_gas"},
+    "11": {"raw_label": "Injection/Disposal Well", "role": "injection", "commodity": "injection_or_disposal"},
+    "19": {"raw_label": "Shut-In Well (Oil)", "role": "shut_in", "commodity": "oil"},
+    "20": {"raw_label": "Shut-In Well (Gas)", "role": "shut_in", "commodity": "gas"},
+    "21": {"raw_label": "Injection/Disposal from Oil", "role": "injection", "commodity": "injection_or_disposal"},
+    "22": {"raw_label": "Injection/Disposal from Gas", "role": "injection", "commodity": "injection_or_disposal"},
+    "23": {"raw_label": "Injection/Disposal from Oil/Gas", "role": "injection", "commodity": "injection_or_disposal"},
+    "74": {"raw_label": "Water Supply Well", "role": "water", "commodity": "water"},
+    "75": {"raw_label": "Water Supply from Gas", "role": "water", "commodity": "water"},
+    "76": {"raw_label": "Water Supply from Oil", "role": "water", "commodity": "water"},
+    "77": {"raw_label": "Water Supply from Oil/Gas", "role": "water", "commodity": "water"}
+  },
+  "notes": [
+    "SYMNUM values 7, 8, 10, and plugged storage or brine symbols are raw map evidence. They are not plugged-and-abandoned confirmation.",
+    "A GIS viewer link is not a linkable plug document.",
+    "The words plugged or abandoned in a text field are not evidence.",
+    "Orphan does not override confirmed plug evidence.",
+    "A schedule file newer than a plug date keeps plugged-and-abandoned confirmed and flags review.",
+    "On equal timestamps, schedule and shut-in disagreement becomes Unknown, review needed.",
+    "Gas counts are commodity gas only. Mixed wells are a separate toggle. Injection, water, dry hole, and unknown are Other/unknown.",
+    "API numbers stay strings. Digits-only normalization keeps leading zeros. Do not prefix state code 42.",
+    "Corridor analysis around a line is deferred to v1.1."
+  ]
+}

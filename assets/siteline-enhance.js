@@ -1,6 +1,6 @@
 /** Siteline enhance gzip+b64 multi-part loader (instrument tray). */
-const PARTS = ['siteline-enhance.gz0.txt', 'siteline-enhance.gz1.txt', 'siteline-enhance.gz2.txt', 'siteline-enhance.gz3.txt', 'siteline-enhance.gz4.txt'];
-const ASSET_V = 'gas-subsea-1';
+const PARTS = ['siteline-enhance.gz0.txt', 'siteline-enhance.gz1.txt', 'siteline-enhance.gz2.txt', 'siteline-enhance.gz3.txt', 'siteline-enhance.gz4.txt', 'siteline-enhance.gz5.txt', 'siteline-enhance.gz6.txt', 'siteline-enhance.gz7.txt', 'siteline-enhance.gz8.txt'];
+const ASSET_V = 'wells-ac-1';
 const base = new URL('.', import.meta.url);
 const atlas = document.createElement('link');
 atlas.rel = 'stylesheet';

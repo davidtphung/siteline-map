@@ -61,7 +61,7 @@ const ABOUT_SOURCES = [
     name: "Natural gas interstate & intrastate pipelines",
     org: "EIA (HIFLD-class catalog)",
     url: "https://www.eia.gov/maps/layer_info-m.php",
-    cadence: "Esri feature service · transmission catalog",
+    cadence: "Public pipeline context, separate from wells",
     honesty: "CATALOG",
   },
   {
@@ -117,8 +117,15 @@ const ABOUT_SOURCES = [
     name: "NETL wells",
     org: "NETL / DOE",
     url: "https://edx.netl.doe.gov/",
-    cadence: "well catalog (orphaned + operating)",
+    cadence: "Optional non-TX catalog. Not status authority for Texas.",
     honesty: "CATALOG",
+  },
+  {
+    name: "Texas RRC wells (Cameron County first)",
+    org: "Texas Railroad Commission",
+    url: "https://www.rrc.texas.gov/resource-center/research/data-sets-available-for-download/",
+    cadence: "County well layer well061 plus schedules, inactive, orphan, plug evidence",
+    honesty: "RRC",
   },
   {
     name: "FEMA",
@@ -1122,7 +1129,7 @@ function findNearbyContour(map, point) {
 function aboutLeadHtml() {
   return (
     '<div class="sl-about-lead">' +
-    "<p>Siteline is a public screening map: pin a site, read the lines (grid, power, gas pipelines, fiber, subsea cables, terrain, DEM contours).</p>" +
+    "<p>Siteline is a public screening map: pin a site, read the lines (grid, power, gas pipelines, wells, fiber, subsea cables, terrain, DEM contours).</p>" +
     "<p>Built so capacity and site work can see public GIS honestly.</p>" +
     "<p>Catalog and DEM-derived layers are labeled.</p>" +
     "<p>Live MW, transformer MVA, as-built fiber, and survey-grade contours stay UNKNOWN.</p>" +
@@ -1310,7 +1317,7 @@ function ensureTray() {
     '<label class="sl-tray-row"><input type="checkbox" id="oim-telecom-toggle" checked /><span class="swatch telecom" aria-hidden="true"></span><span>OIM telecom (OSM mapped)</span></label>' +
     '<p class="sl-tray-label">Pipelines</p>' +
     '<label class="sl-tray-row"><input type="checkbox" id="sl-gas-toggle" checked /><span class="swatch gas" aria-hidden="true"></span><span>Natural gas pipelines</span></label>' +
-    '<p class="sl-honesty-chip catalog" id="sl-gas-honesty">EIA · CATALOG · HIFLD-class</p>' +
+    '<p class="sl-honesty-chip catalog" id="sl-gas-honesty">EIA · CATALOG · public pipeline context</p>' +
     '<p class="sl-tray-label">Cables</p>' +
     '<label class="sl-tray-row"><input type="checkbox" id="sl-subsea-toggle" checked /><span class="swatch subsea" aria-hidden="true"></span><span>Subsea cables</span></label>' +
     '<p class="sl-honesty-chip osm" id="sl-subsea-honesty">OSM-mapped · not survey</p>' +
@@ -1438,7 +1445,7 @@ function ensurePipelineToggles(el) {
   const html =
     '<p class="sl-tray-label">Pipelines</p>' +
     '<label class="sl-tray-row"><input type="checkbox" id="sl-gas-toggle" checked /><span class="swatch gas" aria-hidden="true"></span><span>Natural gas pipelines</span></label>' +
-    '<p class="sl-honesty-chip catalog" id="sl-gas-honesty">EIA · CATALOG · HIFLD-class</p>' +
+    '<p class="sl-honesty-chip catalog" id="sl-gas-honesty">EIA · CATALOG · public pipeline context</p>' +
     '<p class="sl-tray-label">Cables</p>' +
     '<label class="sl-tray-row"><input type="checkbox" id="sl-subsea-toggle" checked /><span class="swatch subsea" aria-hidden="true"></span><span>Subsea cables</span></label>' +
     '<p class="sl-honesty-chip osm" id="sl-subsea-honesty">OSM-mapped · not survey</p>';
@@ -1924,6 +1931,7 @@ function bindInspect(map) {
     if (!state.selected) setHighlight(map, hits[0] || null);
   });
   map.on("click", (e) => {
+    if (e.originalEvent && e.originalEvent.__sitelineWellHandled) return;
     const layers = interactiveLayerIds(map);
     let hits = [];
     if (layers.length) {
