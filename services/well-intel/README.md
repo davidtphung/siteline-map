@@ -14,7 +14,14 @@ Open `http://127.0.0.1:8088/api/health`.
 
 Point the map at it with `?wellApi=http://127.0.0.1:8088` or `window.SITELINE_WELL_API`.
 
-Without `DATABASE_URL`, wells stay in memory, classified from `fixtures/cameron/raw_wells.json`.
+Without `DATABASE_URL`, a request that has no `bbox` stays on the Cameron fixture in memory. A request with `bbox` queries Texas RRC and, when the envelope crosses New Mexico, NM OCD. Zoom below 7 returns cell counts. More than 20000 wells returns HTTP 413 `zoom_in` and draws nothing. The cache key includes a geohash-5 of the view center.
+
+```bash
+curl -s "http://127.0.0.1:8088/api/health/wells"
+curl -s "http://127.0.0.1:8088/api/wells?bbox=-97.72,26.15,-97.60,26.25&zoom=10&limit=500&include_gas=1&include_oil=1&include_mixed=1&include_other=1"
+```
+
+Environment: `RRC_FEATURE_URL`, `NM_OCD_URL`, `CO_ECMC_URL`, `OCC_URL`, `WELL_CACHE_DIR`, `WELL_STALE_HOURS` (clamped to 6 through 24), `PUBLIC_WELL_API_ORIGIN`. Discovered layer ids are in `/config/well-sources.json`. Colorado and Oklahoma services are recorded and are not drawn until a status crosswalk exists.
 
 ## PostGIS
 

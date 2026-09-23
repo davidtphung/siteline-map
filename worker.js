@@ -74,7 +74,7 @@ export default {
       return proxyGet(`${KARDASHEV}${rest}${url.search}`, request);
     }
 
-    if (path.startsWith("/api/wells") || path.startsWith("/api/gas-wells") || path.startsWith("/api/sites") || path === "/api/sources" || path === "/api/imports" || path === "/api/methodology" || path === "/api/quality-report" || path === "/api/health") {
+    if (path.startsWith("/api/wells") || path.startsWith("/api/gas-wells") || path.startsWith("/api/sites") || path === "/api/sources" || path === "/api/imports" || path === "/api/methodology" || path === "/api/quality-report" || path.startsWith("/api/health")) {
       const origin = env.WELL_INTEL_ORIGIN;
       if (!origin) {
         return new Response(JSON.stringify({ error: "WELL_INTEL_ORIGIN is not configured", fallback: "/data/cameron-wells.geojson" }), {

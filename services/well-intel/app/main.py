@@ -10,6 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from .context import build_context, feature_collection
+from .live import LiveCatalog, buffer_bbox, parse_bbox
 from .rules import flags_from_query, force_gas_only, force_oil_only, load_rules
 from .seed import build_wells, load_fixture
 from .store import MemoryStore
@@ -35,20 +36,31 @@ def _open_store(rules: dict) -> MemoryStore:
     return MemoryStore(wells, fixture, rules)
 
 
-def create_app(store: MemoryStore | None = None, rules: dict | None = None) -> FastAPI:
+def create_app(
+    store: MemoryStore | None = None,
+    rules: dict | None = None,
+    live: LiveCatalog | None = None,
+) -> FastAPI:
     rules = rules or load_rules()
     if store is None:
         store = _open_store(rules)
+    catalog = live if live is not None else LiveCatalog(rules)
 
     app = FastAPI(title="Siteline well intelligence", version=rules["version"])
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],
+        allow_origins=[
+            "https://siteline.nlt143.energy",
+            "http://localhost",
+            "http://127.0.0.1",
+        ],
+        allow_origin_regex=r"https?://(localhost|127\.0\.0\.1)(:\d+)?$",
         allow_methods=["GET", "POST", "OPTIONS"],
         allow_headers=["*"],
     )
     app.state.store = store
     app.state.rules = rules
+    app.state.live = catalog
 
     def flags(request: Request, gas_route: bool = False, oil_route: bool = False) -> dict:
         found = flags_from_query(dict(request.query_params), rules)
@@ -67,6 +79,10 @@ def create_app(store: MemoryStore | None = None, rules: dict | None = None) -> F
             "dataset_origin": store.fixture.get("dataset_origin"),
             "distance_crs": "EPSG:3081",
         }
+
+    @app.get("/api/health/wells")
+    def health_wells():
+        return catalog.health()
 
     @app.get("/api/methodology")
     def methodology():
@@ -152,7 +168,42 @@ def create_app(store: MemoryStore | None = None, rules: dict | None = None) -> F
 
     @app.get("/api/wells")
     def wells(request: Request):
+        if request.query_params.get("bbox"):
+            return _live_wells(request)
         return _collection(request)
+
+    def _live_wells(request: Request):
+        try:
+            bbox = parse_bbox(request.query_params.get("bbox") or "")
+            miles = float(request.query_params.get("buffer_miles") or 0)
+        except ValueError as exc:
+            return JSONResponse({"error": str(exc), "features": []}, status_code=400)
+        if miles < 0 or miles > 10:
+            return JSONResponse(
+                {"error": "buffer_miles must be between 0 and 10", "features": []},
+                status_code=400,
+            )
+        try:
+            bbox = buffer_bbox(bbox, miles)
+        except ValueError as exc:
+            return JSONResponse({"error": str(exc), "features": []}, status_code=400)
+        raw_zoom = request.query_params.get("zoom")
+        try:
+            zoom = None if raw_zoom in (None, "") else float(raw_zoom)
+            limit = int(request.query_params.get("limit") or rules.get("max_features") or 5000)
+        except ValueError:
+            return JSONResponse({"error": "zoom and limit must be numbers", "features": []}, status_code=400)
+        raw_states = request.query_params.get("states")
+        states = [part for part in raw_states.split(",")] if raw_states else None
+        status, body = catalog.query(
+            bbox=bbox,
+            zoom=zoom,
+            limit=limit,
+            states=states,
+            flags=flags(request),
+            as_of=request.query_params.get("as_of") or None,
+        )
+        return JSONResponse(body, status_code=status)
 
     @app.get("/api/gas-wells")
     def gas_wells(request: Request):

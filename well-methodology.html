@@ -18,7 +18,7 @@
   </head>
   <body>
     <main>
-      <p class="k">NLT143 RESEARCH · rules 2026-09-23.1</p>
+      <p class="k">NLT143 RESEARCH · rules 2026-09-23.2</p>
       <h1>Well data and limitations</h1>
       <p class="note">Cameron County first. Screening aid for AI data center siting. Not a title search.</p>
       <h2>Read this first</h2>
@@ -32,11 +32,17 @@
         <li>Well proximity is not gas deliverability, capacity, pressure, or service.</li>
         <li>Well proximity is not oil liability.</li>
         <li>EIA natural gas pipelines are public pipeline context, separate from wells.</li>
+        <li>New Mexico OCD is the system of record for New Mexico wells.</li>
+        <li>Well proximity is not a complete oil liability finding.</li>
+        <li>This is a screening catalog. Verify the well on the state viewer.</li>
       </ul>
       <h2>What the map shows</h2>
       <p>Natural gas wells are on. Oil, mixed oil and gas, and other/unknown are off until you turn them on. Those toggles do not share counts, rings, or exports. The confirmed plug label is <span class="k">Plugged &amp; abandoned — confirmed</span>. Anything short of an RRC plug date or a linkable plug document stays unconfirmed, including a plugged-well map symbol.</p>
       <p>Rings are 0.25, 0.5, 1, 5, and 10 miles, measured in EPSG:3081 (Texas Centric Lambert), not Web Mercator. You can upload a GeoJSON polygon or draw one.</p>
-      <p>The Cameron points shipped with the site are fixtures for Harlingen-Rio Hondo (<span class="k">dataset_origin: fixture</span>). They are not a live RRC extract. See <span class="k">docs/well-methodology.md</span> and <span class="k">docs/adapters.md</span> in the repo for the MFT well layer (<span class="k">well061.zip</span>), schedule CSV path, and MapServer QA layers.</p>
+      <p>The Cameron points shipped with the site are fixtures for Harlingen-Rio Hondo (<span class="k">dataset_origin: fixture</span>). They are not a live RRC extract. A map opened with <span class="k">?wellApi=</span> or <span class="k">window.SITELINE_WELL_API</span> loads the current view from the state system of record and keeps the fixture only when that call fails inside Cameron County.</p>
+      <h2>Live view</h2>
+      <p>Texas dots come from the RRC public GIS viewer. A gas or oil symbol without a schedule file stays historical, not a current schedule well. A plugged symbol is not a confirmed plug. Orphan is used only when the API is on the RRC orphan layer. New Mexico dots come from OCD. A plug date confirms plugged and abandoned only when that date is a real OCD timestamp, not an empty sentinel. Ashburn has no state oil and gas system of record in this catalog, so an empty view there is the honest result. NETL is not used to fill it.</p>
+      <p>Zoomed-out views return cell counts. They are not status. EIA pipeline distance, when the pipeline layer is already on the map, is public pipeline context. It is not capacity, pressure, or interconnect.</p>
       <p><a href="/">Back to the map</a></p>
     </main>
   </body>

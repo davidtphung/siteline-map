@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
-import { distanceMeters, distanceMiles, forward3081 } from "./well-geo.mjs";
+import { distanceMeters, distanceMiles, forward3081, nearestLineMiles } from "./well-geo.mjs";
 import {
+  buildWellBrief,
   contextTitle,
   countsByStatus,
   filterFeatures,
@@ -97,4 +98,51 @@ test("disclaimers are present and non-PA labels do not say abandoned", () => {
       assert.equal(feature.properties.status_label.toLowerCase().includes("abandoned"), false);
     }
   }
+});
+
+test("site brief splits rings and does not treat a symbol as a plug", () => {
+  const oil = fc.features.find((feature) => feature.properties.api_raw === "06100010");
+  const features = [
+    {
+      type: "Feature",
+      geometry: { type: "Point", coordinates: [-97.66, 26.19] },
+      properties: {
+        id: "g",
+        commodity_group: "gas",
+        status_code: "current_gas_schedule",
+        status_label: "Current gas well on RRC schedule",
+        pa_confirmed: false,
+        api_raw: "06100901",
+      },
+    },
+    oil,
+    {
+      type: "Feature",
+      geometry: { type: "Point", coordinates: [-97.66, 26.19] },
+      properties: {
+        id: "p",
+        commodity_group: "gas",
+        status_code: "tx_historical_gas_unconfirmed",
+        status_code_base: "historical_gas_unconfirmed",
+        pa_confirmed: false,
+        api_raw: "06100902",
+      },
+    },
+  ];
+  const brief = buildWellBrief(features, -97.66, 26.19, null, "Texas RRC GIS symbol");
+  assert.equal(brief.confidence, "screening");
+  assert.equal(brief.gas_wells_in_rings["0.25"], 2);
+  assert.equal(brief.oil_wells_in_rings["0.25"], 0);
+  assert.equal(brief.oil_wells_in_rings["1"], 1);
+  assert.equal(brief.nearest_current_gas_well.api_raw, "06100901");
+  assert.equal(brief.nearest_current_gas_well.distance_crs, "EPSG:3081");
+  assert.equal(brief.nearest_oil_well.commodity_group, "oil");
+  assert.equal(brief.pa_confirmed_in_1mi, 0);
+  assert.ok(brief.orphan_or_unplugged_in_1mi >= 2);
+  assert.equal(brief.nearest_eia_gas_pipeline.distance_miles, null);
+  assert.match(brief.next_action, /not an interconnect/);
+  const line = nearestLineMiles(-97.66, 26.19, [
+    { geometry: { type: "LineString", coordinates: [[-97.66, 26.2], [-97.66, 26.21]] } },
+  ]);
+  assert.ok(Math.abs(line - distanceMiles(-97.66, 26.19, -97.66, 26.2)) < 1e-6);
 });

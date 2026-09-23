@@ -59,6 +59,14 @@ Service: https://gis.rrc.texas.gov/server/rest/services/rrc_public/RRC_Public_Vi
 
 Viewer link shown on a well: https://gis.rrc.texas.gov/GISViewer/ plus the API string to search. A viewer URL is not a plug document.
 
+## Live viewport query
+
+`GET /api/wells` with `bbox=west,south,east,north` reads the RRC public viewer MapServer by layer name (`Well Locations`, `Orphan Wells`, `Injection/Disposal`) and, for envelopes that cross New Mexico, `NMOCD_Wells_V3` (`NMOCD_Active`, `NMOCD_Inactive`). Ids discovered on 2026-09-23 are in `config/well-sources.json`. The service resolves those names again on each process so a renamed layer is not queried under an old id.
+
+`RAC_GM/MapServer` returned 404 on the public RRC catalog that day. `well061.zip` remains the county extract path above. It is not downloaded per map move.
+
+A GIS SYMNUM is not a G-10 or W-10 schedule and is not plug evidence. Orphan comes only from the orphan layer. NM `plug_date` counts only when the timestamp falls in 1901 through 2100. HIFLD Open and the NASA NCCS host are not queried.
+
 ## What this ETL will not do
 
 - Invent deliverability, pressure, or interconnect capacity.

@@ -1,0 +1,163 @@
+{
+  "discovered_at": "2026-09-23",
+  "crs_distance": "EPSG:3081",
+  "notes": [
+    "Layer ids were read from service metadata on 2026-09-23. The adapter resolves layers by name at request time and does not treat these ids as permanent.",
+    "Texas status authority is the Railroad Commission. A GIS symbol is not a G-10 or W-10 schedule and is not plug evidence.",
+    "Orphan status is taken only from the RRC Orphan Wells layer or a state orphan list, never from a symbol description.",
+    "HIFLD Open and the former NASA NCCS map host are not used.",
+    "Queries always pass an envelope, an explicit field list, and a bounded where clause. There is no national extract."
+  ],
+  "env": {
+    "RRC_FEATURE_URL": "MapServer root for Texas RRC wells. Default is the public viewer service below.",
+    "NM_OCD_URL": "MapServer root for New Mexico OCD wells.",
+    "CO_ECMC_URL": "Feature layer for Colorado ECMC / OGCC wells. Discovered, not queried for dots.",
+    "OCC_URL": "Oklahoma OCC well FeatureServer. Discovered, not queried for dots.",
+    "WELL_CACHE_DIR": "Optional directory for geohash-5 response cache files.",
+    "WELL_STALE_HOURS": "Cache lifetime. Clamped to 6 through 24 hours. Default 12.",
+    "PUBLIC_WELL_API_ORIGIN": "Origin operators publish for the map. The map reads ?wellApi= or window.SITELINE_WELL_API."
+  },
+  "aois": {
+    "cameron": {
+      "bbox": [-97.9, 25.85, -97.15, 26.65],
+      "states": ["TX"],
+      "query_without_bbox": true,
+      "note": "Missing bbox returns this AOI only. A Cameron-wide count on 2026-09-23 was 2325 wells."
+    },
+    "permian": {
+      "bbox": [-104.4, 31.6, -102.6, 33.2],
+      "states": ["TX", "NM"],
+      "query_without_bbox": false,
+      "note": "Requires bbox and zoom. A 0.1 degree Midland sample counted 990 Texas wells."
+    },
+    "ashburn": {
+      "bbox": [-77.55, 38.95, -77.35, 39.15],
+      "states": [],
+      "empty_expected": true,
+      "note": "Texas RRC count for this envelope on 2026-09-23 was 0. NETL is not a backfill."
+    }
+  },
+  "sources": [
+    {
+      "id": "tx_rrc_public_viewer",
+      "state": "TX",
+      "role": "system_of_record",
+      "query_enabled": true,
+      "name": "RRC Public Viewer services",
+      "service": "https://gis.rrc.texas.gov/server/rest/services/rrc_public/RRC_Public_Viewer_Srvs/MapServer",
+      "viewer_url": "https://gis.rrc.texas.gov/GISViewer/",
+      "current_version": "11.3",
+      "spatial_reference_wkid": 4326,
+      "max_record_count": 1000,
+      "where": "API IS NOT NULL",
+      "out_fields": [
+        "API",
+        "SYMNUM",
+        "GIS_SYMBOL_DESCRIPTION",
+        "GIS_WELL_NUMBER",
+        "GIS_LAT83",
+        "GIS_LONG83",
+        "RELIAB",
+        "GIS_LOCATION_SOURCE"
+      ],
+      "layers": [
+        {"id": 1, "name": "Well Locations", "role": "wells", "geometry": "esriGeometryPoint"},
+        {"id": 2, "name": "Orphan Wells", "role": "orphan", "geometry": "esriGeometryPoint", "fields": ["API"]},
+        {"id": 4, "name": "Injection/Disposal", "role": "injection", "geometry": "esriGeometryPoint", "fields": ["API"]}
+      ],
+      "not_queried_layers": [
+        {"id": 0, "name": "Well Number", "reason": "Label layer at very large scale."},
+        {"id": 9, "name": "Horiz/Dir Surface Locations", "reason": "Not merged, to avoid a second dot for the same well."},
+        {"id": 13, "name": "Pipelines", "reason": "RRC pipelines are not the EIA public pipeline layer and are not well status."}
+      ],
+      "sample": {
+        "bbox": [-97.72, 26.15, -97.6, 26.25],
+        "count": 18,
+        "note": "Harlingen sample on 2026-09-23. API values shorter than 8 digits were present and are dropped."
+      },
+      "limits": [
+        "Operator and lease name are not on Well Locations. Those fields stay blank.",
+        "SYMNUM 7, 8, and 10 do not set pa_confirmed.",
+        "No plug date is on this service."
+      ]
+    },
+    {
+      "id": "nm_ocd_wells_v3",
+      "state": "NM",
+      "role": "system_of_record",
+      "query_enabled": true,
+      "name": "NMOCD Wells V3",
+      "service": "https://mapservice.nmstatelands.org/arcgis/rest/services/Public/NMOCD_Wells_V3/MapServer",
+      "attribution": "Oil Conservation Division, New Mexico EMNRD",
+      "max_record_count": 2000,
+      "layers": [
+        {"id": 5, "name": "NMOCD_Active", "role": "wells", "geometry": "esriGeometryPoint"},
+        {"id": 4, "name": "NMOCD_Inactive", "role": "wells", "geometry": "esriGeometryPoint"}
+      ],
+      "status_authority": "status and status_cod on the feature. Layer names are not status.",
+      "plug_date": "plug_date is evidence only when it falls in 1901 through 2100. Esri sentinel values (year 1900 and year 9999) are not plug dates.",
+      "out_fields": [
+        "API",
+        "wellname",
+        "well_type",
+        "type",
+        "status_cod",
+        "status",
+        "status2",
+        "ogrid_name",
+        "county",
+        "plug_date",
+        "latitude",
+        "longitude"
+      ]
+    },
+    {
+      "id": "co_ecmc_ogcc_wells",
+      "state": "CO",
+      "role": "system_of_record_discovered",
+      "query_enabled": false,
+      "name": "Colorado DNR OGCC wells",
+      "service": "https://data.dnrgis.state.co.us/arcgis/rest/services/DNR_Public/OGCC_Wells/FeatureServer/0",
+      "layer_id": 0,
+      "layer_name": "wells",
+      "max_record_count": 200000,
+      "reason": "Service answered on 2026-09-23. Facil_Stat is not crosswalked yet, so Colorado dots are not drawn."
+    },
+    {
+      "id": "ok_occ_rbdms",
+      "state": "OK",
+      "role": "system_of_record_discovered",
+      "query_enabled": false,
+      "name": "Oklahoma OCC RBDMS wells",
+      "service": "https://gis.occ.ok.gov/server/rest/services/Hosted/RBDMS_WELLS/FeatureServer",
+      "related_services": [
+        "Hosted/RBDMS_WELLS_ACTIVE",
+        "Hosted/RBDMS_ORPHAN_FUNDS_WELLS"
+      ],
+      "reason": "OCC folder listing on 2026-09-23 has no FeatureServer/2 well layer. These hosted services were named and are not queried until a field crosswalk exists."
+    }
+  ],
+  "rejected": [
+    {
+      "id": "rac_gm",
+      "probed": [
+        "https://gis.rrc.texas.gov/server/rest/services/rrc_public/RAC_GM/MapServer",
+        "https://gis.rrc.texas.gov/server/rest/services/RAC_GM/MapServer"
+      ],
+      "result": "404 Service not found on 2026-09-23. Public catalog lists RRC_Public_Viewer_Srvs and tpms only."
+    },
+    {
+      "id": "nm_hosted_rrc_copy",
+      "service": "https://mercator.env.nm.gov/server/rest/services/rrc/rrc_wells/MapServer",
+      "result": "New Mexico copy of Texas well classes. Not used as Texas status authority."
+    },
+    {
+      "id": "hifld_open_nccs",
+      "result": "HIFLD Open was discontinued around 2025-08. The NASA NCCS map host is not a source."
+    },
+    {
+      "id": "netl_wells",
+      "result": "NETL operating and orphan overlays stay off this API. They are not a state system of record and are not an Ashburn backfill."
+    }
+  ]
+}

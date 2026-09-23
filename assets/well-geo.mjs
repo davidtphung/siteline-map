@@ -78,6 +78,45 @@ export function distanceMiles(lon1, lat1, lon2, lat2) {
   return distanceMeters(lon1, lat1, lon2, lat2) / METERS_PER_MILE;
 }
 
+function segmentMeters(lon, lat, lon1, lat1, lon2, lat2) {
+  const point = forward3081(lon, lat);
+  const start = forward3081(lon1, lat1);
+  const end = forward3081(lon2, lat2);
+  const dx = end[0] - start[0];
+  const dy = end[1] - start[1];
+  const len2 = dx * dx + dy * dy;
+  let t = 0;
+  if (len2 > 0) {
+    t = ((point[0] - start[0]) * dx + (point[1] - start[1]) * dy) / len2;
+    t = Math.max(0, Math.min(1, t));
+  }
+  return Math.hypot(point[0] - (start[0] + t * dx), point[1] - (start[1] + t * dy));
+}
+
+/** Miles from a point to the nearest EIA line vertex segment, in EPSG:3081. */
+export function nearestLineMiles(lon, lat, features) {
+  let best = null;
+  const lines = features || [];
+  for (const feature of lines) {
+    const geometry = feature?.geometry || feature;
+    const parts =
+      geometry?.type === "LineString"
+        ? [geometry.coordinates]
+        : geometry?.type === "MultiLineString"
+          ? geometry.coordinates
+          : [];
+    for (const line of parts) {
+      if (!line || line.length < 2) continue;
+      for (let i = 1; i < line.length; i++) {
+        const meters = segmentMeters(lon, lat, line[i - 1][0], line[i - 1][1], line[i][0], line[i][1]);
+        if (best == null || meters < best) best = meters;
+      }
+    }
+  }
+  if (best == null) return null;
+  return best / METERS_PER_MILE;
+}
+
 export function offsetLonLat(lon, lat, eastM, northM) {
   const [x, y] = forward3081(lon, lat);
   return inverse3081(x + eastM, y + northM);

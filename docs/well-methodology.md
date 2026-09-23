@@ -73,4 +73,8 @@ These sentences are on the map card, in `/api/methodology`, and on `/well-method
 - Well proximity is not oil liability.
 - EIA natural gas pipelines are public pipeline context, separate from wells.
 
-Rules version: `2026-09-23.1` in `config/well-status-rules.json`.
+Rules version: `2026-09-23.2` in `config/well-status-rules.json`.
+
+## Live viewport
+
+With `?wellApi=` or `window.SITELINE_WELL_API`, the map sends the current bbox to `GET /api/wells` and draws that response. Texas status comes from the RRC public GIS viewer. A symbol is not a schedule file and is not plug evidence. New Mexico status comes from OCD, and a plug date counts only when it is a real timestamp. Views below zoom 7 return cell counts. An empty Ashburn view is expected. NETL is not used to fill it. Without `wellApi`, the Cameron fixture remains the map layer.

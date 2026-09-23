@@ -5,10 +5,12 @@
 import {
   distanceMiles,
   geometryCentroid,
+  nearestLineMiles,
   pointInGeometry,
   ringFeatureCollection,
 } from "./well-geo.mjs";
 import {
+  buildWellBrief,
   contextTitle,
   countsByStatus,
   exportCollection,
@@ -18,6 +20,7 @@ import {
   flagsToSearch,
   resetGasFlags,
   separatedCounts,
+  statusLabel,
 } from "./well-context.mjs";
 
 const SRC = "sl-wells-src";
@@ -46,6 +49,10 @@ const state = {
   bound: false,
   cardOpen: false,
   cardQuery: "",
+  stale: false,
+  notice: "",
+  mode: "features",
+  clusterFeatures: [],
 };
 
 function esc(value) {
@@ -141,11 +148,12 @@ function injectCss() {
   min-height: 0;
 }
 #sl-well-card[data-open="0"] .sl-well-body { display: none; }
-#sl-well-card .sl-well-kicker, #sl-well-card .sl-well-note, #sl-well-card li {
+#sl-well-card .sl-well-kicker, #sl-well-card .sl-well-note, #sl-well-card .sl-well-alert, #sl-well-card li {
   color: #94a3b8;
   font-size: 0.66rem;
   line-height: 1.4;
 }
+#sl-well-card .sl-well-alert { color: #e7d7b1; margin: 0.15rem 0 0.35rem; }
 #sl-well-card .sl-well-kicker {
   font-family: "JetBrains Mono", ui-monospace, monospace;
   letter-spacing: 0.08em;
@@ -260,6 +268,7 @@ function ensureTrayToggles() {
     '<p class="sl-tray-label">Wells</p>' +
     '<label class="sl-tray-row"><input type="checkbox" id="sl-well-gas" checked /><span class="swatch well-gas"></span><span>Natural gas wells</span></label>' +
     '<label class="sl-tray-row"><input type="checkbox" id="sl-well-oil" /><span class="swatch well-oil"></span><span>Oil wells</span></label>' +
+    '<p class="sl-tray-note">Oil stays off until checked. Oil wells are setback and surface conflict context, not production economics.</p>' +
     '<label class="sl-tray-row"><input type="checkbox" id="sl-well-mixed" /><span class="swatch well-mixed"></span><span>Mixed oil and gas</span></label>' +
     '<label class="sl-tray-row"><input type="checkbox" id="sl-well-other" /><span class="swatch well-other"></span><span>Other / unknown</span></label>' +
     '<p class="sl-honesty-chip catalog" id="sl-well-honesty">RRC · Texas system of record</p>' +
@@ -414,49 +423,19 @@ function renderCard() {
   const separated = separatedCounts(focus);
   const countLines = Object.entries(counts)
     .map(([code, n]) => {
-      const label = rules.statuses[code]?.label || code;
+      const label = statusLabel(code, rules);
       return "<li>" + esc(label) + ": " + n + "</li>";
     })
     .join("");
   const center = siteCenter();
-  let rings = "";
-  if (center) {
-    const milesList = rules.rings_miles || [0.25, 0.5, 1, 5, 10];
-    rings =
-      "<p class=\"sl-well-kicker\">Rings, EPSG:3081</p><ul>" +
-      milesList
-        .map((miles) => {
-          const n = visible.filter(
-            (f) => distanceMiles(center[0], center[1], f.geometry.coordinates[0], f.geometry.coordinates[1]) <= miles,
-          ).length;
-          return "<li>" + miles + " mi: " + n + "</li>";
-        })
-        .join("") +
-      "</ul>";
-  }
+  const rings = center ? briefMarkup(center) : "";
+  const oilNote = state.flags.include_oil
+    ? "<p class=\"sl-well-alert\">Oil wells are surface conflict context: setback, orphan, inactive, and unplugged wells. Proximity is not a complete oil liability finding and is not production economics.</p>"
+    : "";
+  const alert = state.notice ? "<p class=\"sl-well-alert\">" + esc(state.notice) + "</p>" : "";
   const selected = state.features.find((f) => f.properties.id === state.selectedId);
   const selectedVisible = selected && matched.some((row) => row.properties.id === selected.properties.id);
-  const detail = selectedVisible
-    ? "<p class=\"sl-well-kicker\">Well</p><p>" +
-      esc(selected.properties.status_label) +
-      "</p><ul><li>API " +
-      esc(selected.properties.api_raw) +
-      "</li><li>" +
-      esc(selected.properties.commodity) +
-      " · " +
-      esc(selected.properties.freshness) +
-      "</li><li>" +
-      esc(selected.properties.operator_name) +
-      " · " +
-      esc(selected.properties.lease_name) +
-      "</li><li>Dataset " +
-      esc(selected.properties.dataset_origin) +
-      "</li></ul><p><a href=\"" +
-      esc(selected.properties.rrc_viewer_url) +
-      "\" target=\"_blank\" rel=\"noopener\">Open RRC GIS Viewer</a>. Search API " +
-      esc(selected.properties.api_normalized) +
-      ". Siteline does not scrape the viewer.</p>"
-    : "";
+  const detail = selectedVisible ? wellDetail(selected) : "";
   const headerSummary = query
     ? matched.length + (matched.length === 1 ? " match in this view" : " matches in this view")
     : summaryLine(focus, separated);
@@ -478,7 +457,7 @@ function renderCard() {
       focus.length +
       " wells in this view. " +
       commodityNote +
-      ". Disabled commodities are omitted from counts, rings, and export.</p>";
+      ". The map and export follow the toggles. The site brief lists gas, oil, and mixed separately.</p>";
   const hits =
     query.length >= 2
       ? "<ul class=\"sl-well-hits\">" +
@@ -510,15 +489,17 @@ function renderCard() {
     (state.cardOpen ? "true" : "false") +
     "\" aria-controls=\"sl-well-body\">" +
     "<span class=\"sl-card-titles\"><span class=\"sl-well-kicker\">" +
-    esc(state.origin === "fixture" ? "Cameron fixture" : "RRC load") +
+    esc(kickerText()) +
     " · " +
-    esc(rules.cameron.jump_subtitle) +
+    esc(state.origin === "fixture" ? rules.cameron.jump_subtitle : "This view") +
     "</span><span class=\"sl-card-title\" id=\"sl-well-title\">" +
     esc(title) +
     "</span><span class=\"sl-card-summary\">" +
     esc(headerSummary) +
     "</span></span><span class=\"sl-chevron\" aria-hidden=\"true\"></span></button>" +
     "<div class=\"sl-well-body\" id=\"sl-well-body\">" +
+    alert +
+    oilNote +
     "<label class=\"sl-well-find-label\" for=\"sl-well-find\">Find in this view</label>" +
     "<input id=\"sl-well-find\" type=\"search\" placeholder=\"Status, API, operator, lease\" autocomplete=\"off\" spellcheck=\"false\" value=\"" +
     esc(state.cardQuery) +
@@ -615,6 +596,7 @@ function setRadius(miles) {
   state.site = { ...(state.site || {}), center: [...center], radiusMiles: miles, geometry: state.site?.geometry || null };
   state.draw = null;
   persistSite();
+  scheduleViewport();
   render();
 }
 
@@ -629,6 +611,7 @@ function readUpload(file) {
       state.site = { geometry, center, radiusMiles: state.site?.radiusMiles || 1, name: file.name };
       state.draw = null;
       persistSite();
+  scheduleViewport();
       render();
     } catch (err) {
       const card = ensureCard();
@@ -704,8 +687,133 @@ function loadStoredSite() {
   } catch (_) {}
 }
 
+function kickerText() {
+  if (state.origin === "fixture") return "Cameron fixture";
+  if (state.stale) return "Last good load, stale";
+  if (state.mode === "clusters" || state.mode === "zoom_in") return "Zoom in for wells";
+  return "State SOR, screening";
+}
+
+function pipelineFeatures() {
+  const map = state.map;
+  if (!map?.getSource) return [];
+  const rows = [];
+  for (const id of ["sl-gas-src", "sl-gas-detail-src"]) {
+    const data = map.getSource(id)?._data;
+    const features = data?.type === "FeatureCollection" ? data.features : [];
+    if (Array.isArray(features)) rows.push(...features);
+  }
+  return rows.slice(0, 400);
+}
+
+function currentBrief() {
+  const center = siteCenter();
+  if (!center) {
+    window.SITELINE_WELL_BRIEF = null;
+    return null;
+  }
+  const lines = pipelineFeatures();
+  const pipelineMiles = lines.length ? nearestLineMiles(center[0], center[1], lines) : null;
+  const lineage =
+    state.origin === "fixture"
+      ? "Cameron fixture. Not a live RRC extract."
+      : "State system of record for this view. A Texas GIS symbol is not a current schedule file.";
+  const brief = buildWellBrief(state.features, center[0], center[1], pipelineMiles, lineage);
+  window.SITELINE_WELL_BRIEF = brief;
+  return brief;
+}
+
+function briefMarkup(center) {
+  const brief = currentBrief();
+  if (!brief) return "";
+  const milesList = state.rules.rings_miles || [0.25, 0.5, 1, 5, 10];
+  const rings = milesList
+    .map((miles) => {
+      const key = String(miles);
+      return (
+        "<li>" +
+        miles +
+        " mi: gas " +
+        (brief.gas_wells_in_rings[key] || 0) +
+        ", oil " +
+        (brief.oil_wells_in_rings[key] || 0) +
+        ", mixed " +
+        (brief.mixed_wells_in_rings[key] || 0) +
+        "</li>"
+      );
+    })
+    .join("");
+  const gas = brief.nearest_current_gas_well
+    ? esc(brief.nearest_current_gas_well.api_raw) + " at " + brief.nearest_current_gas_well.distance_miles + " mi"
+    : "none on a current gas schedule in the loaded set";
+  const oil = brief.nearest_oil_well
+    ? esc(brief.nearest_oil_well.api_raw) + " at " + brief.nearest_oil_well.distance_miles + " mi"
+    : "none in the loaded set";
+  const pipe =
+    brief.nearest_eia_gas_pipeline.distance_miles == null
+      ? esc(brief.nearest_eia_gas_pipeline.note)
+      : brief.nearest_eia_gas_pipeline.distance_miles + " mi. " + esc(brief.nearest_eia_gas_pipeline.note);
+  return (
+    "<p class=\"sl-well-kicker\">Site brief, EPSG:3081</p><ul>" +
+    rings +
+    "<li>Nearest current gas well: " +
+    gas +
+    "</li><li>Nearest oil well: " +
+    oil +
+    "</li><li>Nearest EIA gas pipeline: " +
+    pipe +
+    "</li><li>Orphan or unplugged in 1 mi: " +
+    brief.orphan_or_unplugged_in_1mi +
+    "</li><li>P&amp;A confirmed in 1 mi: " +
+    brief.pa_confirmed_in_1mi +
+    "</li></ul><p class=\"sl-well-note\">" +
+    esc(brief.source_lineage) +
+    " " +
+    esc(brief.next_action) +
+    "</p>"
+  );
+}
+
+function wellDetail(selected) {
+  const props = selected.properties;
+  const viewer = props.viewer_url || props.rrc_viewer_url || "https://gis.rrc.texas.gov/GISViewer/";
+  const viewerLabel = props.state === "NM" ? "Open the NM OCD service" : "Open RRC GIS Viewer";
+  const operator =
+    props.operator_name || (props.state === "TX" && props.dataset_origin !== "fixture" ? "Operator not on this RRC layer" : "Operator unknown");
+  return (
+    "<p class=\"sl-well-kicker\">Well</p><p>" +
+    esc(props.status_label) +
+    "</p><ul><li>API " +
+    esc(props.api_raw) +
+    "</li><li>" +
+    esc(props.commodity_group || props.commodity) +
+    " · " +
+    esc(props.freshness) +
+    "</li><li>As of " +
+    esc(props.as_of || "unknown") +
+    "</li><li>" +
+    esc(operator) +
+    " · " +
+    esc(props.lease_name || "Lease unknown") +
+    "</li><li>P&amp;A confirmed: " +
+    (props.pa_confirmed ? "yes" : "no") +
+    (props.review_needed ? ". Review needed." : "") +
+    "</li><li>" +
+    esc(props.source_of_record || "Source of record on the feature") +
+    "</li><li>Dataset " +
+    esc(props.dataset_origin) +
+    "</li></ul><p><a href=\"" +
+    esc(viewer) +
+    "\" target=\"_blank\" rel=\"noopener\">" +
+    viewerLabel +
+    "</a>. Search API " +
+    esc(props.api_normalized) +
+    ". Siteline does not scrape the viewer.</p>"
+  );
+}
+
 function paint(map) {
-  const features = visibleFeatures();
+  const features = state.mode === "clusters" ? state.clusterFeatures : visibleFeatures();
   const data = { type: "FeatureCollection", features };
   if (map.getSource(SRC)) map.getSource(SRC).setData(data);
   const center = siteCenter();
@@ -794,6 +902,7 @@ function closePolygon() {
   state.vertices = [];
   state.draw = null;
   persistSite();
+  scheduleViewport();
   render();
 }
 
@@ -813,6 +922,7 @@ function onMapClick(event) {
     };
     state.draw = null;
     persistSite();
+  scheduleViewport();
     render();
     return;
   }
@@ -826,7 +936,7 @@ function onMapClick(event) {
     return;
   }
   const hits = map.queryRenderedFeatures(event.point, { layers: [LAYER] });
-  if (!hits[0]) return;
+  if (!hits[0] || hits[0].properties.well_count) return;
   state.selectedId = hits[0].properties.id;
   renderCard();
 }
@@ -861,16 +971,176 @@ function bindMap(map) {
   ensureLayers(map);
   state.bound = true;
   paint(map);
+  map.on("moveend", scheduleViewport);
+  if (apiBase()) loadViewport();
+}
+
+function mountExternalBrief() {
+  const brief = window.SITELINE_WELL_BRIEF;
+  const body = document.querySelector(".brief-body");
+  if (!body || !brief) return;
+  let host = document.getElementById("sl-well-brief");
+  if (!host) {
+    host = document.createElement("section");
+    host.id = "sl-well-brief";
+    body.appendChild(host);
+  }
+  const pipe = brief.nearest_eia_gas_pipeline || {};
+  const pipeText =
+    pipe.distance_miles == null ? pipe.note || "EIA pipeline distance unavailable." : pipe.distance_miles + " mi. " + (pipe.note || "");
+  host.innerHTML =
+    "<p class=\"sl-well-kicker\">Wells, screening</p><p>Orphan or unplugged in 1 mi: " +
+    brief.orphan_or_unplugged_in_1mi +
+    ". P&amp;A confirmed in 1 mi: " +
+    brief.pa_confirmed_in_1mi +
+    ".</p><p>Nearest EIA gas pipeline: " +
+    esc(pipeText) +
+    "</p><p>" +
+    esc(brief.source_lineage) +
+    " " +
+    esc(brief.next_action) +
+    "</p>";
 }
 
 function render() {
   publishArea();
   syncToggles();
   renderCard();
+  mountExternalBrief();
   if (state.map) {
     if (state.draw === "polygon") state.map.doubleClickZoom?.disable?.();
     else state.map.doubleClickZoom?.enable?.();
     paint(state.map);
+  }
+}
+
+let viewportTimer = 0;
+let viewportAbort = null;
+let viewportSeq = 0;
+
+function scheduleViewport() {
+  if (!apiBase()) return;
+  window.clearTimeout(viewportTimer);
+  viewportTimer = window.setTimeout(loadViewport, 400);
+}
+
+function applyPayload(json) {
+  state.stale = !!json.stale;
+  state.mode = json.mode || "features";
+  state.notice = json.message || "";
+  if (state.mode === "clusters") {
+    state.clusterFeatures = json.features || [];
+    state.features = [];
+  } else if (state.mode === "zoom_in") {
+    state.clusterFeatures = [];
+    state.features = [];
+  } else {
+    state.clusterFeatures = [];
+    state.features = (json.features || []).filter((feature) => !feature?.properties?.well_count);
+  }
+  state.origin = state.features[0]?.properties?.dataset_origin || json.dataset_origin || "state_sor";
+  if (state.stale && !state.notice) {
+    state.notice = "Showing the last good load for this view. A source check failed.";
+  }
+  render();
+}
+
+async function loadViewport() {
+  const base = apiBase();
+  const map = state.map || window.__SITELINE_MAP__;
+  if (!base || !state.rules || !map?.getBounds) return;
+  const bounds = map.getBounds();
+  const zoom = map.getZoom?.();
+  const bbox = [bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth()]
+    .map((value) => Number(value).toFixed(5))
+    .join(",");
+  const url =
+    base +
+    "/api/wells?include_gas=1&include_oil=1&include_mixed=1&include_other=1&bbox=" +
+    bbox +
+    "&zoom=" +
+    encodeURIComponent(zoom ?? "") +
+    "&limit=5000&buffer_miles=" +
+    Math.min(10, Math.max(0, Number(state.site?.radiusMiles) || 0));
+  if (viewportAbort) viewportAbort.abort();
+  viewportAbort = new AbortController();
+  const seq = ++viewportSeq;
+  try {
+    const response = await fetch(url, { signal: viewportAbort.signal });
+    const json = await response.json().catch(() => ({}));
+    if (seq !== viewportSeq) return;
+    if (response.status === 413 || json.mode === "zoom_in") {
+      applyPayload({ ...json, mode: "zoom_in", features: [] });
+      return;
+    }
+    if (!response.ok) throw new Error("wells " + response.status);
+    applyPayload(json);
+  } catch (err) {
+    if (err?.name === "AbortError") return;
+    if (seq !== viewportSeq) return;
+    try {
+      await fallbackFixture();
+    } catch (fallbackErr) {
+      state.notice = "Well layer failed to load. " + (fallbackErr.message || "");
+      render();
+    }
+  }
+}
+
+function viewInCameron() {
+  const map = state.map || window.__SITELINE_MAP__;
+  const center = map?.getCenter?.();
+  const box = state.rules?.aois?.cameron?.bbox;
+  if (!center || !box) return !center;
+  return center.lng >= box[0] && center.lng <= box[2] && center.lat >= box[1] && center.lat <= box[3];
+}
+
+async function fallbackFixture() {
+  if (state.origin !== "fixture" && state.features.length) {
+    state.stale = true;
+    state.notice = "Showing the last good well load. The live source did not answer.";
+    render();
+    return;
+  }
+  if (!viewInCameron()) {
+    state.features = [];
+    state.clusterFeatures = [];
+    state.mode = "features";
+    state.origin = "state_sor";
+    state.stale = true;
+    state.notice =
+      "Live wells did not load for this view. The Cameron fixture stays in Cameron County. NETL is not used to fill this view.";
+    render();
+    return;
+  }
+  const local = await fetch("/data/cameron-wells.geojson");
+  if (!local.ok) throw new Error("cameron wells " + local.status);
+  const json = await local.json();
+  state.features = json.features || [];
+  state.clusterFeatures = [];
+  state.mode = "features";
+  state.origin = json.dataset_origin || "fixture";
+  state.stale = false;
+  state.notice = "Live wells did not load. Showing the Cameron fixture.";
+  render();
+}
+
+async function probeHealth() {
+  const base = apiBase();
+  if (!base) return;
+  try {
+    const response = await fetch(base + "/api/health/wells");
+    if (!response.ok) throw new Error("health " + response.status);
+    const body = await response.json();
+    if (body.degraded || body.ok === false) {
+      state.stale = true;
+      if (!state.notice) {
+        state.notice = "A well source check failed. The map keeps the last good load when it has one.";
+      }
+      render();
+    }
+  } catch (_) {
+    state.stale = true;
   }
 }
 
@@ -879,23 +1149,17 @@ async function loadData() {
   if (!rulesRes.ok) throw new Error("rules " + rulesRes.status);
   state.rules = await rulesRes.json();
   state.flags = flagsFromSearch(location.search, state.rules);
-  const base = apiBase();
-  if (base) {
-    try {
-      const live = await fetch(base + "/api/wells?include_gas=1&include_oil=1&include_mixed=1&include_other=1");
-      if (live.ok) {
-        const json = await live.json();
-        state.features = json.features || [];
-        state.origin = json.features?.[0]?.properties?.dataset_origin || "api";
-        return;
-      }
-    } catch (_) {}
+  if (!apiBase()) {
+    const local = await fetch("/data/cameron-wells.geojson");
+    if (!local.ok) throw new Error("cameron wells " + local.status);
+    const json = await local.json();
+    state.features = json.features || [];
+    state.origin = json.dataset_origin || "fixture";
+    return;
   }
-  const local = await fetch("/data/cameron-wells.geojson");
-  if (!local.ok) throw new Error("cameron wells " + local.status);
-  const json = await local.json();
-  state.features = json.features || [];
-  state.origin = json.dataset_origin || "fixture";
+  state.origin = "state_sor";
+  state.notice = "Loading wells for this view.";
+  probeHealth();
 }
 
 function boot() {
@@ -934,6 +1198,10 @@ function boot() {
     }
   });
   window.addEventListener("resize", syncStack);
+  const briefObserver = new MutationObserver(() => {
+    if (window.SITELINE_WELL_BRIEF && !document.getElementById("sl-well-brief")) mountExternalBrief();
+  });
+  briefObserver.observe(document.body, { childList: true, subtree: true });
 }
 
 boot();
