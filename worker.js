@@ -149,6 +149,42 @@ async function proxyRequest(target, request, cacheControl) {
   return new Response(upstream.body, { status: upstream.status, headers: out });
 }
 
+function byteRange(header) {
+  const match = /^bytes=(\d+)-(\d*)$/.exec(header || "");
+  if (!match) return null;
+  const offset = Number(match[1]);
+  if (!match[2]) return { offset };
+  const end = Number(match[2]);
+  return { offset, length: end - offset + 1 };
+}
+
+async function serveR2OrAsset(request, env, key, contentType, maxAge) {
+  const headers = {
+    "Content-Type": contentType,
+    "Accept-Ranges": "bytes",
+    "Cache-Control": "public, max-age=" + maxAge,
+    ...corsHeaders(request),
+  };
+  if (env.TILES) {
+    const range = byteRange(request.headers.get("Range"));
+    const object = await env.TILES.get(key, range ? { range } : undefined);
+    if (object) {
+      if (range && object.range) {
+        const start = object.range.offset ?? range.offset;
+        const length = object.range.length ?? range.length ?? 0;
+        const end = start + length - 1;
+        headers["Content-Range"] = "bytes " + start + "-" + end + "/" + object.size;
+        headers["Content-Length"] = String(length);
+        return new Response(object.body, { status: 206, headers });
+      }
+      if (object.size) headers["Content-Length"] = String(object.size);
+      return new Response(object.body, { status: 200, headers });
+    }
+  }
+  if (env.ASSETS) return env.ASSETS.fetch(new Request(new URL("/" + key, request.url), request));
+  return new Response("Tile store is not configured", { status: 404, headers });
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -204,6 +240,14 @@ export default {
     if (path.startsWith("/api/hydro/")) {
       const rest = path.slice("/api/hydro".length) || "/";
       return proxyRequest(`https://hydro.nationalmap.gov${rest}${url.search}`, request);
+    }
+
+    if (path === "/tiles/gaswells.pmtiles") {
+      return serveR2OrAsset(request, env, "tiles/gaswells.pmtiles", "application/vnd.pmtiles", 300);
+    }
+
+    if (path === "/tiles/gaswells-manifest.json") {
+      return serveR2OrAsset(request, env, "tiles/gaswells-manifest.json", "application/json", 300);
     }
 
     if (path === "/api/nmwells" || path === "/api/nmwells/query") {

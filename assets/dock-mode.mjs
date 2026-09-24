@@ -10,7 +10,7 @@ export const LAYER_FACTS = {
   "oim-telecom-toggle": { sentence: "Telecom lines mapped in OpenStreetMap.", source: "OpenInfraMap", vintage: "UNKNOWN" },
   "sl-subsea-toggle": { sentence: "Subsea cables mapped in OpenStreetMap.", source: "OpenStreetMap", vintage: "UNKNOWN" },
   "sl-water": { sentence: "Rivers, streams, and waterbodies.", source: "NHD", vintage: "UNKNOWN" },
-  "sl-well-gas": { sentence: "Natural gas wells in the current view. Active is solid orange. Inactive is an orange ring.", source: "NM OCD, CO ECMC, Texas RRC", vintage: "NM live. CO status dates through 2025-03-26." },
+  "sl-well-gas": { sentence: "Natural gas wells in the current view. Active is solid orange. Inactive is an orange ring.", source: "State oil and gas agencies", vintage: "See the coverage table. Texas RRC has shut-in versus gas-well status only, with no operator or dates in the GIS layer." },
   "sl-well-oil": { sentence: "Oil wells in the current view.", source: "Texas RRC", vintage: "UNKNOWN" },
   "sl-well-mixed": { sentence: "Wells with both oil and gas.", source: "Texas RRC", vintage: "UNKNOWN" },
   "sl-well-other": { sentence: "Wells whose commodity is other or unknown.", source: "Texas RRC", vintage: "UNKNOWN" },
@@ -120,6 +120,9 @@ const LAYER_INFO = {
   "sl-gas-lines": { name: "Gas pipelines", source: "EIA" },
   "sl-wells-cluster-count": { name: "Wells", source: "Texas RRC" },
   "sl-live-wells-cluster-count": { name: "Natural gas wells", source: "NM OCD" },
+  "sl-gaswells-pt": { name: "Natural gas wells", source: "State oil and gas agencies" },
+  "sl-gaswells-cluster": { name: "Natural gas wells", source: "State oil and gas agencies" },
+  "sl-gaswells-cluster-count": { name: "Natural gas wells", source: "State oil and gas agencies" },
 };
 
 for (const id of Object.keys(LAYER_INFO)) registerInteractiveLayer(id, defaultTapHandler);
@@ -181,13 +184,18 @@ export function featureSummary(feature) {
   }
   const dated = firstField(props, ["status_date"]);
   if (dated !== "UNKNOWN") fields.push(["Date", dated]);
+  const asOf = plain(props.source_updated || props.status_date || "");
+  const agency = plain(props.source_name || "");
+  if (layerId.startsWith("sl-gaswells")) {
+    fields.push(["As of", asOf || "UNKNOWN"]);
+  }
   const note = plain(props.source_note || "");
-  const record = props.source_of_record ? plain(props.source_of_record) : known.source;
+  const record = agency || (props.source_of_record ? plain(props.source_of_record) : known.source);
   const summary = {
     name,
     layer: known.name,
     source: record,
-    vintage: note || firstField(props, ["vintage", "as_of", "asOf"]),
+    vintage: layerId.startsWith("sl-gaswells") ? "data as of " + (asOf || "UNKNOWN") : note || firstField(props, ["vintage", "as_of", "asOf"]),
     sample,
     fields: layerId.startsWith("sl-wells") || layerId.startsWith("sl-live-wells") || /well/i.test(layerId) ? fields : fields.filter((row) => row[1] !== "UNKNOWN"),
   };

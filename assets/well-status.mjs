@@ -4,7 +4,7 @@ export const ORANGE = "#f97316";
 export const AMBER = "#d6c07a";
 export const PLUGGED_GRAY = "#8b9098";
 export const CO_STATUS_VINTAGE = "status dates through 2025-03-26";
-export const TEXAS_RRC_NOTE = "Texas RRC is the source of record. Not loaded yet.";
+export const TEXAS_RRC_NOTE = "Texas RRC data has shut-in versus gas-well status only, with no operator or dates in the GIS layer.";
 export const NM_UPSTREAM = "https://gis.emnrd.nm.gov/arcgis/rest/services/OCDView/Wells_Public/FeatureServer/0";
 
 export function styleWaitDecision(loaded) {

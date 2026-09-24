@@ -1,0 +1,59 @@
+name: Gas well tiles
+
+on:
+  schedule:
+    - cron: "15 8 * * *"
+  workflow_dispatch:
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install tippecanoe and GDAL
+        run: sudo apt-get update && sudo apt-get install -y tippecanoe gdal-bin
+      - name: Ingest official gas wells
+        run: PYTHONPATH=. python3 -m ingest.run --states ALL --out "$RUNNER_TEMP/gaswells" --geojson "$RUNNER_TEMP/gaswells/gaswells.geojsonl"
+      - name: Build PMTiles
+        run: |
+          tippecanoe \
+            -o "$RUNNER_TEMP/gaswells/gaswells.pmtiles" \
+            -l gaswells \
+            --force \
+            --read-parallel \
+            --minimum-zoom=0 \
+            --maximum-zoom=12 \
+            --base-zoom=10 \
+            --cluster-distance=40 \
+            --drop-densest-as-needed \
+            --extend-zooms-if-still-dropping \
+            "$RUNNER_TEMP/gaswells/gaswells.geojsonl"
+          cp "$RUNNER_TEMP/gaswells/gaswells-manifest.json" "$RUNNER_TEMP/gaswells/manifest.json"
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: gaswells
+          path: |
+            ${{ runner.temp }}/gaswells/gaswells.pmtiles
+            ${{ runner.temp }}/gaswells/gaswells-manifest.json
+          if-no-files-found: error
+      - name: Upload to R2 when secrets exist
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}
+        run: |
+          if [ -z "$CLOUDFLARE_ACCOUNT_ID" ] || [ -z "$R2_ACCESS_KEY_ID" ] || [ -z "$R2_SECRET_ACCESS_KEY" ] || [ -z "$R2_BUCKET" ]; then
+            echo "R2 secrets are absent. The PMTiles file is the workflow artifact. Exiting cleanly."
+            exit 0
+          fi
+          python3 -m pip install --quiet awscli
+          endpoint="https://${CLOUDFLARE_ACCOUNT_ID}.r2.cloudflarestorage.com"
+          aws s3 cp "$RUNNER_TEMP/gaswells/gaswells.pmtiles" "s3://${R2_BUCKET}/tiles/gaswells.pmtiles" \
+            --endpoint-url "$endpoint" --content-type application/vnd.pmtiles
+          aws s3 cp "$RUNNER_TEMP/gaswells/gaswells-manifest.json" "s3://${R2_BUCKET}/tiles/gaswells-manifest.json" \
+            --endpoint-url "$endpoint" --content-type application/json

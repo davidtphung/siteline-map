@@ -646,6 +646,10 @@ function popupHtml(feature, total, index) {
   const rows = card.fields
     .map((row) => "<p>" + esc(row[0]) + ": " + esc(row[1]) + "</p>")
     .join("");
+  const refresh =
+    feature?.properties?.state === "NM" && feature?.properties?.api
+      ? "<button type=\"button\" class=\"sl-feature-more\" data-nm-refresh=\"" + esc(feature.properties.api) + "\">Refresh this well</button>"
+      : "";
   const sample = card.sample ? "<p>Sample data</p>" : "";
   const more = moreHereLine(total - 1);
   const cycle = more
@@ -659,6 +663,7 @@ function popupHtml(feature, total, index) {
     "<p>Source: " + esc(card.source) + "</p>" +
     "<p>Vintage: " + esc(card.vintage) + "</p>" +
     sample +
+    refresh +
     cycle +
     "</div>"
   );
@@ -730,6 +735,7 @@ function openClusterCard(map, feature, point) {
         "<div class=\"sl-feature-card\">" +
         "<p class=\"sl-feature-name\">" + total + " wells</p>" +
         "<p>" + esc(summary) + "</p>" +
+        "<p>Source: state oil and gas agencies, data as of each well record</p>" +
         list +
         "</div>",
       )
@@ -753,7 +759,39 @@ function openClusterCard(map, feature, point) {
     const pending = source.getClusterLeaves(clusterId, limit, 0);
     if (pending && typeof pending.then === "function") pending.then((leaves) => paint(leaves || [])).catch(() => paint([]));
     else source.getClusterLeaves(clusterId, limit, 0, (err, leaves) => paint(err ? [] : leaves || []));
-  } else paint([]);
+  } else {
+    if (center) map.easeTo?.({ center, zoom: Math.min((map.getZoom?.() || 4) + 2, 12), essential: true });
+    paint([]);
+  }
+}
+
+async function refreshNmWell(popup, api) {
+  const safe = String(api || "").replace(/'/g, "");
+  if (!safe) return;
+  const params = new URLSearchParams({
+    where: "id='" + safe + "'",
+    outFields: "id,name,status,ogrid_name,type,last_production_date",
+    returnGeometry: "false",
+    f: "json",
+  });
+  const button = popup?.getElement?.()?.querySelector("[data-nm-refresh]");
+  if (button) button.textContent = "Refreshing";
+  try {
+    const response = await fetch("/api/nmwells/query?" + params.toString());
+    const json = await response.json();
+    const attrs = json.features?.[0]?.attributes;
+    const card = popup?.getElement?.()?.querySelector(".sl-feature-card");
+    if (!card || !attrs) {
+      if (button) button.textContent = "Refresh this well";
+      return;
+    }
+    const note = document.createElement("p");
+    note.textContent = "Live NM OCD: " + (attrs.status || "UNKNOWN") + ", data as of " + (attrs.last_production_date ? "the production date on the live record" : "UNKNOWN");
+    card.appendChild(note);
+    if (button) button.remove();
+  } catch (_) {
+    if (button) button.textContent = "Refresh this well";
+  }
 }
 
 function showFeaturePopup(map, lngLat, point, hits, index) {
@@ -776,6 +814,11 @@ function showFeaturePopup(map, lngLat, point, hits, index) {
     .setLngLat(at)
     .setHTML(popupHtml(feature, hits.length, index))
     .addTo(map);
+  featurePopup.getElement?.()?.querySelector("[data-nm-refresh]")?.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    refreshNmWell(featurePopup, event.currentTarget.getAttribute("data-nm-refresh"));
+  });
   featurePopup.getElement?.()?.querySelector("[data-sl-more]")?.addEventListener("click", (event) => {
     event.preventDefault();
     event.stopPropagation();
