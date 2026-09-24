@@ -280,9 +280,22 @@ function ensureCameronJump() {
   row.appendChild(btn);
 }
 
+function applyPluggedLabel() {
+  const input = document.getElementById("sl-well-plugged");
+  const label = document.getElementById("sl-well-plugged-label");
+  if (!input || !label) return;
+  const next = pluggedToggleState(window.__SITELINE_GAS_MANIFEST__);
+  input.disabled = next.disabled;
+  if (next.disabled) input.checked = false;
+  label.textContent = next.label;
+}
+
 function ensureTrayToggles() {
   const pane = document.querySelector("#sl-pane-layers");
-  if (!pane || document.getElementById("sl-well-gas")) return;
+  if (!pane || document.getElementById("sl-well-gas")) {
+    applyPluggedLabel();
+    return;
+  }
   const block = document.createElement("div");
   block.id = "sl-well-toggles";
   block.innerHTML =
@@ -299,6 +312,8 @@ function ensureTrayToggles() {
   const host = label && label.classList.contains("sl-tray-label") ? label : pipelines;
   if (host) host.parentNode.insertBefore(block, host);
   else pane.appendChild(block);
+  applyPluggedLabel();
+  window.addEventListener("siteline-gas-manifest", applyPluggedLabel);
   for (const [id, key] of [
     ["sl-well-gas", "include_gas"],
     ["sl-well-oil", "include_oil"],
