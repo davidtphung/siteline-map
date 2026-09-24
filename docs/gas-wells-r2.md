@@ -35,3 +35,5 @@ The nightly workflow `.github/workflows/gas-wells.yml` also runs on `workflow_di
 `ingest/sources.py` is the verified catalog (2026-09-24). States with no usable official gas type stay `UNKNOWN` in the manifest. Texas coverage is `partial status`: the RRC GIS layer has shut-in versus gas-well status only, and it has no operator or dates. Colorado uses the daily ECMC `WELLS_SHP.ZIP` file, not the stale live service that has no well class.
 
 The Cameron County fixture is drawn for gas wells only when Texas coverage is `UNKNOWN`, and that fallback is labeled Sample data.
+
+The file committed at `tiles/gaswells.pmtiles` is a preview under the Workers 25 MiB asset limit (about 22 MiB). It omits plugged wells. Plugged counts stay in the manifest, and the nightly workflow uploads the full file, including plugged wells, to R2.

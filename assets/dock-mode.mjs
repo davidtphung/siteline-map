@@ -185,7 +185,8 @@ export function featureSummary(feature) {
   const dated = firstField(props, ["status_date"]);
   if (dated !== "UNKNOWN") fields.push(["Date", dated]);
   const asOf = plain(props.source_updated || props.status_date || "");
-  const agency = plain(props.source_name || "");
+  const manifestAgency = typeof window !== "undefined" ? window.__SITELINE_GAS_MANIFEST__?.states?.[props.state]?.agency : "";
+  const agency = plain(props.source_name || manifestAgency || "");
   if (layerId.startsWith("sl-gaswells")) {
     fields.push(["As of", asOf || "UNKNOWN"]);
   }
