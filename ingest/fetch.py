@@ -239,12 +239,32 @@ def _page_rows(src, where, offset, fetched_at, force_class, force_status):
     return rows
 
 
+def _by_object_ids(src, where, fetched_at, force_class, force_status, log):
+    ids = _object_ids(src, where)
+    log(f"  {src['state']} object ids {len(ids)}")
+    rows = []
+    page_size = min(int(src.get("page_size") or 500), 500)
+    for start in range(0, len(ids), page_size):
+        payload = _arcgis_page(src, where, 0, object_ids=ids[start : start + page_size])
+        if payload.get("error"):
+            raise RuntimeError(str(payload["error"])[:300])
+        for feature in payload.get("features") or []:
+            record = normalize(src, feature.get("attributes") or {}, feature.get("geometry") or {}, fetched_at, force_class, force_status)
+            if record:
+                rows.append(record)
+    return rows
+
+
 def fetch_arcgis(src, where, force_class=None, force_status=None, log=print):
     fetched_at = utc_now()
     page_size = int(src.get("page_size") or 1000)
     try:
         total = _count(src, where)
     except Exception as exc:
+        message = str(exc)
+        if "Pagination" in message or "400" in message:
+            log(f"  {src['state']} offset paging refused; using object ids")
+            return _by_object_ids(src, where, fetched_at, force_class, force_status, log)
         log(f"  {src['state']} count failed ({exc})")
         total = 0
     log(f"  {src['state']} count {total}")
@@ -253,6 +273,17 @@ def fetch_arcgis(src, where, force_class=None, force_status=None, log=print):
     offsets = list(range(0, total, page_size))
     rows = []
     workers = 6
+    try:
+        probe = _page_rows(src, where, 0, fetched_at, force_class, force_status)
+    except Exception as exc:
+        if "Pagination" in str(exc) or "400" in str(exc):
+            log(f"  {src['state']} offset paging refused; using object ids")
+            return _by_object_ids(src, where, fetched_at, force_class, force_status, log)
+        raise
+    rows.extend(probe)
+    offsets = [offset for offset in offsets if offset]
+    if not offsets:
+        return rows
     with ThreadPoolExecutor(max_workers=workers) as pool:
         futures = {
             pool.submit(_page_rows, src, where, offset, fetched_at, force_class, force_status): offset
