@@ -10,6 +10,7 @@ import {
   utilitySummary,
 } from "./layer-territory.mjs";
 import { describeWellState } from "./well-layer-status.mjs";
+import { LAYER_FACTS, gasStatusSummary, layerStatusLine } from "./dock-mode.mjs";
 
 const TERRITORY_LAYER = "sl-util-territory";
 const TERRITORY_SRC = "sl-util-territory-src";
@@ -284,6 +285,19 @@ function buildGroups() {
     if (!groups.contains(node)) node.remove();
   });
   pane.dataset.slGrouped = "1";
+  groups.addEventListener("mousedown", (event) => {
+    if (event.target.closest("input, .sl-layer-sec-h")) return;
+    if (event.target.closest(".sl-tray-row")) event.preventDefault();
+  });
+  groups.addEventListener("click", (event) => {
+    if (event.target.closest("input, .sl-layer-sec-h")) return;
+    const row = event.target.closest(".sl-tray-row");
+    if (!row) return;
+    event.preventDefault();
+    event.stopPropagation();
+    if (document.getElementById("sl-tray")?.dataset.dockMode === "inspect") return;
+    showLayerInfo(row.querySelector("input")?.id);
+  });
   pane.addEventListener("change", (event) => {
     updateCounts();
     const id = event.target?.id;
@@ -819,6 +833,75 @@ function syncLayerPanelAria() {
   document.querySelectorAll('[aria-controls="layer-panel"]').forEach((node) => {
     if (node.getAttribute("aria-expanded") !== value) node.setAttribute("aria-expanded", value);
   });
+}
+
+function showLayerInfo(id) {
+  const pane = document.getElementById("sl-pane-layers");
+  const fact = LAYER_FACTS[id];
+  if (!pane || !fact) return;
+  let box = document.getElementById("sl-layer-info");
+  if (!box) {
+    box = document.createElement("section");
+    box.id = "sl-layer-info";
+    box.setAttribute("aria-live", "polite");
+    pane.prepend(box);
+  }
+  const input = document.getElementById(id);
+  const map = window.__SITELINE_MAP__;
+  const zoom = map?.getZoom?.();
+  let shown = null;
+  let health = "";
+  if (id.startsWith("sl-well-") && map?.queryRenderedFeatures && map.getLayer?.("sl-wells-pt")) {
+    const group = { "sl-well-gas": "gas", "sl-well-oil": "oil", "sl-well-mixed": "mixed", "sl-well-other": "other" }[id];
+    let feats = [];
+    try {
+      feats = map.queryRenderedFeatures({ layers: ["sl-wells-pt"] });
+    } catch (_) {
+      feats = [];
+    }
+    const seen = new Set();
+    const unique = [];
+    for (const feature of feats) {
+      const key = feature.properties?.id || feature.properties?.api_raw || JSON.stringify(feature.properties);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      if (!group || feature.properties?.commodity_group === group) unique.push(feature);
+    }
+    shown = unique.length;
+    box._wells = unique;
+  }
+  if (REMOTE_WELLS[id]) {
+    const info = hiddenWellHealth(REMOTE_WELLS[id]);
+    health = info.health;
+  }
+  const status = layerStatusLine({
+    on: !!input?.checked,
+    zoom,
+    minZoom: REMOTE_WELLS[id] ? 6 : undefined,
+    health,
+    shown,
+  });
+  const sample = /Cameron fixture/i.test(document.querySelector(".sl-well-kicker")?.textContent || "");
+  let grid = "";
+  if (id === "sl-well-gas" && box._wells) {
+    const counts = gasStatusSummary(box._wells);
+    const cells = [
+      ["Active", counts.active],
+      ["Inactive", counts.inactive],
+      ["Plugged and abandoned", counts.plugged_abandoned],
+      ["Orphan", counts.orphan],
+      ["UNKNOWN", counts.unknown],
+    ];
+    grid = '<div class="sl-info-grid">' + cells.map(([label, n]) => "<div>" + label + "<br>" + n + "</div>").join("") + "</div>";
+  }
+  box.innerHTML =
+    "<h3>" + fact.sentence + "</h3>" +
+    "<p>Source: " + fact.source + "</p>" +
+    "<p>Vintage: " + fact.vintage + "</p>" +
+    "<p>Status: " + status + "</p>" +
+    (sample && id.startsWith("sl-well-") ? "<p>Sample fixture. Cameron County.</p>" : "") +
+    grid;
+  document.getElementById("sl-tray") && (document.getElementById("sl-dock-card")?.scrollTo?.(0, 0));
 }
 
 function ensureAboutSource() {

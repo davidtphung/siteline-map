@@ -3,6 +3,7 @@
  * Collapsed on first visit. Last open state is kept in localStorage.
  */
 import { JUMP_PLACES, renderJumpList } from "./jump-places.mjs";
+import { normalizeMode } from "./dock-mode.mjs";
 
 const STORE = "siteline.dock.v1";
 const TABS = [
@@ -40,12 +41,23 @@ function readStore() {
   }
 }
 
-function writeStore(open, tab) {
+function writeStore(open, tab, mode) {
   try {
-    localStorage.setItem(STORE, JSON.stringify({ open: !!open, tab: tab || "layers" }));
+    localStorage.setItem(
+      STORE,
+      JSON.stringify({
+        open: !!open,
+        tab: tab || "layers",
+        mode: normalizeMode(mode),
+      }),
+    );
   } catch {
     /* private mode */
   }
+}
+
+function modeOf(tray) {
+  return normalizeMode(tray?.dataset.dockMode);
 }
 
 function injectCss() {
@@ -120,7 +132,12 @@ function ensureStructure(tray) {
     bar.className = "sl-dock-bar";
     bar.setAttribute("role", "tablist");
     bar.setAttribute("aria-label", "Siteline");
-    bar.innerHTML = TABS.map((tab) => {
+    bar.innerHTML =
+      '<div class="sl-mode-toggle" role="group" aria-label="Map mode">' +
+      '<button type="button" data-dock-mode="browse" aria-pressed="true">Browse</button>' +
+      '<button type="button" data-dock-mode="inspect" aria-pressed="false">Inspect</button>' +
+      '</div><div class="sl-dock-tabs" role="tablist" aria-label="Siteline">' +
+      TABS.map((tab) => {
       const badge = tab.badge ? '<span class="sl-dock-badge" id="sl-dock-wells-badge" hidden>0</span>' : "";
       return (
         '<button type="button" class="sl-dock-tab" role="tab" id="sl-dock-tab-' +
@@ -139,7 +156,7 @@ function ensureStructure(tray) {
       );
     }).join("") +
       '<button type="button" class="sl-dock-chevron" id="sl-dock-chevron" aria-controls="sl-dock-card" aria-expanded="false" aria-label="Show panel">' +
-      '<span class="sl-dock-chev" aria-hidden="true"></span></button>';
+      '<span class="sl-dock-chev" aria-hidden="true"></span></button></div>';
   }
 
   if (tray.firstChild !== card) tray.prepend(card);
@@ -194,7 +211,7 @@ function apply(tray, open, tab, persist) {
   else if (open && (next === "layers" || next === "inspect" || next === "about") && tray.dataset.tab !== next) {
     legacyTab(next);
   }
-  if (persist !== false) writeStore(open, next);
+  if (persist !== false) writeStore(open, next, modeOf(tray));
   if (open) tray.querySelector(".sl-dock-card")?.scrollTo?.(0, 0);
 }
 
@@ -231,10 +248,36 @@ function toggleTab(tab) {
 }
 
 function parkWells(tray) {
-  const pane = document.getElementById("sl-pane-wells");
   const card = document.getElementById("sl-well-card");
-  if (!pane || !card || pane.contains(card)) return;
-  pane.appendChild(card);
+  const inspect = document.getElementById("sl-pane-inspect");
+  const wells = document.getElementById("sl-pane-wells");
+  const dest = modeOf(tray) === "inspect" && isOpen(tray) ? inspect : wells;
+  if (!card || !dest || dest.contains(card)) return;
+  dest.appendChild(card);
+}
+
+function dismissBrief() {
+  const hide = document.querySelector(".brief-panel .sheet-close");
+  if (hide) hide.click();
+}
+
+function setMode(mode) {
+  const tray = document.getElementById("sl-tray");
+  if (!tray) return;
+  const next = normalizeMode(mode);
+  const prev = modeOf(tray);
+  tray.dataset.dockMode = next;
+  tray.querySelectorAll("[data-dock-mode]").forEach((btn) => {
+    const on = btn.getAttribute("data-dock-mode") === next;
+    btn.setAttribute("aria-pressed", on ? "true" : "false");
+    btn.classList.toggle("is-on", on);
+  });
+  writeStore(isOpen(tray), tray.dataset.dockTab || "layers", next);
+  if (prev === "inspect" && next === "browse") {
+    dismissBrief();
+    if (isOpen(tray) && tray.dataset.dockTab === "inspect") closeDock();
+  }
+  parkWells(tray);
 }
 
 function parkBrief() {
@@ -243,10 +286,15 @@ function parkBrief() {
   if (!pane || !panel) return;
   if (panel.parentElement !== pane) pane.prepend(panel);
   const open = panel.classList.contains("open");
+  if (modeOf(document.getElementById("sl-tray")) !== "inspect") {
+    if (open) dismissBrief();
+    return;
+  }
   if (open && panel.dataset.slDockOpen !== "1") {
     panel.dataset.slDockOpen = "1";
     openDock("inspect");
   }
+  if (open) openDock("inspect");
   if (!open) panel.dataset.slDockOpen = "0";
 }
 
@@ -276,6 +324,12 @@ function wire(tray) {
   if (tray.dataset.slDockWired === "1") return;
   tray.dataset.slDockWired = "1";
   tray.addEventListener("click", (event) => {
+    const modeBtn = event.target.closest?.("[data-dock-mode]");
+    if (modeBtn && tray.contains(modeBtn)) {
+      event.preventDefault();
+      setMode(modeBtn.getAttribute("data-dock-mode"));
+      return;
+    }
     const tab = event.target.closest?.("[data-dock-tab]");
     if (tab && tray.contains(tab)) {
       event.preventDefault();
@@ -346,8 +400,71 @@ function wireGlobal() {
     const tray = document.getElementById("sl-tray");
     if (!tray || !isOpen(tray)) return;
     if (event.target.closest?.("#sl-tray, #sl-place, .maplibregl-ctrl, .maplibregl-popup")) return;
-    if (event.target.closest?.(".maplibregl-canvas, .maplibregl-map")) closeDock();
+    if (event.target.closest?.(".maplibregl-canvas, .maplibregl-map")) {
+      if (modeOf(tray) === "inspect") return;
+      closeDock();
+    }
   });
+}
+
+function ensureInspectClose() {
+  const pane = document.getElementById("sl-pane-inspect");
+  if (!pane || document.getElementById("sl-inspect-dock-close")) return;
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.id = "sl-inspect-dock-close";
+  btn.className = "sl-inspect-dock-close";
+  btn.textContent = "Close";
+  btn.addEventListener("click", () => {
+    dismissBrief();
+    closeDock();
+  });
+  pane.appendChild(btn);
+}
+
+function esc(value) {
+  return String(value ?? "").replace(/[&<>]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[ch]));
+}
+
+function guardMapClicks() {
+  const map = window.__SITELINE_MAP__;
+  if (!map || map.__slModeGuard || typeof map.fire !== "function") return;
+  map.__slModeGuard = true;
+  const fire = map.fire.bind(map);
+  map.fire = (type, data) => {
+    const name = typeof type === "string" ? type : type && type.type;
+    if (name === "click" && modeOf(document.getElementById("sl-tray")) === "browse") {
+      let hit = null;
+      try {
+        hit = data?.point ? map.queryRenderedFeatures(data.point)[0] : null;
+      } catch (_) {
+        hit = null;
+      }
+      if (hit && window.maplibregl?.Popup && data?.lngLat) {
+        const props = hit.properties || {};
+        const label = props.name || props.NAME || props.api_raw || props.lease_name || props.operator_name || "UNKNOWN";
+        const kind = props.TYPE || props.status_label || props.commodity_group || hit.layer?.id || "UNKNOWN";
+        const source = {
+          "sl-wells-pt": "Texas RRC",
+          "hifld-tx": "HIFLD",
+          "hifld-subs": "HIFLD",
+          "eia-plants": "EIA",
+          "osm-datacenters": "OpenStreetMap",
+          "fcc-bdc": "FCC BDC",
+          "fema-flood": "FEMA",
+          "nhd-flowline": "NHD",
+          "nhd-waterbody": "NHD",
+          "sl-util-territory": "HIFLD",
+        }[hit.layer?.id] || "UNKNOWN";
+        new window.maplibregl.Popup({ closeButton: true, maxWidth: "260px" })
+          .setLngLat(data.lngLat)
+          .setHTML("<strong>" + esc(label) + "</strong><br>Type: " + esc(kind) + "<br>Source: " + esc(source))
+          .addTo(map);
+      }
+      return map;
+    }
+    return fire(type, data);
+  };
 }
 
 function boot() {
@@ -382,8 +499,17 @@ function boot() {
     const saved = readStore();
     const open = saved ? !!saved.open : false;
     const tab = saved && saved.tab ? saved.tab : "layers";
+    tray.dataset.dockMode = normalizeMode(saved && saved.mode);
+    tray.querySelectorAll("[data-dock-mode]").forEach((btn) => {
+      const on = btn.getAttribute("data-dock-mode") === tray.dataset.dockMode;
+      btn.setAttribute("aria-pressed", on ? "true" : "false");
+      btn.classList.toggle("is-on", on);
+    });
     apply(tray, open, tab, false);
+    ensureInspectClose();
   }
+  guardMapClicks();
+  ensureInspectClose();
   return true;
 }
 
@@ -501,8 +627,9 @@ const DOCK_CSS = `
 #sl-tray.sl-dock[data-sheet="peek"] .sl-tray-stage { display: block !important; }
 #sl-tray.sl-dock .sl-dock-bar {
   display: flex;
-  align-items: center;
-  gap: 2px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
   width: 100%;
   min-height: 44px;
   padding: 4px;
@@ -510,6 +637,48 @@ const DOCK_CSS = `
   border: 1px solid rgba(255,255,255,0.12);
   background: rgba(5, 6, 8, 0.96);
   box-shadow: 0 10px 28px rgba(0,0,0,0.45);
+}
+#sl-tray.sl-dock .sl-dock-tabs { display: flex; align-items: center; gap: 2px; width: 100%; }
+#sl-tray.sl-dock .sl-mode-toggle { display: flex; gap: 4px; }
+#sl-tray.sl-dock .sl-mode-toggle button {
+  appearance: none;
+  flex: 1;
+  min-height: 32px;
+  margin: 0;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: transparent;
+  color: rgba(255,255,255,0.78);
+  font: 500 12px/1 Inter, system-ui, sans-serif;
+  cursor: pointer;
+}
+#sl-tray.sl-dock .sl-mode-toggle button.is-on { background: rgba(255,255,255,0.1); color: #fff; }
+#sl-tray.sl-dock .sl-inspect-dock-close {
+  appearance: none;
+  min-height: 36px;
+  margin: 0 0 8px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: transparent;
+  color: #fff;
+  font: 500 12px/1 Inter, system-ui, sans-serif;
+  cursor: pointer;
+}
+#sl-layer-info {
+  margin: 0 0 10px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.12);
+}
+#sl-layer-info h3 { margin: 0 0 4px; font: 500 13px/1.3 Inter, system-ui, sans-serif; }
+#sl-layer-info p { margin: 0 0 4px; color: rgba(255,255,255,0.72); font-size: 12px; }
+#sl-layer-info .sl-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-top: 6px; }
+#sl-layer-info .sl-info-grid div {
+  padding: 6px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.08);
+  font: 500 11px/1.3 "JetBrains Mono", ui-monospace, monospace;
 }
 #sl-tray.sl-dock .sl-dock-tab,
 #sl-tray.sl-dock .sl-dock-chevron {
@@ -623,6 +792,8 @@ const DOCK_CSS = `
     margin: 0 8px calc(44px + env(safe-area-inset-bottom));
     border-radius: 16px;
   }
+  #sl-tray.sl-dock .sl-mode-toggle button,
+  #sl-tray.sl-dock .sl-inspect-dock-close { min-height: 44px; }
   #sl-tray.sl-dock .sl-dock-tab,
   #sl-tray.sl-dock .sl-dock-chevron {
     min-height: 44px;
