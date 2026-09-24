@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { afterFieldInput, afterLayerToggle, applyBrowseFeatureTap, applyEmptyBrowseTap, applyInspectFeatureTap, applyLegendClick, applyMapTap, cycleFeature, DOCK_TABS, dockTabMove, escapeInField, featureSummary, gasStatusSummary, hitBox, hitPadding, keyboardResizeKeepsSheet, moreHereLine, shouldCloseFromPointer, shouldCloseOnMapTap, shouldMoveDockTab, shouldSwipeClose } from "./dock-mode.mjs";
+import { afterFieldInput, afterLayerToggle, applyBrowseFeatureTap, applyEmptyBrowseTap, applyInspectFeatureTap, applyLegendClick, applyMapTap, clusterStatusLine, cycleFeature, DOCK_TABS, dockTabMove, escapeInField, featureSummary, gasStatusSummary, hitBox, hitPadding, isInteractiveFeature, keyboardResizeKeepsSheet, moreHereLine, registeredLayerIds, shouldCloseFromPointer, shouldCloseOnMapTap, shouldMoveDockTab, shouldSwipeClose, tapHandlerFor } from "./dock-mode.mjs";
 
 test("Inspect card persists across map taps", () => {
   let state = { mode: "inspect", open: true, tab: "inspect", pin: null };
@@ -130,6 +130,24 @@ test("Inspect tap still pins and keeps feature details", () => {
   const again = applyInspectFeatureTap(state, { lng: -77.5, lat: 39.1 }, [feature]);
   assert.equal(again.open, true);
   assert.deepEqual(again.pin, { lng: -77.5, lat: 39.1 });
+});
+
+test("every registered layer has a tap handler", () => {
+  const ids = registeredLayerIds();
+  assert.ok(ids.includes("sl-wells-cluster"));
+  assert.ok(ids.includes("sl-live-wells-cluster"));
+  assert.ok(ids.includes("hifld-subs"));
+  assert.ok(ids.includes("hifld-tx"));
+  assert.ok(ids.includes("eia-plants"));
+  assert.ok(ids.includes("osm-datacenters"));
+  assert.ok(ids.includes("fema-flood"));
+  assert.ok(ids.includes("fcc-bdc"));
+  assert.ok(ids.includes("nhd-flowline"));
+  assert.ok(ids.includes("sl-util-territory"));
+  for (const id of ids) assert.equal(typeof tapHandlerFor(id), "function");
+  assert.equal(isInteractiveFeature({ layer: { id: "fema-flood", type: "fill" } }), true);
+  assert.equal(tapHandlerFor("a-layer-added-later")({ layer: { id: "a-layer-added-later" }, properties: {} }).kind, "feature");
+  assert.equal(clusterStatusLine([{ properties: { status: "Active" } }, { properties: { status_class: "inactive" } }]), "Active 1, Inactive or TA 1");
 });
 
 test("gas well summary counts match the features in view", () => {

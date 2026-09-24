@@ -565,9 +565,20 @@ function renderCard() {
       esc(selected.properties.api_normalized) +
       ". Siteline does not scrape the viewer.</p>"
     : "";
+  const liveInView = featuresInBounds(state.map?.getSource?.("sl-live-wells")?._data?.features || [], mapBounds());
+  const sampleCount = visible.filter((feature) => feature.properties?.dataset_origin === "fixture").length;
+  const inViewCount = visible.length + liveInView.length;
+  window.__SITELINE_WELL_COUNT__ = inViewCount;
+  const badge = document.getElementById("sl-dock-wells-badge");
+  if (badge) {
+    badge.hidden = inViewCount <= 0;
+    badge.textContent = String(inViewCount);
+  }
   const headerSummary = query
     ? matched.length + (matched.length === 1 ? " match in this view" : " matches in this view")
-    : summaryLine(focus, separated);
+    : sampleCount > 0 && liveInView.length === 0
+      ? sampleCount + " Sample"
+      : summaryLine(focus, separated);
   const commodityNote = [
     state.flags.include_gas ? "Gas " + separated.gas.well_count : "",
     state.flags.include_oil ? "Oil " + separated.oil.well_count : "",
@@ -876,11 +887,27 @@ function ensureLayers(map) {
     type: "circle",
     source: SRC,
     filter: ["has", "point_count"],
+    maxzoom: 10,
     paint: {
       "circle-color": "#f97316",
-      "circle-radius": ["step", ["get", "point_count"], 12, 10, 16, 30, 20],
-      "circle-opacity": 0.85,
+      "circle-radius": ["step", ["get", "point_count"], 14, 10, 18, 30, 22],
+      "circle-opacity": 0.95,
+      "circle-stroke-color": "#14120e",
+      "circle-stroke-width": 1,
     },
+  });
+  map.addLayer({
+    id: CLUSTER + "-count",
+    type: "symbol",
+    source: SRC,
+    filter: ["has", "point_count"],
+    maxzoom: 10,
+    layout: {
+      "text-field": ["to-string", ["get", "point_count"]],
+      "text-size": 12,
+      "text-font": ["Open Sans Bold", "Arial Unicode MS Bold"],
+    },
+    paint: { "text-color": "#14120e" },
   });
   map.addLayer({
     id: LAYER,

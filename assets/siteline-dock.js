@@ -4,7 +4,7 @@
  */
 import { cardRects } from "./card-layout.mjs?v=slots-2";
 import { JUMP_PLACES, renderJumpList } from "./jump-places.mjs";
-import { DOCK_TABS, cycleFeature, dockTabMove, escapeInField, featureSummary, hitBox, isInteractiveFeature, isTypingTarget, keyboardResizeKeepsSheet, moreHereLine, normalizeMode, shouldCloseFromPointer, shouldCloseOnMapTap, shouldMoveDockTab, shouldSwipeClose } from "./dock-mode.mjs?v=wells-live-1";
+import { DOCK_TABS, clusterStatusLine, cycleFeature, dockTabMove, escapeInField, featureSummary, hitBox, isInteractiveFeature, isTypingTarget, keyboardResizeKeepsSheet, moreHereLine, normalizeMode, shouldCloseFromPointer, shouldCloseOnMapTap, shouldMoveDockTab, shouldSwipeClose, tapHandlerFor } from "./dock-mode.mjs?v=wells-live-2";
 
 const STORE = "siteline.dock.v1";
 const TAB_META = {
@@ -398,15 +398,15 @@ function parkBrief() {
 
 function syncWellBadge() {
   const badge = document.getElementById("sl-dock-wells-badge");
-  const title = document.getElementById("sl-well-title");
   if (!badge) return;
-  const match = (title?.textContent || "").match(/(\d+)/);
-  if (!match) {
+  const count = Number(window.__SITELINE_WELL_COUNT__);
+  if (!Number.isFinite(count) || count <= 0) {
     badge.hidden = true;
+    badge.textContent = "0";
     return;
   }
   badge.hidden = false;
-  badge.textContent = match[1];
+  badge.textContent = String(count);
 }
 
 function onTrayMutation(tray) {
@@ -666,6 +666,74 @@ function closeFeaturePopup() {
   featureIndex = 0;
 }
 
+function isClusterFeature(feature) {
+  return !!(feature?.properties?.cluster || feature?.properties?.point_count);
+}
+
+function openClusterCard(map, feature, point) {
+  const sourceId = feature.layer?.source || feature.source;
+  const source = sourceId ? map.getSource(sourceId) : null;
+  const clusterId = feature.properties?.cluster_id;
+  const center = feature.geometry?.coordinates;
+  if (source?.getClusterExpansionZoom && center) {
+    source.getClusterExpansionZoom(clusterId, (err, zoom) => {
+      if (!err && Number.isFinite(zoom)) map.easeTo({ center, zoom, essential: true });
+    });
+  }
+  const total = Number(feature.properties?.point_count) || 0;
+  const paint = (leaves) => {
+    const rows = (leaves || []).slice(0, 10);
+    const summary = clusterStatusLine(leaves || []);
+    const list = rows
+      .map((leaf, index) => {
+        const props = leaf.properties || {};
+        const name = props.name || props.api_raw || props.lease_name || "Well";
+        const api = props.api_raw || props.API_Label || "UNKNOWN";
+        const status = props.status || props.status_label || props.Facil_Stat || "UNKNOWN";
+        return (
+          "<button type=\"button\" class=\"sl-cluster-row\" data-leaf=\"" + index + "\">" +
+          esc(name) + " · " + esc(api) + " · " + esc(status) +
+          "</button>"
+        );
+      })
+      .join("");
+    const at = center ? { lng: center[0], lat: center[1] } : map.getCenter();
+    closeFeaturePopup();
+    featurePopup = new window.maplibregl.Popup({
+      closeButton: true,
+      closeOnClick: false,
+      maxWidth: "min(320px, calc(100vw - 24px))",
+      anchor: popupAnchor(map, point),
+      className: "sl-feature-popup",
+    })
+      .setLngLat(at)
+      .setHTML(
+        "<div class=\"sl-feature-card\">" +
+        "<p class=\"sl-feature-name\">" + total + " wells</p>" +
+        "<p>" + esc(summary) + "</p>" +
+        list +
+        "</div>",
+      )
+      .addTo(map);
+    featurePopup.getElement?.()?.querySelectorAll("[data-leaf]").forEach((button) => {
+      button.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        const leaf = rows[Number(button.dataset.leaf)];
+        if (!leaf?.geometry?.coordinates) return;
+        const lng = leaf.geometry.coordinates[0];
+        const lat = leaf.geometry.coordinates[1];
+        leaf.layer = leaf.layer || { id: feature.layer?.id?.replace("cluster", "pt") || "sl-wells-pt", type: "circle", source: sourceId };
+        map.flyTo?.({ center: [lng, lat], zoom: Math.max(map.getZoom?.() || 0, 14), essential: true });
+        showFeaturePopup(map, { lng, lat }, map.project?.([lng, lat]) || point, [leaf], 0);
+      });
+    });
+  };
+  if (source?.getClusterLeaves) {
+    source.getClusterLeaves(clusterId, Math.max(total, 10), 0, (err, leaves) => paint(err ? [] : leaves || []));
+  } else paint([]);
+}
+
 function showFeaturePopup(map, lngLat, point, hits, index) {
   if (!window.maplibregl?.Popup || !hits.length) return;
   const feature = hits[index] || hits[0];
@@ -730,7 +798,14 @@ function guardMapClicks() {
     if (name === "click") {
       const touch = data?.originalEvent?.pointerType === "touch" || data?.originalEvent?.type === "touchend";
       const hits = queryHits(map, data?.point, touch);
+      hits.forEach((hit) => tapHandlerFor(hit.layer?.id)(hit));
       const mode = modeOf(document.getElementById("sl-tray"));
+      const cluster = hits.find(isClusterFeature);
+      if (cluster) {
+        openClusterCard(map, cluster, data?.point);
+        if (mode === "inspect") renderInspectFeature(hits);
+        return map;
+      }
       if (mode === "browse") {
         if (hits.length && data?.lngLat) showFeaturePopup(map, data.lngLat, data.point, hits, 0);
         else closeFeaturePopup();
@@ -864,6 +939,7 @@ const DOCK_CSS = `
 }
 .sl-feature-popup .sl-feature-name { margin: 0 0 4px; font-size: 13px; color: #fff; }
 .sl-feature-popup p { margin: 0 0 3px; }
+.sl-cluster-row { display: block; width: 100%; margin: 0; padding: 0.35rem 0; border: 0; border-top: 1px solid rgba(255,255,255,0.08); background: transparent; color: #fff; text-align: left; font: inherit; cursor: pointer; }
 .sl-feature-popup .sl-feature-more {
   appearance: none;
   margin-top: 6px;
@@ -1041,6 +1117,7 @@ const DOCK_CSS = `
 }
 #sl-tray.sl-dock .sl-dock-ico { display: inline-flex; width: 14px; height: 14px; }
 #sl-tray.sl-dock .sl-dock-ico svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+#sl-tray.sl-dock .sl-dock-badge[hidden] { display: none !important; }
 #sl-tray.sl-dock .sl-dock-badge {
   display: inline-flex;
   align-items: center;

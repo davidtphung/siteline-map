@@ -131,10 +131,25 @@ function ensureLayers(map) {
       maxzoom: 10,
       paint: {
         "circle-color": "#f97316",
-        "circle-radius": ["step", ["get", "point_count"], 12, 20, 16, 80, 20],
+        "circle-radius": ["step", ["get", "point_count"], 14, 20, 18, 80, 22],
         "circle-stroke-color": "#14120e",
         "circle-stroke-width": 1,
       },
+    });
+  }
+  if (!map.getLayer(CLUSTER + "-count")) {
+    map.addLayer({
+      id: CLUSTER + "-count",
+      type: "symbol",
+      source: SRC,
+      filter: ["has", "point_count"],
+      maxzoom: 10,
+      layout: {
+        "text-field": ["to-string", ["get", "point_count"]],
+        "text-size": 12,
+        "text-font": ["Open Sans Bold", "Arial Unicode MS Bold"],
+      },
+      paint: { "text-color": "#14120e" },
     });
   }
   if (!map.getLayer(LAYER)) {

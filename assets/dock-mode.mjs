@@ -48,7 +48,7 @@ export function normalizeMode(value) {
   return value === "inspect" ? "inspect" : "browse";
 }
 
-const INTERACTIVE_TYPES = new Set(["circle", "symbol", "line"]);
+const INTERACTIVE_TYPES = new Set(["circle", "symbol", "line", "fill"]);
 const SKIP_LAYERS = new Set([
   "sl-feature-hl-line",
   "sl-feature-hl-pt",
@@ -56,7 +56,43 @@ const SKIP_LAYERS = new Set([
   "sl-well-aoi-line",
   "sl-well-draw-line",
   "sl-contour-lines",
+  "background",
+  "usgs-fallback",
+  "esri-fallback",
 ]);
+const tapHandlers = new Map();
+
+export function registerInteractiveLayer(id, handler) {
+  tapHandlers.set(id, typeof handler === "function" ? handler : defaultTapHandler);
+  return tapHandlers.get(id);
+}
+
+export function tapHandlerFor(id) {
+  return tapHandlers.get(id) || defaultTapHandler;
+}
+
+export function registeredLayerIds() {
+  return [...tapHandlers.keys()];
+}
+
+export function defaultTapHandler(feature) {
+  return { kind: feature?.properties?.cluster || feature?.properties?.point_count ? "cluster" : "feature", layerId: feature?.layer?.id || "" };
+}
+
+export function clusterStatusLine(leaves) {
+  let active = 0;
+  let inactive = 0;
+  for (const leaf of leaves || []) {
+    const props = leaf?.properties || {};
+    const kind = String(props.status_class || "");
+    const label = String(props.status || props.status_label || props.Facil_Stat || "").toLowerCase();
+    const code = String(props.status_code || "");
+    const isActive = kind === "active" || label === "active" || label === "pr" || code.startsWith("current");
+    if (isActive) active += 1;
+    else inactive += 1;
+  }
+  return "Active " + active + ", Inactive or TA " + inactive;
+}
 const LAYER_INFO = {
   "sl-wells-pt": { name: "Wells", source: "Texas RRC" },
   "sl-wells-cluster": { name: "Wells", source: "Texas RRC" },
@@ -81,7 +117,12 @@ const LAYER_INFO = {
   "siteline-oim-telecom-line": { name: "Telecom lines", source: "OpenInfraMap" },
   "siteline-oim-telecom-mast": { name: "Telecom", source: "OpenInfraMap" },
   "sl-gas-detail-lines": { name: "Gas pipelines", source: "EIA" },
+  "sl-gas-lines": { name: "Gas pipelines", source: "EIA" },
+  "sl-wells-cluster-count": { name: "Wells", source: "Texas RRC" },
+  "sl-live-wells-cluster-count": { name: "Natural gas wells", source: "NM OCD" },
 };
+
+for (const id of Object.keys(LAYER_INFO)) registerInteractiveLayer(id, defaultTapHandler);
 
 export function hitPadding(touch) {
   return touch ? 14 : 10;
@@ -138,7 +179,7 @@ export function featureSummary(feature) {
   const summary = {
     name,
     layer: known.name,
-    source: note ? record + ". " + note : record,
+    source: record,
     vintage: note || firstField(props, ["vintage", "as_of", "asOf"]),
     sample,
     fields: layerId.startsWith("sl-wells") || layerId.startsWith("sl-live-wells") || /well/i.test(layerId) ? fields : fields.filter((row) => row[1] !== "UNKNOWN"),
