@@ -692,9 +692,12 @@ function openClusterCard(map, feature, point) {
   const clusterId = feature.properties?.cluster_id;
   const center = feature.geometry?.coordinates;
   if (source?.getClusterExpansionZoom && center) {
-    source.getClusterExpansionZoom(clusterId, (err, zoom) => {
-      if (!err && Number.isFinite(zoom)) map.easeTo({ center, zoom, essential: true });
-    });
+    const zoomed = source.getClusterExpansionZoom(clusterId);
+    const applyZoom = (zoom) => {
+      if (Number.isFinite(zoom)) map.easeTo({ center, zoom, essential: true });
+    };
+    if (zoomed && typeof zoomed.then === "function") zoomed.then(applyZoom).catch(() => {});
+    else source.getClusterExpansionZoom(clusterId, (err, zoom) => { if (!err) applyZoom(zoom); });
   }
   const total = Number(feature.properties?.point_count) || 0;
   const paint = (leaves) => {
@@ -745,8 +748,11 @@ function openClusterCard(map, feature, point) {
       });
     });
   };
+  const limit = Math.max(total, 10);
   if (source?.getClusterLeaves) {
-    source.getClusterLeaves(clusterId, Math.max(total, 10), 0, (err, leaves) => paint(err ? [] : leaves || []));
+    const pending = source.getClusterLeaves(clusterId, limit, 0);
+    if (pending && typeof pending.then === "function") pending.then((leaves) => paint(leaves || [])).catch(() => paint([]));
+    else source.getClusterLeaves(clusterId, limit, 0, (err, leaves) => paint(err ? [] : leaves || []));
   } else paint([]);
 }
 

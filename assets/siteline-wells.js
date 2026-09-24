@@ -950,10 +950,14 @@ function onMapClick(event) {
   const clusters = map.queryRenderedFeatures(event.point, { layers: [CLUSTER] });
   if (clusters[0]) {
     const source = map.getSource(SRC);
-    source.getClusterExpansionZoom(clusters[0].properties.cluster_id, (err, zoom) => {
-      if (err) return;
-      map.easeTo({ center: clusters[0].geometry.coordinates, zoom });
-    });
+    const clusterId = clusters[0].properties.cluster_id;
+    const center = clusters[0].geometry.coordinates;
+    const zoomed = source.getClusterExpansionZoom(clusterId);
+    const applyZoom = (zoom) => {
+      if (Number.isFinite(zoom)) map.easeTo({ center, zoom });
+    };
+    if (zoomed && typeof zoomed.then === "function") zoomed.then(applyZoom).catch(() => {});
+    else source.getClusterExpansionZoom(clusterId, (err, zoom) => { if (!err) applyZoom(zoom); });
     return;
   }
   const hits = map.queryRenderedFeatures(event.point, { layers: [LAYER] });
