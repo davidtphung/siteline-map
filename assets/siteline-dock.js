@@ -816,29 +816,30 @@ function guardMapClicks() {
   map.__slModeGuard = true;
   const fire = map.fire.bind(map);
   map.fire = (type, data) => {
+    const event = typeof type === "string" ? data : type;
     const name = typeof type === "string" ? type : type && type.type;
     if (name === "click") {
-      const touch = data?.originalEvent?.pointerType === "touch" || data?.originalEvent?.type === "touchend";
-      const hits = queryHits(map, data?.point, touch);
+      const touch = event?.originalEvent?.pointerType === "touch" || event?.originalEvent?.type === "touchend";
+      const hits = queryHits(map, event?.point, touch);
       hits.forEach((hit) => tapHandlerFor(hit.layer?.id)(hit));
       const mode = modeOf(document.getElementById("sl-tray"));
       const cluster = hits.find(isClusterFeature);
       if (cluster) {
-        openClusterCard(map, cluster, data?.point);
+        openClusterCard(map, cluster, event?.point);
         if (mode === "inspect") renderInspectFeature(hits);
         return map;
       }
       if (mode === "browse") {
-        if (hits.length && data?.lngLat) showFeaturePopup(map, data.lngLat, data.point, hits, 0);
+        if (hits.length && event?.lngLat) showFeaturePopup(map, event.lngLat, event.point, hits, 0);
         else closeFeaturePopup();
         return map;
       }
       if (mode === "inspect") renderInspectFeature(hits);
     }
-    if (name === "mousemove" && data?.point) {
+    if (name === "mousemove" && event?.point) {
       const canvas = map.getCanvas?.();
-      if (canvas) canvas.style.cursor = queryHits(map, data.point, false).length ? "pointer" : "";
-      if (!data.originalEvent) return map;
+      if (canvas) canvas.style.cursor = queryHits(map, event.point, false).length ? "pointer" : "";
+      if (!event.originalEvent) return map;
     }
     return fire(type, data);
   };
