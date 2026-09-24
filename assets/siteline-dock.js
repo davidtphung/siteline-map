@@ -333,6 +333,18 @@ function stackFloatingCards(tray) {
     if (pane) pane.appendChild(wells);
   }
   tray.classList.toggle("sl-stack", briefOpen || wellsOpen);
+  const fitted = cardRects(
+    { open: { brief: briefOpen, wells: wellsOpen } },
+    { width: window.innerWidth, height: window.innerHeight },
+  );
+  if (briefOpen && fitted.rects.brief) {
+    brief.style.setProperty("max-height", fitted.rects.brief.h + "px", "important");
+    brief.style.setProperty("overflow", "auto", "important");
+  }
+  if (wellsOpen && fitted.rects.wells) {
+    wells.style.setProperty("max-height", fitted.rects.wells.h + "px", "important");
+    wells.style.setProperty("overflow", "auto", "important");
+  }
   if ((briefOpen || wellsOpen) && !isOpen(tray)) openDock(briefOpen ? "inspect" : "wells");
 }
 
