@@ -76,34 +76,6 @@ export async function bindGasWells(map) {
   }
   map.addSource(SRC, { type: "vector", url: "pmtiles://" + location.origin + tileUrl });
   map.addLayer({
-    id: CLUSTER,
-    type: "circle",
-    source: SRC,
-    "source-layer": "gaswells",
-    filter: ["any", ["has", "point_count"], ["==", ["get", "clustered"], true]],
-    maxzoom: 10,
-    paint: {
-      "circle-color": "#f97316",
-      "circle-radius": ["step", ["coalesce", ["get", "point_count"], 2], 14, 20, 18, 80, 22],
-      "circle-stroke-color": "#14120e",
-      "circle-stroke-width": 1,
-    },
-  });
-  map.addLayer({
-    id: CLUSTER + "-count",
-    type: "symbol",
-    source: SRC,
-    "source-layer": "gaswells",
-    filter: ["any", ["has", "point_count"], ["==", ["get", "clustered"], true]],
-    maxzoom: 10,
-    layout: {
-      "text-field": ["to-string", ["coalesce", ["get", "point_count"], ""]],
-      "text-size": 12,
-      "text-font": ["Open Sans Bold", "Arial Unicode MS Bold"],
-    },
-    paint: { "text-color": "#14120e" },
-  });
-  map.addLayer({
     id: LAYER,
     type: "circle",
     source: SRC,
@@ -117,6 +89,36 @@ export async function bindGasWells(map) {
       "circle-stroke-width": paintExpr("width"),
     },
   });
+  map.addLayer({
+    id: CLUSTER,
+    type: "circle",
+    source: SRC,
+    "source-layer": "gaswells",
+    filter: ["any", ["has", "point_count"], ["==", ["get", "clustered"], true]],
+    maxzoom: 10,
+    paint: {
+      "circle-color": "#f97316",
+      "circle-radius": ["step", ["coalesce", ["get", "point_count"], 2], 14, 20, 18, 80, 22],
+      "circle-stroke-color": "#14120e",
+      "circle-stroke-width": 1,
+    },
+  });
+  try {
+    map.addLayer({
+      id: CLUSTER + "-count",
+      type: "symbol",
+      source: SRC,
+      "source-layer": "gaswells",
+      filter: ["any", ["has", "point_count"], ["==", ["get", "clustered"], true]],
+      maxzoom: 10,
+      layout: {
+        "text-field": ["to-string", ["coalesce", ["get", "point_count"], ""]],
+        "text-size": 12,
+        "text-font": ["Open Sans Bold", "Arial Unicode MS Bold"],
+      },
+      paint: { "text-color": "#14120e" },
+    });
+  } catch (_) {}
   applyFilter(map);
   document.addEventListener("change", (event) => {
     const id = event.target?.id;

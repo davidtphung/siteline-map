@@ -939,6 +939,21 @@ function ensureLayers(map) {
   });
   map.on("idle", () => labelClusters(map));
   map.on("move", () => labelClusters(map));
+  try {
+    map.addLayer({
+      id: CLUSTER + "-count",
+      type: "symbol",
+      source: SRC,
+      filter: ["has", "point_count"],
+      maxzoom: 10,
+      layout: {
+        "text-field": ["to-string", ["get", "point_count"]],
+        "text-size": 12,
+        "text-font": ["Open Sans Bold", "Arial Unicode MS Bold"],
+      },
+      paint: { "text-color": "#14120e" },
+    });
+  } catch (_) {}
   map.addLayer({
     id: LAYER,
     type: "circle",
