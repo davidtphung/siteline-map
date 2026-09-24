@@ -74,6 +74,11 @@ const LAYER_INFO = {
   "netl-operating": { name: "NETL operating wells", source: "NETL" },
   "nm-ocd-wells": { name: "NM OCD wells", source: "NM OCD" },
   "co-ogcc-wells": { name: "CO OGCC wells", source: "CO OGCC" },
+  "siteline-oim-power-sub": { name: "Substations", source: "OpenInfraMap" },
+  "siteline-oim-power-line": { name: "Power lines", source: "OpenInfraMap" },
+  "siteline-oim-telecom-line": { name: "Telecom lines", source: "OpenInfraMap" },
+  "siteline-oim-telecom-mast": { name: "Telecom", source: "OpenInfraMap" },
+  "sl-gas-detail-lines": { name: "Gas pipelines", source: "EIA" },
 };
 
 export function hitPadding(touch) {

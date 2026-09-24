@@ -504,11 +504,26 @@ let featureIndex = 0;
 function queryHits(map, point, touch) {
   if (!map?.queryRenderedFeatures || !point) return [];
   try {
-    const hits = map.queryRenderedFeatures(hitBox(point, touch)) || [];
-    return hits.filter(isInteractiveFeature);
+    const hits = (map.queryRenderedFeatures(hitBox(point, touch)) || []).filter(isInteractiveFeature);
+    const points = [];
+    const lines = [];
+    for (const feature of hits) {
+      if (feature.layer?.type === "line") lines.push(feature);
+      else points.push(feature);
+    }
+    points.sort((a, b) => distance2(map, point, a) - distance2(map, point, b));
+    return [...points, ...lines];
   } catch (_) {
     return [];
   }
+}
+
+function distance2(map, point, feature) {
+  if (feature?.geometry?.type !== "Point" || !map.project) return 1e9;
+  const projected = map.project(feature.geometry.coordinates);
+  const dx = (projected?.x || 0) - (point.x || 0);
+  const dy = (projected?.y || 0) - (point.y || 0);
+  return dx * dx + dy * dy;
 }
 
 function popupHtml(feature, total, index) {
@@ -537,10 +552,12 @@ function popupHtml(feature, total, index) {
 function popupAnchor(map, point) {
   const height = map.getCanvas?.()?.clientHeight || 0;
   const width = map.getCanvas?.()?.clientWidth || 0;
-  if (point && height && point.y > height * 0.42) return "bottom";
-  if (point && width && point.x < 80) return "left";
-  if (point && width && point.x > width - 80) return "right";
-  return "top";
+  if (!point) return "top";
+  if (point.y < 180) return "top";
+  if (height && point.y > height - 240) return "bottom";
+  if (width && point.x < 90) return "left";
+  if (width && point.x > width - 90) return "right";
+  return "bottom";
 }
 
 function closeFeaturePopup() {
