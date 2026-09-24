@@ -20,3 +20,21 @@ Layers tray (cache `?v=cards-3`):
 Power-line clicks still rank ahead of gas and subsea. Visibility writes no-op when the value is already set.
 
 Worker `siteline-map` serves assets and proxies `/api/kardashev/*` and `/api/caiso/*` for browser CORS.
+
+Intel (cache `?v=intel-1`) is a collapsed card, or an Intel tab if a dock calls `window.SitelineIntel.mount(containerEl)`. A pin calls `window.SitelineIntel.onPin({ lng, lat })`. The card answers who serves the site, whether regional demand is rising, and what is still unknown before a build. Regional grid demand, not site capacity. Proximity is not deliverability.
+
+EIA-930 hourly demand is proxied at `/api/intel/eia`. The browser never sees the key. Set it with:
+
+```
+npx wrangler secret put EIA_API_KEY
+```
+
+If `EIA_API_KEY` is missing, `/api/intel/eia` and `/api/intel/series` return HTTP 503 JSON `{ "error": "EIA key not configured" }` and the card says `EIA key not configured`. Responses cache for about 1 hour. A daily cron (`15 11 * * *` UTC) refreshes ERCO, PJM, MISO, SWPP, CISO, NYIS, and ISNE. Cameron County, TX resolves to ERCO. Ashburn, VA resolves to PJM. `/api/intel/health` reports the last refresh per source.
+
+Daily peak snapshots need a KV binding named `INTEL_KV`. Without it, peaks are computed from the EIA series on read and labeled that way. To add the binding:
+
+```
+npx wrangler kv namespace create INTEL_KV
+```
+
+Put the printed id in `wrangler.toml` under `[[kv_namespaces]]` with `binding = "INTEL_KV"`.

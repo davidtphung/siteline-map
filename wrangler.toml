@@ -8,3 +8,12 @@ directory = "."
 binding = "ASSETS"
 html_handling = "auto-trailing-slash"
 not_found_handling = "404-page"
+
+[triggers]
+crons = ["15 11 * * *"]
+
+# Optional. Daily BA peak snapshots accrue only when this binding exists.
+# Create it, then uncomment:
+# [[kv_namespaces]]
+# binding = "INTEL_KV"
+# id = "replace-with-kv-namespace-id"

@@ -1,6 +1,7 @@
 /**
- * Siteline Worker: assets + brand PNG (from .b64) + Kardashev/CAISO proxies.
+ * Siteline Worker: assets + brand PNG (from .b64) + Kardashev/CAISO proxies + Intel routes.
  */
+import { handleIntel, refreshIntel } from "./worker-intel.mjs";
 const KARDASHEV = "https://data.kardashevlabs.org";
 const CAISO = "https://www.caiso.com/outlook/current";
 
@@ -54,6 +55,9 @@ async function proxyGet(target, request) {
 }
 
 export default {
+  async scheduled(_event, env, ctx) {
+    ctx.waitUntil(refreshIntel(env));
+  },
   async fetch(request, env) {
     const url = new URL(request.url);
     const path = url.pathname;
@@ -83,6 +87,10 @@ export default {
         });
       }
       return proxyGet(`${origin.replace(/\/$/, "")}${path}${url.search}`, request);
+    }
+
+    if (path.startsWith("/api/intel/")) {
+      return handleIntel(request, env);
     }
 
     if (path.startsWith("/api/caiso/")) {
