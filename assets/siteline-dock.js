@@ -3,7 +3,7 @@
  * Collapsed on first visit. Last open state is kept in localStorage.
  */
 import { JUMP_PLACES, renderJumpList } from "./jump-places.mjs";
-import { normalizeMode } from "./dock-mode.mjs";
+import { normalizeMode, shouldCloseOnMapTap } from "./dock-mode.mjs";
 
 const STORE = "siteline.dock.v1";
 const TABS = [
@@ -57,7 +57,7 @@ function writeStore(open, tab, mode) {
 }
 
 function modeOf(tray) {
-  return normalizeMode(tray?.dataset.dockMode);
+  return normalizeMode(tray?.dataset.dockView);
 }
 
 function injectCss() {
@@ -212,7 +212,7 @@ function apply(tray, open, tab, persist) {
     legacyTab(next);
   }
   if (persist !== false) writeStore(open, next, modeOf(tray));
-  if (open) tray.querySelector(".sl-dock-card")?.scrollTo?.(0, 0);
+  if (open && next !== was) tray.querySelector(".sl-dock-card")?.scrollTo?.(0, 0);
 }
 
 function cardVisibility(tray, open) {
@@ -266,7 +266,7 @@ function setMode(mode) {
   if (!tray) return;
   const next = normalizeMode(mode);
   const prev = modeOf(tray);
-  tray.dataset.dockMode = next;
+  tray.dataset.dockView = next;
   tray.querySelectorAll("[data-dock-mode]").forEach((btn) => {
     const on = btn.getAttribute("data-dock-mode") === next;
     btn.setAttribute("aria-pressed", on ? "true" : "false");
@@ -323,8 +323,16 @@ function onTrayMutation(tray) {
 function wire(tray) {
   if (tray.dataset.slDockWired === "1") return;
   tray.dataset.slDockWired = "1";
+  const card = document.getElementById("sl-dock-card");
+  if (card && card.dataset.slStop !== "1") {
+    card.dataset.slStop = "1";
+    const stop = (event) => event.stopPropagation();
+    card.addEventListener("click", stop);
+    card.addEventListener("pointerup", stop);
+    card.addEventListener("touchend", stop);
+  }
   tray.addEventListener("click", (event) => {
-    const modeBtn = event.target.closest?.("[data-dock-mode]");
+    const modeBtn = event.target.closest?.("button[data-dock-mode]");
     if (modeBtn && tray.contains(modeBtn)) {
       event.preventDefault();
       setMode(modeBtn.getAttribute("data-dock-mode"));
@@ -396,15 +404,24 @@ function wireGlobal() {
     event.preventDefault();
     closeDock();
   });
-  document.addEventListener("click", (event) => {
+  const insideDock = (event) => {
+    const tray = document.getElementById("sl-tray");
+    if (!tray) return false;
+    const path = typeof event.composedPath === "function" ? event.composedPath() : [];
+    if (path.includes(tray)) return true;
+    const node = event.target?.nodeType === 1 ? event.target : event.target?.parentElement;
+    return !!(node && tray.contains(node));
+  };
+  const onPointer = (event) => {
     const tray = document.getElementById("sl-tray");
     if (!tray || !isOpen(tray)) return;
-    if (event.target.closest?.("#sl-tray, #sl-place, .maplibregl-ctrl, .maplibregl-popup")) return;
-    if (event.target.closest?.(".maplibregl-canvas, .maplibregl-map")) {
-      if (modeOf(tray) === "inspect") return;
-      closeDock();
-    }
-  });
+    const node = event.target?.nodeType === 1 ? event.target : event.target?.parentElement;
+    const onEmptyMap = !!(node && node.closest?.(".maplibregl-canvas, .maplibregl-map"));
+    if (!shouldCloseOnMapTap({ mode: modeOf(tray), insideDock: insideDock(event), onEmptyMap })) return;
+    closeDock();
+  };
+  document.addEventListener("click", onPointer);
+  document.addEventListener("touchend", onPointer);
 }
 
 function ensureInspectClose() {
@@ -499,9 +516,9 @@ function boot() {
     const saved = readStore();
     const open = saved ? !!saved.open : false;
     const tab = saved && saved.tab ? saved.tab : "layers";
-    tray.dataset.dockMode = normalizeMode(saved && saved.mode);
+    tray.dataset.dockView = normalizeMode(saved && saved.mode);
     tray.querySelectorAll("[data-dock-mode]").forEach((btn) => {
-      const on = btn.getAttribute("data-dock-mode") === tray.dataset.dockMode;
+      const on = btn.getAttribute("data-dock-mode") === tray.dataset.dockView;
       btn.setAttribute("aria-pressed", on ? "true" : "false");
       btn.classList.toggle("is-on", on);
     });

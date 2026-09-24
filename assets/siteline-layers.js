@@ -295,16 +295,19 @@ function buildGroups() {
     if (!row) return;
     event.preventDefault();
     event.stopPropagation();
-    if (document.getElementById("sl-tray")?.dataset.dockMode === "inspect") return;
+    if (document.getElementById("sl-tray")?.dataset.dockView === "inspect") return;
     showLayerInfo(row.querySelector("input")?.id);
   });
   pane.addEventListener("change", (event) => {
+    const card = document.getElementById("sl-dock-card");
+    const scroll = card ? card.scrollTop : 0;
     updateCounts();
     const id = event.target?.id;
     if (REMOTE_WELLS[id] && event.target.checked) {
       event.target.closest(".sl-tray-row").dataset.wellPhase = "loading";
     }
     syncWellStatus();
+    if (card) card.scrollTop = scroll;
   });
   const panel = document.getElementById("layer-panel");
   if (panel) {

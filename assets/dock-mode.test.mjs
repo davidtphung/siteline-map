@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { applyLegendClick, applyMapTap, gasStatusSummary } from "./dock-mode.mjs";
+import { afterLayerToggle, applyLegendClick, applyMapTap, gasStatusSummary, shouldCloseOnMapTap } from "./dock-mode.mjs";
 
 test("Inspect card persists across map taps", () => {
   let state = { mode: "inspect", open: true, tab: "inspect", pin: null };
@@ -20,6 +20,17 @@ test("Browse legend click opens info", () => {
   assert.equal(next.infoLayer, "sl-well-gas");
   const inspect = applyLegendClick({ mode: "inspect", open: true, infoLayer: null }, "sl-well-gas");
   assert.equal(inspect.infoLayer, null);
+});
+
+test("open Layers, toggle 3 layers, card stays open and scroll is unchanged", () => {
+  let state = { open: true, tab: "layers", scroll: 140, mode: "browse" };
+  for (let i = 0; i < 3; i++) {
+    assert.equal(shouldCloseOnMapTap({ mode: state.mode, insideDock: true, onEmptyMap: true }), false);
+    state = afterLayerToggle(state);
+  }
+  assert.equal(state.open, true);
+  assert.equal(state.tab, "layers");
+  assert.equal(state.scroll, 140);
 });
 
 test("gas well summary counts match the features in view", () => {

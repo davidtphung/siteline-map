@@ -58,6 +58,21 @@ export function gasStatusSummary(features) {
   return counts;
 }
 
+export function shouldCloseOnMapTap({ mode, insideDock, onEmptyMap }) {
+  if (insideDock) return false;
+  if (normalizeMode(mode) === "inspect") return false;
+  return !!onEmptyMap;
+}
+
+export function afterLayerToggle(state) {
+  return {
+    open: state.open !== false,
+    tab: state.tab || "layers",
+    scroll: Number(state.scroll) || 0,
+    mode: normalizeMode(state.mode),
+  };
+}
+
 export function layerStatusLine({ on, zoom, minZoom, health, shown }) {
   if (!on) return "off";
   if (typeof zoom === "number" && typeof minZoom === "number" && zoom < minZoom) {
