@@ -553,8 +553,8 @@ function popupAnchor(map, point) {
   const height = map.getCanvas?.()?.clientHeight || 0;
   const width = map.getCanvas?.()?.clientWidth || 0;
   if (!point) return "top";
-  if (point.y < 180) return "top";
-  if (height && point.y > height - 240) return "bottom";
+  if (!height || point.y < height * 0.55) return "top";
+  if (point.y > height - 220) return "bottom";
   if (width && point.x < 90) return "left";
   if (width && point.x > width - 90) return "right";
   return "bottom";
@@ -755,7 +755,7 @@ const DOCK_CSS = `
 }
 .sl-feature-popup.maplibregl-popup { z-index: 50; max-width: min(280px, calc(100vw - 24px)); }
 .sl-feature-popup .maplibregl-popup-content {
-  max-height: min(42vh, 280px);
+  max-height: min(38vh, 220px);
   overflow: auto;
   background: rgba(5, 6, 8, 0.96);
   color: #e7e5e4;
