@@ -250,6 +250,33 @@ function toggleTab(tab) {
   else openDock(tab);
 }
 
+function stackFloatingCards(tray) {
+  const phone = window.matchMedia("(max-width: 768px)").matches;
+  const card = document.getElementById("sl-dock-card");
+  const stage = card?.querySelector(".sl-tray-stage");
+  if (!stage) return;
+  let stack = document.getElementById("sl-card-stack");
+  if (!stack) {
+    stack = document.createElement("div");
+    stack.id = "sl-card-stack";
+    stage.prepend(stack);
+  }
+  const brief = document.querySelector(".brief-panel");
+  const wells = document.getElementById("sl-well-card");
+  if (!phone) {
+    tray.classList.remove("sl-stack");
+    parkWells(tray);
+    parkBrief();
+    return;
+  }
+  const briefOpen = !!brief?.classList.contains("open");
+  const wellsOpen = wells?.dataset.open === "1" || tray.dataset.dockTab === "wells";
+  if (briefOpen && brief.parentElement !== stack) stack.appendChild(brief);
+  if (wells && wells.parentElement !== stack) stack.appendChild(wells);
+  tray.classList.toggle("sl-stack", briefOpen || wellsOpen);
+  if ((briefOpen || wellsOpen) && !isOpen(tray)) openDock(briefOpen ? "inspect" : "wells");
+}
+
 function parkWells(tray) {
   const card = document.getElementById("sl-well-card");
   const inspect = document.getElementById("sl-pane-inspect");
@@ -454,7 +481,11 @@ function wireGlobal() {
     const tray = document.getElementById("sl-tray");
     if (tray && keyboardResizeKeepsSheet(isOpen(tray))) tray.style.removeProperty("--sl-dock-drag");
   };
-  window.addEventListener("resize", holdSheet);
+  window.addEventListener("resize", () => {
+    holdSheet();
+    const tray = document.getElementById("sl-tray");
+    if (tray) stackFloatingCards(tray);
+  });
   window.visualViewport?.addEventListener("resize", holdSheet);
   const insideDock = (event) => {
     const tray = document.getElementById("sl-tray");
@@ -666,6 +697,7 @@ function boot() {
   wireGlobal();
   parkWells(tray);
   parkBrief();
+  stackFloatingCards(tray);
   syncWellBadge();
   const jumpPane = document.getElementById("sl-pane-jump");
   if (jumpPane) {
@@ -965,6 +997,22 @@ const DOCK_CSS = `
   margin-top: 3px;
 }
 #sl-tray.sl-dock[data-dock="open"] .sl-dock-chev { transform: rotate(45deg); margin-top: -3px; }
+#sl-card-stack { display: flex; flex-direction: column; gap: 8px; }
+@media (max-width: 768px) {
+  #sl-tray.sl-dock.sl-stack #sl-card-stack .brief-panel,
+  #sl-tray.sl-dock.sl-stack #sl-card-stack .brief-panel.open,
+  #sl-tray.sl-dock.sl-stack #sl-card-stack #sl-well-card {
+    position: static !important;
+    inset: auto !important;
+    top: auto !important;
+    right: auto !important;
+    width: 100% !important;
+    max-height: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+    margin: 0;
+  }
+}
 #sl-pane-wells #sl-well-card {
   position: static !important;
   top: auto !important;

@@ -25,7 +25,7 @@ The toggles are independent. A gas count, summary, ring, export, API payload, an
 
 Siteline does not label inactive, historical, missing, orphan, dry hole, or a plugged map symbol as abandoned.
 
-**Plugged & abandoned — confirmed** is used only when there is explicit official evidence:
+**Plugged and abandoned, confirmed** is used only when there is explicit official evidence:
 
 - a plug date from statewide API, wellbore, imaged record, or plug-record source, or
 - a plug document with a source URL, or

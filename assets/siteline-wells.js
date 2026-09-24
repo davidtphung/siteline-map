@@ -19,6 +19,7 @@ import {
   resetGasFlags,
   separatedCounts,
 } from "./well-context.mjs";
+import { featuresInBounds, wellViewHeader } from "./well-view.mjs";
 
 const SRC = "sl-wells-src";
 const LAYER = "sl-wells-pt";
@@ -107,10 +108,24 @@ function injectCss() {
   min-height: 0;
   cursor: pointer;
 }
-#sl-well-card .sl-card-titles { min-width: 0; flex: 1; }
-#sl-well-card .sl-card-title {
+#sl-well-card .sl-card-titles {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+}
+#sl-well-card .sl-card-title,
+#sl-well-card .sl-well-kicker,
+#sl-well-card .sl-card-summary,
+#sl-well-card .sl-well-source {
+  position: static;
   display: block;
   margin: 0;
+  line-height: 1.35;
+}
+#sl-well-card .sl-card-title {
   font-size: 0.92rem;
   font-weight: 500;
   letter-spacing: -0.01em;
@@ -145,6 +160,13 @@ function injectCss() {
   color: #94a3b8;
   font-size: 0.66rem;
   line-height: 1.4;
+}
+#sl-well-card .sl-well-source {
+  color: #94a3b8;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 #sl-well-card .sl-well-kicker {
   font-family: "JetBrains Mono", ui-monospace, monospace;
@@ -314,9 +336,27 @@ function siteCenter() {
   return null;
 }
 
+function mapCenter() {
+  const center = state.map?.getCenter?.();
+  if (!center) return [-97.66, 26.19];
+  return [center.lng, center.lat];
+}
+
+function mapBounds() {
+  const bounds = state.map?.getBounds?.();
+  if (!bounds?.getWest) return null;
+  return {
+    west: bounds.getWest(),
+    east: bounds.getEast(),
+    south: bounds.getSouth(),
+    north: bounds.getNorth(),
+  };
+}
+
 function visibleFeatures() {
   const statuses = state.status ? [state.status] : null;
-  return filterFeatures(state.features, state.flags, statuses);
+  const flagged = filterFeatures(state.features, state.flags, statuses);
+  return featuresInBounds(flagged, mapBounds());
 }
 
 function scopedFeatures(features) {
@@ -467,6 +507,10 @@ function renderCard() {
   }
   const title = contextTitle(state.flags, rules);
   const visible = visibleFeatures();
+  const viewHeader = wellViewHeader({
+    center: mapCenter(),
+    fixtureInView: visible.filter((feature) => feature.properties?.dataset_origin === "fixture").length,
+  });
   const focus = scopedFeatures(visible);
   const query = state.cardQuery.trim();
   const matched = filterFeaturesByText(focus, query, rules);
@@ -573,9 +617,9 @@ function renderCard() {
     (state.cardOpen ? "true" : "false") +
     "\" aria-controls=\"sl-well-body\">" +
     "<span class=\"sl-card-titles\"><span class=\"sl-well-kicker\">" +
-    esc(state.origin === "fixture" ? "Cameron fixture" : "RRC load") +
-    " · " +
-    esc(rules.cameron.jump_subtitle) +
+    esc(viewHeader.place) +
+    "</span><span class=\"sl-well-source\">" +
+    esc(viewHeader.source) +
     "</span><span class=\"sl-card-title\" id=\"sl-well-title\">" +
     esc(title) +
     "</span><span class=\"sl-card-summary\">" +
