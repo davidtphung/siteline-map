@@ -318,32 +318,24 @@ function stackFloatingCards(tray) {
     parkBrief();
     return;
   }
-  clearSlot(brief);
-  clearSlot(wells);
   const briefOpen = !!brief?.classList.contains("open");
   const wellsOpen = !!(wells && (wells.dataset.open === "1" || (isOpen(tray) && tray.dataset.dockTab === "wells")));
-  if (briefOpen && brief.parentElement !== stack) stack.appendChild(brief);
-  else if (brief && !briefOpen && stack.contains(brief)) {
-    const pane = document.getElementById("sl-pane-inspect");
-    if (pane) pane.prepend(brief);
-  }
-  if (wellsOpen && wells.parentElement !== stack) stack.appendChild(wells);
-  else if (wells && !wellsOpen && stack.contains(wells)) {
-    const pane = document.getElementById("sl-pane-wells");
-    if (pane) pane.appendChild(wells);
-  }
-  tray.classList.toggle("sl-stack", briefOpen || wellsOpen);
   const fitted = cardRects(
     { open: { brief: briefOpen, wells: wellsOpen } },
     { width: window.innerWidth, height: window.innerHeight },
   );
-  if (briefOpen && fitted.rects.brief) {
-    brief.style.setProperty("max-height", fitted.rects.brief.h + "px", "important");
-    brief.style.setProperty("overflow", "auto", "important");
+  tray.classList.toggle("sl-stack", briefOpen || wellsOpen);
+  if (briefOpen && fitted.rects.brief) slotCard(brief, fitted.rects.brief);
+  else if (brief?.dataset.slSlot === "1") {
+    clearSlot(brief);
+    const pane = document.getElementById("sl-pane-inspect");
+    if (pane) pane.prepend(brief);
   }
-  if (wellsOpen && fitted.rects.wells) {
-    wells.style.setProperty("max-height", fitted.rects.wells.h + "px", "important");
-    wells.style.setProperty("overflow", "auto", "important");
+  if (wellsOpen && fitted.rects.wells) slotCard(wells, fitted.rects.wells);
+  else if (wells?.dataset.slSlot === "1") {
+    clearSlot(wells);
+    const pane = document.getElementById("sl-pane-wells");
+    if (pane) pane.appendChild(wells);
   }
   if ((briefOpen || wellsOpen) && !isOpen(tray)) openDock(briefOpen ? "inspect" : "wells");
 }
