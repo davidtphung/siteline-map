@@ -250,8 +250,8 @@ function buildGroups() {
         { existing: "sl-well-other", label: "Other or unknown", legend: "circle", swatch: "--sl-c-well" },
         { id: "sl-orphan", label: "NETL orphaned", legend: "ring", swatch: "--sl-c-well", react: "orphaned", note: "Hollow ring. Commodity is not confirmed on this catalog." },
         { id: "sl-operating", label: "NETL operating", legend: "circle", swatch: "--sl-c-well", react: "operating" },
-        { id: "sl-nm", label: "NM OCD wells", legend: "square", swatch: "--sl-c-well", react: "nmWells" },
-        { id: "sl-co", label: "CO OGCC wells", legend: "diamond", swatch: "--sl-c-well", react: "coWells" },
+        { id: "sl-nm", label: "NM OCD wells", legend: "circle", swatch: "--sl-c-gas", react: "nmWells", note: "Live EMNRD OCDView. Active is solid orange. Inactive is an orange ring." },
+        { id: "sl-co", label: "CO OGCC wells", legend: "circle", swatch: "--sl-c-gas", react: "coWells", note: "CO ECMC public wells. Commodity unconfirmed. Status dates through 2025-03-26." },
         { existing: "sl-gas-toggle", label: "Natural gas pipelines", legend: "dash", swatch: "--sl-c-gas", note: "EIA pipeline catalog. Not wellbores and not capacity." },
       ],
     },
@@ -467,8 +467,6 @@ function applyPaintNow(map) {
   setIf(map, "nm-ocd-wells", "circle-stroke-opacity", 0);
   setIf(map, "co-ogcc-wells", "circle-opacity", 0);
   setIf(map, "co-ogcc-wells", "circle-stroke-opacity", 0);
-  squareLayer(map, "sl-nm-mark", "src-nm", "square", c.well);
-  squareLayer(map, "sl-co-mark", "src-co", "diamond", c.well);
   const oimKv = [
     "case",
     [">", ["to-number", ["coalesce", ["get", "voltage"], 0]], 2000],
@@ -492,12 +490,12 @@ function applyPaintNow(map) {
   setIf(map, "sl-gas-detail-lines", "line-color", c.gas);
   setIf(map, "sl-gas-detail-lines", "line-dasharray", [1.4, 1.1]);
   setIf(map, "sl-contour-lines", "line-color", c.contextMuted);
-  const wellColor = commodityColor(c);
-  setIf(map, "sl-wells-pt", "circle-color", wellColor);
-  setIf(map, "sl-wells-pt", "circle-stroke-color", wellColor);
-  setIf(map, "sl-wells-pt", "circle-opacity", ["case", ["==", ["get", "status_code"], "orphan"], 0, 0.92]);
-  setIf(map, "sl-wells-pt", "circle-stroke-width", ["case", ["==", ["get", "status_code"], "orphan"], 2, 1.1]);
-  setIf(map, "sl-wells-cluster", "circle-color", c.well);
+  setIf(map, "sl-wells-pt", "circle-radius", 5.5);
+  setIf(map, "sl-wells-pt", "circle-color", ["coalesce", ["get", "status_color"], "#f97316"]);
+  setIf(map, "sl-wells-pt", "circle-stroke-color", "#14120e");
+  setIf(map, "sl-wells-pt", "circle-opacity", ["case", ["==", ["get", "status_code"], "orphan"], 0, 0.95]);
+  setIf(map, "sl-wells-pt", "circle-stroke-width", ["case", ["==", ["get", "status_code"], "orphan"], 2, 1.25]);
+  setIf(map, "sl-wells-cluster", "circle-color", "#f97316");
   syncMarks(map);
   void addMark;
 }

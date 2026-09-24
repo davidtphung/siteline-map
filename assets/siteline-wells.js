@@ -19,6 +19,7 @@ import {
   resetGasFlags,
   separatedCounts,
 } from "./well-context.mjs";
+import { bindLiveWells } from "./live-wells.js";
 import { featuresInBounds, wellViewHeader } from "./well-view.mjs";
 
 const SRC = "sl-wells-src";
@@ -285,6 +286,7 @@ function ensureTrayToggles() {
     '<label class="sl-tray-row"><input type="checkbox" id="sl-well-oil" /><span class="swatch well-oil"></span><span>Oil wells</span></label>' +
     '<label class="sl-tray-row"><input type="checkbox" id="sl-well-mixed" /><span class="swatch well-mixed"></span><span>Mixed oil and gas</span></label>' +
     '<label class="sl-tray-row"><input type="checkbox" id="sl-well-other" /><span class="swatch well-other"></span><span>Other / unknown</span></label>' +
+    '<label class="sl-tray-row"><input type="checkbox" id="sl-well-plugged" /><span class="swatch well-other"></span><span>Show plugged</span></label>' +
     '<p class="sl-honesty-chip catalog" id="sl-well-honesty">RRC · Texas system of record</p>' +
     '<p class="sl-tray-note">EIA pipelines stay public pipeline context, separate from wells.</p>';
   const pipelines = pane.querySelector("#sl-gas-toggle")?.closest(".sl-tray-row");
@@ -507,9 +509,11 @@ function renderCard() {
   }
   const title = contextTitle(state.flags, rules);
   const visible = visibleFeatures();
+  const notes = window.__SITELINE_WELL_NOTES__ || {};
   const viewHeader = wellViewHeader({
     center: mapCenter(),
     fixtureInView: visible.filter((feature) => feature.properties?.dataset_origin === "fixture").length,
+    notes,
   });
   const focus = scopedFeatures(visible);
   const query = state.cardQuery.trim();
@@ -620,6 +624,7 @@ function renderCard() {
     esc(viewHeader.place) +
     "</span><span class=\"sl-well-source\">" +
     esc(viewHeader.source) +
+    (viewHeader.sourceNote ? " · " + esc(viewHeader.sourceNote) : "") +
     "</span><span class=\"sl-card-title\" id=\"sl-well-title\">" +
     esc(title) +
     "</span><span class=\"sl-card-summary\">" +
@@ -844,7 +849,7 @@ function paint(map) {
 
 function ensureLayers(map) {
   if (map.getSource(SRC)) return;
-  map.addSource(SRC, { type: "geojson", data: EMPTY, cluster: true, clusterRadius: 42, clusterMaxZoom: 11 });
+  map.addSource(SRC, { type: "geojson", data: EMPTY, cluster: true, clusterRadius: 42, clusterMaxZoom: 9 });
   map.addSource(RING_SRC, { type: "geojson", data: EMPTY });
   map.addSource(AOI_SRC, { type: "geojson", data: EMPTY });
   map.addSource(DRAW_SRC, { type: "geojson", data: EMPTY });
@@ -872,7 +877,7 @@ function ensureLayers(map) {
     source: SRC,
     filter: ["has", "point_count"],
     paint: {
-      "circle-color": "#4da3ff",
+      "circle-color": "#f97316",
       "circle-radius": ["step", ["get", "point_count"], 12, 10, 16, 30, 20],
       "circle-opacity": 0.85,
     },
@@ -882,8 +887,9 @@ function ensureLayers(map) {
     type: "circle",
     source: SRC,
     filter: ["!", ["has", "point_count"]],
+    minzoom: 10,
     paint: {
-      "circle-radius": ["interpolate", ["linear"], ["zoom"], 6, 3, 12, 6],
+      "circle-radius": 5.5,
       "circle-color": ["coalesce", ["get", "status_color"], "#9aa3b2"],
       "circle-stroke-width": 1,
       "circle-stroke-color": "#050608",
@@ -963,6 +969,8 @@ function bindMap(map) {
   );
   map.on("click", onMapClick);
   map.on("moveend", () => renderCard());
+  window.addEventListener("siteline-wells-live", () => renderCard());
+  bindLiveWells(map);
   map.on("dblclick", (event) => {
     if (state.draw !== "polygon") return;
     event.preventDefault();

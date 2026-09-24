@@ -10,14 +10,14 @@ export const LAYER_FACTS = {
   "oim-telecom-toggle": { sentence: "Telecom lines mapped in OpenStreetMap.", source: "OpenInfraMap", vintage: "UNKNOWN" },
   "sl-subsea-toggle": { sentence: "Subsea cables mapped in OpenStreetMap.", source: "OpenStreetMap", vintage: "UNKNOWN" },
   "sl-water": { sentence: "Rivers, streams, and waterbodies.", source: "NHD", vintage: "UNKNOWN" },
-  "sl-well-gas": { sentence: "Natural gas wells in the current view.", source: "Texas RRC", vintage: "UNKNOWN" },
+  "sl-well-gas": { sentence: "Natural gas wells in the current view. Active is solid orange. Inactive is an orange ring.", source: "NM OCD, CO ECMC, Texas RRC", vintage: "NM live. CO status dates through 2025-03-26." },
   "sl-well-oil": { sentence: "Oil wells in the current view.", source: "Texas RRC", vintage: "UNKNOWN" },
   "sl-well-mixed": { sentence: "Wells with both oil and gas.", source: "Texas RRC", vintage: "UNKNOWN" },
   "sl-well-other": { sentence: "Wells whose commodity is other or unknown.", source: "Texas RRC", vintage: "UNKNOWN" },
   "sl-orphan": { sentence: "Orphaned wells from the NETL catalog.", source: "NETL", vintage: "UNKNOWN" },
   "sl-operating": { sentence: "Operating wells from the NETL catalog.", source: "NETL", vintage: "UNKNOWN" },
-  "sl-nm": { sentence: "Wells from the New Mexico OCD catalog.", source: "NM OCD", vintage: "UNKNOWN" },
-  "sl-co": { sentence: "Wells from the Colorado OGCC catalog.", source: "CO OGCC", vintage: "UNKNOWN" },
+  "sl-nm": { sentence: "Gas wells from the live New Mexico OCD service.", source: "NM OCD", vintage: "queried live, Pacific time" },
+  "sl-co": { sentence: "Wells from the Colorado ECMC public service. Commodity unconfirmed.", source: "CO ECMC", vintage: "status dates through 2025-03-26" },
   "sl-gas-toggle": { sentence: "Natural gas pipelines from a public catalog, not capacity.", source: "EIA", vintage: "UNKNOWN" },
   "sl-flood": { sentence: "Flood hazard zones.", source: "FEMA", vintage: "UNKNOWN" },
   "sl-whp": { sentence: "Wildfire potential is not wired on this map.", source: "UNKNOWN", vintage: "UNKNOWN" },
@@ -60,6 +60,8 @@ const SKIP_LAYERS = new Set([
 const LAYER_INFO = {
   "sl-wells-pt": { name: "Wells", source: "Texas RRC" },
   "sl-wells-cluster": { name: "Wells", source: "Texas RRC" },
+  "sl-live-wells-pt": { name: "Natural gas wells", source: "NM OCD" },
+  "sl-live-wells-cluster": { name: "Natural gas wells", source: "NM OCD" },
   "hifld-subs": { name: "Substations", source: "HIFLD" },
   "hifld-tx": { name: "Transmission", source: "HIFLD" },
   "eia-plants": { name: "Plants", source: "EIA" },
@@ -124,18 +126,22 @@ export function featureSummary(feature) {
   const sample = /fixture|sample/i.test(String(props.dataset_origin || props.origin || ""));
   const name = firstField(props, ["name", "NAME", "api_raw", "lease_name", "operator_name", "id", "ID"]);
   const fields = [
-    ["Operator", firstField(props, ["operator_name", "OPERATOR", "operator"])],
-    ["Status", firstField(props, ["status_label", "STATUS", "status"])],
-    ["Type", firstField(props, ["commodity_group", "TYPE", "type", "symnum_raw_label"])],
-    ["API", firstField(props, ["api_raw", "API", "api_normalized"])],
+    ["API", firstField(props, ["api_raw", "API_Label", "API", "api_normalized", "id"])],
+    ["Operator", firstField(props, ["operator_name", "Operator", "OPERATOR", "operator", "ogrid_name"])],
+    ["Type", firstField(props, ["type", "commodity_group", "TYPE", "symnum_raw_label"])],
+    ["Status", firstField(props, ["status_label", "status", "STATUS", "Facil_Stat"])],
   ];
+  const dated = firstField(props, ["status_date"]);
+  if (dated !== "UNKNOWN") fields.push(["Date", dated]);
+  const note = plain(props.source_note || "");
+  const record = props.source_of_record ? plain(props.source_of_record) : known.source;
   const summary = {
     name,
     layer: known.name,
-    source: props.source_of_record ? plain(props.source_of_record) : known.source,
-    vintage: firstField(props, ["vintage", "as_of", "asOf"]),
+    source: note ? record + ". " + note : record,
+    vintage: note || firstField(props, ["vintage", "as_of", "asOf"]),
     sample,
-    fields: layerId.startsWith("sl-wells") || /well/i.test(layerId) ? fields : fields.filter((row) => row[1] !== "UNKNOWN"),
+    fields: layerId.startsWith("sl-wells") || layerId.startsWith("sl-live-wells") || /well/i.test(layerId) ? fields : fields.filter((row) => row[1] !== "UNKNOWN"),
   };
   if (!summary.fields.length) summary.fields = [["Detail", "UNKNOWN"]];
   if (summary.vintage === "UNKNOWN") summary.vintage = "UNKNOWN";

@@ -1,6 +1,7 @@
 /** Header for the wells card from the current map center. */
 
 import { JUMP_PLACES } from "./jump-places.mjs";
+import { TEXAS_RRC_NOTE, viewHitsTexasOutsideCameron } from "./well-status.mjs";
 
 export function regionForView(center, places = JUMP_PLACES) {
   const lng = Number(center?.[0]);
@@ -30,14 +31,20 @@ export function sourceForView(center) {
   return "NETL";
 }
 
-export function wellViewHeader({ center, fixtureInView, places }) {
+export function wellViewHeader({ center, fixtureInView, places, notes }) {
   const region = regionForView(center, places);
   const sample = fixtureInView > 0 && (!region || region.id === "cameron");
   const place = region?.name || "This view";
+  const source = sample ? "Sample data" : sourceForView(center);
+  const bits = [];
+  if (!sample && notes?.nm && source === "NM OCD") bits.push(notes.nm);
+  if (!sample && notes?.co && source === "CO ECMC") bits.push(notes.co);
+  if (!sample && viewHitsTexasOutsideCameron(center)) bits.push(TEXAS_RRC_NOTE);
   return {
     place,
-    source: sample ? "Sample data" : sourceForView(center),
+    source,
     sample,
+    sourceNote: bits.join(". "),
   };
 }
 

@@ -3,6 +3,7 @@
  */
 const KARDASHEV = "https://data.kardashevlabs.org";
 const CAISO = "https://www.caiso.com/outlook/current";
+const NM_WELLS = "https://gis.emnrd.nm.gov/arcgis/rest/services/OCDView/Wells_Public/FeatureServer/0";
 
 const KARDASHEV_PATHS = new Set(["/api/kardashev/health"]);
 
@@ -127,7 +128,7 @@ async function serveBrandPng(env, request, b64Paths) {
   });
 }
 
-async function proxyRequest(target, request) {
+async function proxyRequest(target, request, cacheControl) {
   const headers = {
     Accept: request.headers.get("Accept") || "*/*",
     "User-Agent": "SitelineMap/1.0 (nlt143.energy; research)",
@@ -141,7 +142,7 @@ async function proxyRequest(target, request) {
   const upstream = await fetch(target, init);
   const out = new Headers(upstream.headers);
   for (const [k, v] of Object.entries(corsHeaders(request))) out.set(k, v);
-  out.set("Cache-Control", "public, max-age=60");
+  out.set("Cache-Control", cacheControl || "public, max-age=60");
   return new Response(upstream.body, { status: upstream.status, headers: out });
 }
 
@@ -195,6 +196,11 @@ export default {
     if (path.startsWith("/api/hydro/")) {
       const rest = path.slice("/api/hydro".length) || "/";
       return proxyRequest(`https://hydro.nationalmap.gov${rest}${url.search}`, request);
+    }
+
+    if (path === "/api/nmwells" || path === "/api/nmwells/query") {
+      const suffix = path.endsWith("/query") ? "/query" : "";
+      return proxyRequest(`${NM_WELLS}${suffix}${url.search}`, request, "public, max-age=3600");
     }
 
     if (path.startsWith("/api/caiso/")) {
