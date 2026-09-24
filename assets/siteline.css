@@ -10,6 +10,23 @@
   --accent: #4da3ff;
   --live: #3dd68c;
   --danger: #f07178;
+  /* One token per layer family. Map paint reads these; legend uses the same variables. */
+  --sl-c-power: #f0b429;
+  --sl-c-power-hi: #ffe7a3;
+  --sl-c-power-mid: #f0b429;
+  --sl-c-power-lo: #c4841d;
+  --sl-c-power-unknown: #b7a48a;
+  --sl-c-util: #2dd4bf;
+  --sl-c-fiber: #a78bfa;
+  --sl-c-fiber-dim: #6d5cae;
+  --sl-c-water: #38bdf8;
+  --sl-c-water-fill: #0ea5e9;
+  --sl-c-gas: #f97316;
+  --sl-c-oil: #a16207;
+  --sl-c-well: #a8a29e;
+  --sl-c-hazard: #fb7185;
+  --sl-c-context: #e7e5e4;
+  --sl-c-context-muted: #a3a3a3;
   --mono: "JetBrains Mono", ui-monospace, monospace;
   --sans: Inter, system-ui, -apple-system, sans-serif;
   --touch: 36px;
@@ -552,3 +569,102 @@ button { cursor: pointer; }
 @media (min-width: 981px) {
   .app-shell.layers-open .map-jump-bar { left: 19.4rem; }
 }
+
+#sl-tray .sl-layer-sec { margin: 0.15rem 0 0.35rem; }
+#sl-tray .sl-layer-sec-h {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  margin: 0;
+  padding: 0.28rem 0.1rem;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--soft);
+  font: 500 0.62rem/1.2 var(--mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  text-align: left;
+}
+#sl-tray .sl-layer-sec-h:hover { background: rgba(255,255,255,0.04); }
+#sl-tray .sl-layer-sec-title { flex: 1; }
+#sl-tray .sl-layer-sec-count {
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  font-size: 0.58rem;
+}
+#sl-tray .sl-layer-sec-h::after {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-right: 1.5px solid rgba(255,255,255,0.55);
+  border-bottom: 1.5px solid rgba(255,255,255,0.55);
+  transform: rotate(45deg);
+  margin-right: 4px;
+}
+#sl-tray .sl-layer-sec.is-closed .sl-layer-sec-h::after {
+  transform: rotate(-45deg);
+  margin-top: 3px;
+}
+#sl-tray .sl-layer-sec.is-closed .sl-layer-sec-body { display: none; }
+#sl-tray .sl-layer-sec-body { padding: 0 0 0.15rem 2px; }
+#sl-tray .sl-layer-note {
+  margin: 0.1rem 0 0.35rem 22px;
+  color: var(--muted);
+  font-size: 0.62rem;
+  font-weight: 400;
+  line-height: 1.35;
+}
+#sl-tray .sl-tray-row.is-unknown { opacity: 0.72; cursor: default; }
+#sl-tray .sl-legend {
+  width: 14px;
+  height: 10px;
+  flex: 0 0 auto;
+  position: relative;
+  background: transparent;
+}
+#sl-tray .sl-legend-line::before,
+#sl-tray .sl-legend-dash::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 4px;
+  height: 2px;
+  background: var(--swatch, var(--sl-c-context));
+  border-radius: 999px;
+}
+#sl-tray .sl-legend-dash::before {
+  background: repeating-linear-gradient(90deg, var(--swatch) 0 4px, transparent 4px 7px);
+}
+#sl-tray .sl-legend-circle::before,
+#sl-tray .sl-legend-ring::before,
+#sl-tray .sl-legend-square::before,
+#sl-tray .sl-legend-diamond::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 0;
+  width: 8px;
+  height: 8px;
+  background: var(--swatch, var(--sl-c-context));
+  border-radius: 50%;
+}
+#sl-tray .sl-legend-ring::before {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--swatch, var(--sl-c-well));
+}
+#sl-tray .sl-legend-square::before { border-radius: 1px; }
+#sl-tray .sl-legend-diamond::before { border-radius: 1px; transform: rotate(45deg) scale(0.85); }
+#sl-tray .sl-legend-fill::before {
+  content: "";
+  position: absolute;
+  inset: 1px 0;
+  background: var(--swatch, var(--sl-c-water));
+  opacity: 0.85;
+  border: 1px solid var(--swatch, var(--sl-c-water));
+  border-radius: 2px;
+}
+#sl-tray .swatch { display: none; }
