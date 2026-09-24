@@ -1,6 +1,6 @@
 # Natural gas well tiles
 
-The map reads `/tiles/gaswells.pmtiles` and `/tiles/gaswells-manifest.json`. The Worker serves those objects from the R2 bucket binding `TILES` with HTTP range requests and a 5 minute cache. Until that binding exists, the Worker serves the same paths from the static asset bundle.
+The map reads `/tiles/gaswells.pmtiles` and `/tiles/gaswells-manifest.json`. The Worker serves those objects from the R2 bucket binding `TILES` with HTTP range requests and a 5 minute cache. Until that binding exists, the Worker serves the same paths from the static asset bundle. `wrangler.toml` runs the Worker first for `/tiles/*` and slices byte ranges, because the static asset host returns the whole file.
 
 ## Bucket and secrets
 

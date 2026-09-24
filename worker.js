@@ -149,6 +149,8 @@ async function proxyRequest(target, request, cacheControl) {
   return new Response(upstream.body, { status: upstream.status, headers: out });
 }
 
+const assetBodyCache = new Map();
+
 function byteRange(header) {
   const match = /^bytes=(\d+)-(\d*)$/.exec(header || "");
   if (!match) return null;
@@ -181,7 +183,31 @@ async function serveR2OrAsset(request, env, key, contentType, maxAge) {
       return new Response(object.body, { status: 200, headers });
     }
   }
-  if (env.ASSETS) return env.ASSETS.fetch(new Request(new URL("/" + key, request.url), request));
+  if (env.ASSETS) {
+    const range = byteRange(request.headers.get("Range"));
+    const assetUrl = new URL("/" + key, request.url);
+    if (!range) return env.ASSETS.fetch(new Request(assetUrl, request));
+    if (!assetBodyCache.has(key)) {
+      const pending = env.ASSETS.fetch(new Request(assetUrl)).then((response) => {
+        if (!response.ok) throw new Error("asset " + response.status);
+        return response.arrayBuffer();
+      });
+      assetBodyCache.set(key, pending);
+    }
+    let bytes;
+    try {
+      bytes = await assetBodyCache.get(key);
+    } catch (error) {
+      assetBodyCache.delete(key);
+      throw error;
+    }
+    const start = Math.min(range.offset, bytes.byteLength);
+    const end = range.length == null ? bytes.byteLength : Math.min(bytes.byteLength, start + range.length);
+    const slice = bytes.slice(start, end);
+    headers["Content-Range"] = "bytes " + start + "-" + Math.max(start, end - 1) + "/" + bytes.byteLength;
+    headers["Content-Length"] = String(slice.byteLength);
+    return new Response(slice, { status: 206, headers });
+  }
   return new Response("Tile store is not configured", { status: 404, headers });
 }
 
