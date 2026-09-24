@@ -622,6 +622,11 @@ function guardMapClicks() {
       }
       if (mode === "inspect") renderInspectFeature(hits);
     }
+    if (name === "mousemove" && data?.point) {
+      const canvas = map.getCanvas?.();
+      if (canvas) canvas.style.cursor = queryHits(map, data.point, false).length ? "pointer" : "";
+      if (!data.originalEvent) return map;
+    }
     return fire(type, data);
   };
   if (map.__slCursor !== "1") {
