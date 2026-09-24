@@ -141,8 +141,11 @@ async function proxyRequest(target, request, cacheControl) {
   }
   const upstream = await fetch(target, init);
   const out = new Headers(upstream.headers);
-  for (const [k, v] of Object.entries(corsHeaders(request))) out.set(k, v);
+  for (const [key, value] of Object.entries({ ...securityHeaders(), ...corsHeaders(request) })) out.set(key, value);
   out.set("Cache-Control", cacheControl || "public, max-age=60");
+  out.delete("access-control-allow-origin");
+  const origin = allowedOrigin(request.headers.get("Origin"));
+  if (origin) out.set("Access-Control-Allow-Origin", origin);
   return new Response(upstream.body, { status: upstream.status, headers: out });
 }
 
@@ -178,8 +181,13 @@ export default {
     }
 
     if (path.startsWith("/api/kardashev/")) {
-      const rest = path.replace(/^\/api\/kardashev/, "");
-      return proxyRequest(`${KARDASHEV}${rest}${url.search}`, request);
+      if (!KARDASHEV_PATHS.has(path) || url.search) {
+        return new Response(JSON.stringify({ error: "Not found" }), {
+          status: 404,
+          headers: { "Content-Type": "application/json", ...securityHeaders(), ...corsHeaders(request) },
+        });
+      }
+      return proxyRequest(`${KARDASHEV}/health`, request);
     }
 
     if (path.startsWith("/api/wells") || path.startsWith("/api/gas-wells") || path.startsWith("/api/sites") || path === "/api/sources" || path === "/api/imports" || path === "/api/methodology" || path === "/api/quality-report" || path === "/api/health") {

@@ -504,8 +504,11 @@ function renderCard() {
   const rules = state.rules;
   if (!rules) return;
   if (state.origin === "fixture" && !coverageApplies()) {
-    renderOutsideCard();
-    return;
+    const liveInView = featuresInBounds(state.map?.getSource?.("sl-live-wells")?._data?.features || [], mapBounds());
+    if (!liveInView.length) {
+      renderOutsideCard();
+      return;
+    }
   }
   const title = contextTitle(state.flags, rules);
   const visible = visibleFeatures();
