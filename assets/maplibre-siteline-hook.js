@@ -3,6 +3,12 @@ import maplibregl from "https://esm.sh/maplibre-gl@4.7.1";
 
 const OriginalMap = maplibregl.Map;
 
+const addLayer = OriginalMap.prototype.addLayer;
+OriginalMap.prototype.addLayer = function (layer, before) {
+  if (layer && layer.id === "sl-contour-labels") return this;
+  return before === undefined ? addLayer.call(this, layer) : addLayer.call(this, layer, before);
+};
+
 const setLayout = OriginalMap.prototype.setLayoutProperty;
 OriginalMap.prototype.setLayoutProperty = function (id, name, value) {
   if (name === "visibility") {

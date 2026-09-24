@@ -19,6 +19,8 @@ import {
   resetGasFlags,
   separatedCounts,
 } from "./well-context.mjs";
+import { bindLiveWells, labelClusters } from "./live-wells.js";
+import { featuresInBounds, wellViewHeader } from "./well-view.mjs";
 
 const SRC = "sl-wells-src";
 const LAYER = "sl-wells-pt";
@@ -107,10 +109,24 @@ function injectCss() {
   min-height: 0;
   cursor: pointer;
 }
-#sl-well-card .sl-card-titles { min-width: 0; flex: 1; }
-#sl-well-card .sl-card-title {
+#sl-well-card .sl-card-titles {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+}
+#sl-well-card .sl-card-title,
+#sl-well-card .sl-well-kicker,
+#sl-well-card .sl-card-summary,
+#sl-well-card .sl-well-source {
+  position: static;
   display: block;
   margin: 0;
+  line-height: 1.35;
+}
+#sl-well-card .sl-card-title {
   font-size: 0.92rem;
   font-weight: 500;
   letter-spacing: -0.01em;
@@ -145,6 +161,13 @@ function injectCss() {
   color: #94a3b8;
   font-size: 0.66rem;
   line-height: 1.4;
+}
+#sl-well-card .sl-well-source {
+  color: #94a3b8;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 #sl-well-card .sl-well-kicker {
   font-family: "JetBrains Mono", ui-monospace, monospace;
@@ -233,6 +256,7 @@ function injectCss() {
 }
 
 function ensureCameronJump() {
+  if (document.getElementById("sl-jump-list")) return;
   const row = document.querySelector("#sl-tray .sl-jump-row");
   if (!row || document.getElementById("sl-jump-cameron")) return;
   const btn = document.createElement("button");
@@ -262,6 +286,7 @@ function ensureTrayToggles() {
     '<label class="sl-tray-row"><input type="checkbox" id="sl-well-oil" /><span class="swatch well-oil"></span><span>Oil wells</span></label>' +
     '<label class="sl-tray-row"><input type="checkbox" id="sl-well-mixed" /><span class="swatch well-mixed"></span><span>Mixed oil and gas</span></label>' +
     '<label class="sl-tray-row"><input type="checkbox" id="sl-well-other" /><span class="swatch well-other"></span><span>Other / unknown</span></label>' +
+    '<label class="sl-tray-row"><input type="checkbox" id="sl-well-plugged" /><span class="swatch well-other"></span><span>Show plugged</span></label>' +
     '<p class="sl-honesty-chip catalog" id="sl-well-honesty">RRC · Texas system of record</p>' +
     '<p class="sl-tray-note">EIA pipelines stay public pipeline context, separate from wells.</p>';
   const pipelines = pane.querySelector("#sl-gas-toggle")?.closest(".sl-tray-row");
@@ -313,9 +338,27 @@ function siteCenter() {
   return null;
 }
 
+function mapCenter() {
+  const center = state.map?.getCenter?.();
+  if (!center) return [-97.66, 26.19];
+  return [center.lng, center.lat];
+}
+
+function mapBounds() {
+  const bounds = state.map?.getBounds?.();
+  if (!bounds?.getWest) return null;
+  return {
+    west: bounds.getWest(),
+    east: bounds.getEast(),
+    south: bounds.getSouth(),
+    north: bounds.getNorth(),
+  };
+}
+
 function visibleFeatures() {
   const statuses = state.status ? [state.status] : null;
-  return filterFeatures(state.features, state.flags, statuses);
+  const flagged = filterFeatures(state.features, state.flags, statuses);
+  return featuresInBounds(flagged, mapBounds());
 }
 
 function scopedFeatures(features) {
@@ -461,11 +504,20 @@ function renderCard() {
   const rules = state.rules;
   if (!rules) return;
   if (state.origin === "fixture" && !coverageApplies()) {
-    renderOutsideCard();
-    return;
+    const liveInView = featuresInBounds(state.map?.getSource?.("sl-live-wells")?._data?.features || [], mapBounds());
+    if (!liveInView.length) {
+      renderOutsideCard();
+      return;
+    }
   }
   const title = contextTitle(state.flags, rules);
   const visible = visibleFeatures();
+  const notes = window.__SITELINE_WELL_NOTES__ || {};
+  const viewHeader = wellViewHeader({
+    center: mapCenter(),
+    fixtureInView: visible.filter((feature) => feature.properties?.dataset_origin === "fixture").length,
+    notes,
+  });
   const focus = scopedFeatures(visible);
   const query = state.cardQuery.trim();
   const matched = filterFeaturesByText(focus, query, rules);
@@ -516,9 +568,20 @@ function renderCard() {
       esc(selected.properties.api_normalized) +
       ". Siteline does not scrape the viewer.</p>"
     : "";
+  const liveInView = featuresInBounds(state.map?.getSource?.("sl-live-wells")?._data?.features || [], mapBounds());
+  const sampleCount = visible.filter((feature) => feature.properties?.dataset_origin === "fixture").length;
+  const inViewCount = visible.length + liveInView.length;
+  window.__SITELINE_WELL_COUNT__ = inViewCount;
+  const badge = document.getElementById("sl-dock-wells-badge");
+  if (badge) {
+    badge.hidden = inViewCount <= 0;
+    badge.textContent = String(inViewCount);
+  }
   const headerSummary = query
     ? matched.length + (matched.length === 1 ? " match in this view" : " matches in this view")
-    : summaryLine(focus, separated);
+    : sampleCount > 0 && liveInView.length === 0
+      ? sampleCount + " Sample"
+      : summaryLine(focus, separated);
   const commodityNote = [
     state.flags.include_gas ? "Gas " + separated.gas.well_count : "",
     state.flags.include_oil ? "Oil " + separated.oil.well_count : "",
@@ -561,17 +624,21 @@ function renderCard() {
         "</ul>" +
         (matched.length > 6 ? "<p class=\"sl-well-note\">6 shown. Narrow the text to see fewer.</p>" : "")
       : "";
-  const keepFind = document.activeElement?.id === "sl-well-find";
-  const caret = keepFind ? document.activeElement.selectionStart : null;
+  const active = document.activeElement;
+  const keepFind = active && card.contains(active) && (active.tagName === "INPUT" || active.tagName === "TEXTAREA" || active.tagName === "SELECT" || active.isContentEditable);
+  const caret = keepFind ? active.selectionStart : null;
+  const caretEnd = keepFind ? active.selectionEnd : null;
+  const keepId = keepFind ? active.id : "";
   card.dataset.open = state.cardOpen ? "1" : "0";
   card.innerHTML =
     "<button type=\"button\" class=\"sl-card-toggle\" id=\"sl-well-toggle\" aria-expanded=\"" +
     (state.cardOpen ? "true" : "false") +
     "\" aria-controls=\"sl-well-body\">" +
     "<span class=\"sl-card-titles\"><span class=\"sl-well-kicker\">" +
-    esc(state.origin === "fixture" ? "Cameron fixture" : "RRC load") +
-    " · " +
-    esc(rules.cameron.jump_subtitle) +
+    esc(viewHeader.place) +
+    "</span><span class=\"sl-well-source\">" +
+    esc(viewHeader.source) +
+    (viewHeader.sourceNote ? " · " + esc(viewHeader.sourceNote) : "") +
     "</span><span class=\"sl-card-title\" id=\"sl-well-title\">" +
     esc(title) +
     "</span><span class=\"sl-card-summary\">" +
@@ -629,10 +696,12 @@ function renderCard() {
     state.cardQuery = event.target.value;
     renderCard();
   };
-  if (keepFind && find) {
-    find.focus();
-    const pos = caret == null ? find.value.length : caret;
-    find.setSelectionRange(pos, pos);
+  const restored = keepId ? document.getElementById(keepId) : find;
+  if (keepFind && restored) {
+    restored.focus();
+    const pos = caret == null ? restored.value.length : caret;
+    const end = caretEnd == null ? pos : caretEnd;
+    restored.setSelectionRange?.(pos, end);
   }
   card.querySelectorAll("[data-well-id]").forEach((btn) => {
     btn.onclick = () => focusWell(btn.dataset.wellId);
@@ -794,7 +863,7 @@ function paint(map) {
 
 function ensureLayers(map) {
   if (map.getSource(SRC)) return;
-  map.addSource(SRC, { type: "geojson", data: EMPTY, cluster: true, clusterRadius: 42, clusterMaxZoom: 11 });
+  map.addSource(SRC, { type: "geojson", data: EMPTY, cluster: true, clusterRadius: 42, clusterMaxZoom: 9 });
   map.addSource(RING_SRC, { type: "geojson", data: EMPTY });
   map.addSource(AOI_SRC, { type: "geojson", data: EMPTY });
   map.addSource(DRAW_SRC, { type: "geojson", data: EMPTY });
@@ -821,19 +890,25 @@ function ensureLayers(map) {
     type: "circle",
     source: SRC,
     filter: ["has", "point_count"],
+    maxzoom: 10,
     paint: {
-      "circle-color": "#4da3ff",
-      "circle-radius": ["step", ["get", "point_count"], 12, 10, 16, 30, 20],
-      "circle-opacity": 0.85,
+      "circle-color": "#f97316",
+      "circle-radius": ["step", ["get", "point_count"], 14, 10, 18, 30, 22],
+      "circle-opacity": 0.95,
+      "circle-stroke-color": "#14120e",
+      "circle-stroke-width": 1,
     },
   });
+  map.on("idle", () => labelClusters(map));
+  map.on("move", () => labelClusters(map));
   map.addLayer({
     id: LAYER,
     type: "circle",
     source: SRC,
     filter: ["!", ["has", "point_count"]],
+    minzoom: 10,
     paint: {
-      "circle-radius": ["interpolate", ["linear"], ["zoom"], 6, 3, 12, 6],
+      "circle-radius": 5.5,
       "circle-color": ["coalesce", ["get", "status_color"], "#9aa3b2"],
       "circle-stroke-width": 1,
       "circle-stroke-color": "#050608",
@@ -878,10 +953,14 @@ function onMapClick(event) {
   const clusters = map.queryRenderedFeatures(event.point, { layers: [CLUSTER] });
   if (clusters[0]) {
     const source = map.getSource(SRC);
-    source.getClusterExpansionZoom(clusters[0].properties.cluster_id, (err, zoom) => {
-      if (err) return;
-      map.easeTo({ center: clusters[0].geometry.coordinates, zoom });
-    });
+    const clusterId = clusters[0].properties.cluster_id;
+    const center = clusters[0].geometry.coordinates;
+    const zoomed = source.getClusterExpansionZoom(clusterId);
+    const applyZoom = (zoom) => {
+      if (Number.isFinite(zoom)) map.easeTo({ center, zoom });
+    };
+    if (zoomed && typeof zoomed.then === "function") zoomed.then(applyZoom).catch(() => {});
+    else source.getClusterExpansionZoom(clusterId, (err, zoom) => { if (!err) applyZoom(zoom); });
     return;
   }
   const hits = map.queryRenderedFeatures(event.point, { layers: [LAYER] });
@@ -913,6 +992,8 @@ function bindMap(map) {
   );
   map.on("click", onMapClick);
   map.on("moveend", () => renderCard());
+  window.addEventListener("siteline-wells-live", () => renderCard());
+  bindLiveWells(map);
   map.on("dblclick", (event) => {
     if (state.draw !== "polygon") return;
     event.preventDefault();
@@ -987,7 +1068,9 @@ function boot() {
     if (state.bound || tries > 80) window.clearInterval(timer);
   }, 250);
   document.addEventListener("keydown", (event) => {
-    if (event.target?.closest?.("#sl-place, #sl-well-find, input, textarea")) return;
+    const tag = event.target?.tagName;
+    if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || event.target?.isContentEditable) return;
+    if (event.target?.closest?.("#sl-place, #sl-well-find, input, textarea, select")) return;
     if (event.key === "Enter" && state.draw === "polygon") closePolygon();
     if (event.key === "Escape") {
       state.draw = null;

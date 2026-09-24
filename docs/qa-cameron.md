@@ -28,7 +28,7 @@ Then map SYMNUM through `app.rules.classify_well`, keep the raw record, and writ
 
 - API `06100001` stays `06100001` (leading zero). No invented `42` prefix.
 - `06100007` has a plugged gas symbol and the words "plugged and abandoned" in a note. Status is historical gas, unconfirmed, review needed.
-- `06100008` has an RRC plug date. Status is Plugged & abandoned, confirmed.
+- `06100008` has an RRC plug date. Status is Plugged and abandoned, confirmed.
 - `06100010` is inactive oil on the 1 mile ring. It is absent from gas ring counts.
 - `06100012` is an orphan gas well, not abandoned. `06100013` is orphan plus a plug date, so plug evidence wins.
 - `06100015` displays as Canceled location.
