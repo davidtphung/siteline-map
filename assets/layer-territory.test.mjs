@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  TERRITORY_LAYER_NOTE,
+  TERRITORY_SOURCE_NOTE,
   esriPolygonsToCollection,
   utilitySummary,
   utilityTypeLabel,
@@ -20,6 +22,15 @@ test("summary never invents a name", () => {
     type: "Co-op",
   });
   assert.deepEqual(utilitySummary({}), { name: "UNKNOWN", type: "UNKNOWN" });
+});
+
+test("territory copy stays plain", () => {
+  for (const line of [TERRITORY_LAYER_NOTE, TERRITORY_SOURCE_NOTE]) {
+    assert.equal(line.includes("\u2014"), false);
+    assert.equal(line.includes(";"), false);
+  }
+  assert.match(TERRITORY_LAYER_NOTE, /Which utility sells retail power here/);
+  assert.match(TERRITORY_SOURCE_NOTE, /Living Atlas copy is the public feed/);
 });
 
 test("esri rings become polygons and drop empty geometry", () => {

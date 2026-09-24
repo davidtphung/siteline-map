@@ -4,6 +4,7 @@
  */
 import {
   TERRITORY_QUERY,
+  TERRITORY_LAYER_NOTE,
   TERRITORY_SOURCE_NOTE,
   esriPolygonsToCollection,
   utilitySummary,
@@ -212,7 +213,7 @@ function buildGroups() {
           legend: "fill",
           swatch: "--sl-c-util",
           checked: false,
-          note: TERRITORY_SOURCE_NOTE,
+          note: TERRITORY_LAYER_NOTE,
         },
       ],
     },
@@ -820,9 +821,35 @@ function syncLayerPanelAria() {
   });
 }
 
+function ensureAboutSource() {
+  const list = document.getElementById("sl-about-list");
+  if (!list || list.querySelector("#sl-about-territory")) return;
+  const article = document.createElement("article");
+  article.className = "sl-about-src";
+  article.id = "sl-about-territory";
+  const header = document.createElement("header");
+  const strong = document.createElement("strong");
+  strong.textContent = "Electric retail service territories";
+  const chip = document.createElement("span");
+  chip.className = "sl-honesty-chip catalog";
+  chip.textContent = "CATALOG";
+  header.append(strong, chip);
+  const meta = document.createElement("p");
+  meta.className = "sl-about-meta";
+  meta.textContent = TERRITORY_SOURCE_NOTE;
+  const link = document.createElement("a");
+  link.href = TERRITORY_QUERY.replace(/\/query$/, "");
+  link.target = "_blank";
+  link.rel = "noopener noreferrer";
+  link.textContent = link.href;
+  article.append(header, meta, link);
+  list.appendChild(article);
+}
+
 function boot() {
   const tryAll = () => {
     buildGroups();
+    ensureAboutSource();
     const map = window.__SITELINE_MAP__;
     if (map) bootMap(map);
   };

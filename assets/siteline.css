@@ -564,6 +564,11 @@ button { cursor: pointer; }
   .brief-empty { display: none; }
 
   .attr-data { display: none; }
+
+  .maplibregl-ctrl-top-right {
+    top: 11.25rem !important;
+    right: 0.65rem !important;
+  }
 }
 
 @media (min-width: 981px) {

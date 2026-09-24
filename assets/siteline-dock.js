@@ -415,7 +415,8 @@ const DOCK_CSS = `
   height: auto !important;
 }
 #sl-tray.sl-dock .sl-tray-grab,
-#sl-tray.sl-dock .sl-tray-chrome { display: none !important; }
+#sl-tray.sl-dock .sl-tray-chrome,
+.sl-layers-chip { display: none !important; }
 #sl-tray.sl-dock .sl-dock-card,
 #sl-tray.sl-dock .sl-dock-bar { pointer-events: auto; }
 #sl-tray.sl-dock .sl-dock-card {

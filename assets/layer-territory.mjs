@@ -3,8 +3,11 @@
 export const TERRITORY_QUERY =
   "https://services3.arcgis.com/OYP7N6mAJJCyH6hd/ArcGIS/rest/services/Electric_Retail_Service_Territories_HIFLD/FeatureServer/0/query";
 
+export const TERRITORY_LAYER_NOTE =
+  "Which utility sells retail power here. HIFLD public copy, service areas can lag.";
+
 export const TERRITORY_SOURCE_NOTE =
-  "HIFLD Electric Retail Service Territories (ORNL / DOE CESER), ArcGIS Online FeatureServer Electric_Retail_Service_Territories_HIFLD. HIFLD Open NASA root was discontinued; this Living Atlas copy is the public feed.";
+  "HIFLD Electric Retail Service Territories (ORNL / DOE CESER). ArcGIS Online FeatureServer Electric_Retail_Service_Territories_HIFLD. HIFLD Open NASA root was discontinued. This Living Atlas copy is the public feed.";
 
 const TYPE_LABELS = {
   "INVESTOR OWNED": "IOU",
