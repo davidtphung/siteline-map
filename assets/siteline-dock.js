@@ -339,7 +339,7 @@ function wire(tray) {
       setMode(modeBtn.getAttribute("data-dock-mode"));
       return;
     }
-    const tab = event.target.closest?.("[data-dock-tab]");
+    const tab = event.target.closest?.(".sl-dock-tab");
     if (tab && tray.contains(tab)) {
       event.preventDefault();
       toggleTab(tab.getAttribute("data-dock-tab"));
