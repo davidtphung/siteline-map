@@ -184,7 +184,9 @@ export function featureSummary(feature) {
   }
   const dated = firstField(props, ["status_date"]);
   if (dated !== "UNKNOWN") fields.push(["Date", dated]);
-  const asOf = plain(props.source_updated || props.status_date || "");
+  const statusDate = plain(props.status_date || "");
+  const updated = plain(props.source_updated || "");
+  const asOf = (statusDate && statusDate !== "UNKNOWN" ? statusDate : "") || (updated && updated !== "UNKNOWN" ? updated : "") || "UNKNOWN";
   const manifestAgency = typeof window !== "undefined" ? window.__SITELINE_GAS_MANIFEST__?.states?.[props.state]?.agency : "";
   const agency = plain(props.source_name || manifestAgency || "");
   if (layerId.startsWith("sl-gaswells")) {
