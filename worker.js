@@ -38,9 +38,9 @@ const CSP = [
   "object-src 'none'",
   "script-src 'self' 'unsafe-inline' https://esm.sh https://cdn.jsdelivr.net",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com",
-  "font-src 'self' https://fonts.gstatic.com data:",
+  "font-src 'self' https://fonts.gstatic.com https://demotiles.maplibre.org data:",
   "img-src 'self' data: blob: https://*.tile.opentopomap.org https://basemap.nationalmap.gov https://server.arcgisonline.com https://*.tile.openstreetmap.org https://openinframap.org https://s3.amazonaws.com",
-  "connect-src 'self' https://esm.sh https://cdn.jsdelivr.net https://nominatim.openstreetmap.org https://photon.komoot.io https://overpass-api.de https://epqs.nationalmap.gov https://arcgis.netl.doe.gov https://services.arcgis.com https://services2.arcgis.com https://services3.arcgis.com https://services5.arcgis.com https://services8.arcgis.com https://data.dnrgis.state.co.us https://hazards.fema.gov https://hydro.nationalmap.gov https://api.eia.gov https://waterservices.usgs.gov https://www.caiso.com https://basemap.nationalmap.gov https://server.arcgisonline.com https://openinframap.org https://s3.amazonaws.com https://*.tile.openstreetmap.org https://*.tile.opentopomap.org",
+  "connect-src 'self' https://esm.sh https://cdn.jsdelivr.net https://nominatim.openstreetmap.org https://photon.komoot.io https://overpass-api.de https://epqs.nationalmap.gov https://arcgis.netl.doe.gov https://services.arcgis.com https://services2.arcgis.com https://services3.arcgis.com https://services5.arcgis.com https://services8.arcgis.com https://data.dnrgis.state.co.us https://hazards.fema.gov https://hydro.nationalmap.gov https://api.eia.gov https://waterservices.usgs.gov https://www.caiso.com https://basemap.nationalmap.gov https://server.arcgisonline.com https://openinframap.org https://s3.amazonaws.com https://*.tile.openstreetmap.org https://*.tile.opentopomap.org https://demotiles.maplibre.org",
   "worker-src 'self' blob:",
 ].join("; ");
 
@@ -149,6 +149,69 @@ async function proxyRequest(target, request, cacheControl) {
   return new Response(upstream.body, { status: upstream.status, headers: out });
 }
 
+const assetBodyCache = new Map();
+
+function byteRange(header) {
+  const match = /^bytes=(\d+)-(\d*)$/.exec(header || "");
+  if (!match) return null;
+  const offset = Number(match[1]);
+  if (!match[2]) return { offset };
+  const end = Number(match[2]);
+  return { offset, length: end - offset + 1 };
+}
+
+async function serveR2OrAsset(request, env, key, contentType, maxAge) {
+  const headers = {
+    "Content-Type": contentType,
+    "Accept-Ranges": "bytes",
+    "Cache-Control": "public, max-age=" + maxAge,
+    ...securityHeaders(),
+    ...corsHeaders(request),
+  };
+  if (env.TILES) {
+    const range = byteRange(request.headers.get("Range"));
+    const object = await env.TILES.get(key, range ? { range } : undefined);
+    if (object) {
+      if (range && object.range) {
+        const start = object.range.offset ?? range.offset;
+        const length = object.range.length ?? range.length ?? 0;
+        const end = start + length - 1;
+        headers["Content-Range"] = "bytes " + start + "-" + end + "/" + object.size;
+        headers["Content-Length"] = String(length);
+        return new Response(object.body, { status: 206, headers });
+      }
+      if (object.size) headers["Content-Length"] = String(object.size);
+      return new Response(object.body, { status: 200, headers });
+    }
+  }
+  if (env.ASSETS) {
+    const range = byteRange(request.headers.get("Range"));
+    const assetUrl = new URL("/" + key, request.url);
+    if (!range) return env.ASSETS.fetch(new Request(assetUrl, request));
+    if (!assetBodyCache.has(key)) {
+      const pending = env.ASSETS.fetch(new Request(assetUrl)).then((response) => {
+        if (!response.ok) throw new Error("asset " + response.status);
+        return response.arrayBuffer();
+      });
+      assetBodyCache.set(key, pending);
+    }
+    let bytes;
+    try {
+      bytes = await assetBodyCache.get(key);
+    } catch (error) {
+      assetBodyCache.delete(key);
+      throw error;
+    }
+    const start = Math.min(range.offset, bytes.byteLength);
+    const end = range.length == null ? bytes.byteLength : Math.min(bytes.byteLength, start + range.length);
+    const slice = bytes.slice(start, end);
+    headers["Content-Range"] = "bytes " + start + "-" + Math.max(start, end - 1) + "/" + bytes.byteLength;
+    headers["Content-Length"] = String(slice.byteLength);
+    return new Response(slice, { status: 206, headers });
+  }
+  return new Response("Tile store is not configured", { status: 404, headers });
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
@@ -204,6 +267,14 @@ export default {
     if (path.startsWith("/api/hydro/")) {
       const rest = path.slice("/api/hydro".length) || "/";
       return proxyRequest(`https://hydro.nationalmap.gov${rest}${url.search}`, request);
+    }
+
+    if (path === "/tiles/gaswells.pmtiles") {
+      return serveR2OrAsset(request, env, "tiles/gaswells.pmtiles", "application/vnd.pmtiles", 300);
+    }
+
+    if (path === "/tiles/gaswells-manifest.json") {
+      return serveR2OrAsset(request, env, "tiles/gaswells-manifest.json", "application/json", 300);
     }
 
     if (path === "/api/nmwells" || path === "/api/nmwells/query") {

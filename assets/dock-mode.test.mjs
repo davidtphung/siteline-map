@@ -109,6 +109,46 @@ test("Browse tap on a feature opens the popup with the right fields", () => {
   assert.deepEqual(hitBox({ x: 20, y: 30 }, false), [[10, 20], [30, 40]]);
 });
 
+test("gas well popup shows the dashed API, raw status, and a real date", () => {
+  const card = featureSummary({
+    layer: { id: "sl-gaswells-pt", type: "circle" },
+    properties: {
+      api: "30015203680000",
+      name: "LITTLE JEWEL COM #001",
+      operator: "MEWBOURNE OIL CO",
+      commodity: "gas",
+      status_raw: "Active",
+      status_date: "2026-07-01",
+      source_updated: "2026-08-01",
+      state: "NM",
+      source_name: "New Mexico Oil Conservation Division",
+    },
+  });
+  assert.equal(card.name, "LITTLE JEWEL COM #001");
+  assert.equal(card.fields.find((row) => row[0] === "API")[1], "30-015-20368");
+  assert.equal(card.fields.find((row) => row[0] === "Status")[1], "Active");
+  const texas = featureSummary({
+    layer: { id: "sl-gaswells-pt", type: "circle" },
+    properties: { api: "43934285", name: "3H", state: "TX", status_class: "active", status_raw: "Gas Well", status_date: "UNKNOWN", source_updated: "UNKNOWN" },
+  });
+  assert.equal(texas.fields.find((row) => row[0] === "Status")[1], "Active (RRC map symbol, producing status not confirmed)");
+  assert.equal(texas.vintage, "data as of UNKNOWN");
+  const kansas = featureSummary({
+    layer: { id: "sl-gaswells-pt", type: "circle" },
+    properties: { state: "KS", status_class: "active", status_raw: "GAS" },
+  });
+  assert.equal(kansas.fields.find((row) => row[0] === "Status")[1], "Not plugged (state reports plugged or not only)");
+  assert.equal(card.fields.find((row) => row[0] === "Type")[1], "gas");
+  assert.equal(card.source, "New Mexico Oil Conservation Division");
+  assert.equal(card.vintage, "data as of 2026-07-01");
+  const dashed = featureSummary({
+    layer: { id: "sl-gaswells-pt", type: "circle" },
+    properties: { api: "30-015-20325", status_raw: "Temporary Abandonment", status_date: "UNKNOWN", source_updated: "2026-08-01", state: "NM" },
+  });
+  assert.equal(dashed.fields.find((row) => row[0] === "API")[1], "30-015-20325");
+  assert.equal(dashed.vintage, "data as of 2026-08-01");
+});
+
 test("Browse tap on empty map opens no popup", () => {
   const state = applyEmptyBrowseTap({ mode: "browse", open: true, tab: "layers", pin: null, popup: { index: 0, total: 1 } });
   assert.equal(state.popup, null);

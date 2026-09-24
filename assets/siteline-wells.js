@@ -20,6 +20,8 @@ import {
   separatedCounts,
 } from "./well-context.mjs";
 import { bindLiveWells, labelClusters } from "./live-wells.js";
+import { bindGasWells } from "./gas-wells.js";
+import { PARTIAL_PLUG_NOTE, TEXAS_GIS_NOTE, coverageRows, pluggedToggleState } from "./gas-wells.mjs";
 import { featuresInBounds, wellViewHeader } from "./well-view.mjs";
 
 const SRC = "sl-wells-src";
@@ -239,6 +241,9 @@ function injectCss() {
 }
 #sl-well-card .sl-well-hit:hover { background: rgba(255,255,255,0.05); }
 #sl-well-card a { color: #4da3ff; }
+#sl-well-card .sl-coverage-wrap { max-height: 180px; overflow: auto; margin: 0.3rem 0 0.5rem; }
+#sl-well-card .sl-coverage { width: 100%; border-collapse: collapse; font-size: 0.62rem; }
+#sl-well-card .sl-coverage th, #sl-well-card .sl-coverage td { text-align: left; padding: 2px 4px; border-bottom: 1px solid rgba(255,255,255,0.08); }
 .swatch.well-gas { background: #7dcea0; }
 .swatch.well-oil { background: #7aa2e3; }
 .swatch.well-mixed { background: #b9a6e8; }
@@ -286,7 +291,7 @@ function ensureTrayToggles() {
     '<label class="sl-tray-row"><input type="checkbox" id="sl-well-oil" /><span class="swatch well-oil"></span><span>Oil wells</span></label>' +
     '<label class="sl-tray-row"><input type="checkbox" id="sl-well-mixed" /><span class="swatch well-mixed"></span><span>Mixed oil and gas</span></label>' +
     '<label class="sl-tray-row"><input type="checkbox" id="sl-well-other" /><span class="swatch well-other"></span><span>Other / unknown</span></label>' +
-    '<label class="sl-tray-row"><input type="checkbox" id="sl-well-plugged" /><span class="swatch well-other"></span><span>Show plugged</span></label>' +
+    '<label class="sl-tray-row"><input type="checkbox" id="sl-well-plugged" /><span class="swatch well-other"></span><span id="sl-well-plugged-label">Show plugged</span></label>' +
     '<p class="sl-honesty-chip catalog" id="sl-well-honesty">RRC · Texas system of record</p>' +
     '<p class="sl-tray-note">EIA pipelines stay public pipeline context, separate from wells.</p>';
   const pipelines = pane.querySelector("#sl-gas-toggle")?.closest(".sl-tray-row");
@@ -357,7 +362,10 @@ function mapBounds() {
 
 function visibleFeatures() {
   const statuses = state.status ? [state.status] : null;
-  const flagged = filterFeatures(state.features, state.flags, statuses);
+  let flagged = filterFeatures(state.features, state.flags, statuses);
+  if (window.__SITELINE_TX_FIXTURE__ === false) {
+    flagged = flagged.filter((feature) => feature.properties?.dataset_origin !== "fixture" || feature.properties?.commodity_group !== "gas");
+  }
   return featuresInBounds(flagged, mapBounds());
 }
 
@@ -404,6 +412,36 @@ function coverageApplies() {
   if (!box || !map?.getCenter) return false;
   const center = map.getCenter();
   return pointInBox(center.lng, center.lat, box);
+}
+
+function coverageHtml() {
+  const rows = coverageRows(window.__SITELINE_GAS_MANIFEST__);
+  if (!rows.length) return "<p class=\"sl-well-note\">Coverage UNKNOWN. Manifest has not loaded.</p>";
+  const body = rows
+    .map(
+      (row) =>
+        "<tr><td>" +
+        esc(row.state) +
+        "</td><td>" +
+        esc(row.coverage) +
+        "</td><td>" +
+        esc(row.active) +
+        "</td><td>" +
+        esc(row.inactive) +
+        "</td><td>" +
+        esc(row.source_updated) +
+        "</td></tr>",
+    )
+    .join("");
+  return (
+    "<p class=\"sl-well-kicker\">Coverage</p><p class=\"sl-well-note\">" +
+    esc(TEXAS_GIS_NOTE) +
+    "</p><p class=\"sl-well-note\">" +
+    esc(PARTIAL_PLUG_NOTE) +
+    "</p><div class=\"sl-coverage-wrap\"><table class=\"sl-coverage\"><thead><tr><th>State</th><th>Coverage</th><th>Active</th><th>Inactive</th><th>As of</th></tr></thead><tbody>" +
+    body +
+    "</tbody></table></div>"
+  );
 }
 
 function summaryLine(focus, separated) {
@@ -684,7 +722,9 @@ function renderCard() {
       : state.draw === "radius"
         ? "Click a center. Rings use EPSG:3081 miles, not Web Mercator."
         : "Upload a polygon, draw one, or pick a radius.") +
-    "</p><ul>" +
+    "</p>" +
+    coverageHtml() +
+    "<ul>" +
     rules.disclaimers.map((line) => "<li>" + esc(line) + "</li>").join("") +
     "</ul><p class=\"sl-well-note\"><a href=\"/well-methodology.html\">Data and limitations</a></p></div>";
   document.getElementById("sl-well-toggle").onclick = () => {
@@ -901,6 +941,21 @@ function ensureLayers(map) {
   });
   map.on("idle", () => labelClusters(map));
   map.on("move", () => labelClusters(map));
+  try {
+    map.addLayer({
+      id: CLUSTER + "-count",
+      type: "symbol",
+      source: SRC,
+      filter: ["has", "point_count"],
+      maxzoom: 10,
+      layout: {
+        "text-field": ["to-string", ["get", "point_count"]],
+        "text-size": 12,
+        "text-font": ["Noto Sans Bold"],
+      },
+      paint: { "text-color": "#14120e" },
+    });
+  } catch (_) {}
   map.addLayer({
     id: LAYER,
     type: "circle",
@@ -994,6 +1049,8 @@ function bindMap(map) {
   map.on("moveend", () => renderCard());
   window.addEventListener("siteline-wells-live", () => renderCard());
   bindLiveWells(map);
+  bindGasWells(map);
+  window.addEventListener("siteline-gas-manifest", () => renderCard());
   map.on("dblclick", (event) => {
     if (state.draw !== "polygon") return;
     event.preventDefault();

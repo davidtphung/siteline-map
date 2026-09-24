@@ -4,7 +4,28 @@ export const ORANGE = "#f97316";
 export const AMBER = "#d6c07a";
 export const PLUGGED_GRAY = "#8b9098";
 export const CO_STATUS_VINTAGE = "status dates through 2025-03-26";
-export const TEXAS_RRC_NOTE = "Texas RRC is the source of record. Not loaded yet.";
+export const TEXAS_RRC_NOTE = "Texas RRC data has shut-in versus gas-well status only, with no operator or dates in the GIS layer.";
+export const TEXAS_ACTIVE_LABEL = "Active (RRC map symbol, producing status not confirmed)";
+export const TEXAS_SHUTIN_LABEL = "Inactive, shut-in (RRC)";
+export const PARTIAL_NOT_PLUGGED_LABEL = "Not plugged (state reports plugged or not only)";
+const PARTIAL_PLUG_ONLY = new Set(["KS", "KY", "IL", "AK"]);
+
+export function honestStatus(props) {
+  const state = String(props?.state || "").toUpperCase();
+  const raw = String(props?.status_raw || props?.status || "").trim();
+  const kind = String(props?.status_class || "").toLowerCase();
+  if (state === "TX") {
+    if (kind === "inactive" || /shut/i.test(raw)) return TEXAS_SHUTIN_LABEL;
+    if (kind === "plugged" || /plug/i.test(raw)) return raw || "Plugged";
+    if (kind === "active") return TEXAS_ACTIVE_LABEL;
+    return raw || "UNKNOWN";
+  }
+  if (PARTIAL_PLUG_ONLY.has(state)) {
+    if (kind === "plugged" || /plug/i.test(raw)) return raw || "Plugged";
+    return PARTIAL_NOT_PLUGGED_LABEL;
+  }
+  return raw || "UNKNOWN";
+}
 export const NM_UPSTREAM = "https://gis.emnrd.nm.gov/arcgis/rest/services/OCDView/Wells_Public/FeatureServer/0";
 
 export function styleWaitDecision(loaded) {

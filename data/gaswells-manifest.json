@@ -1,0 +1,805 @@
+{
+  "includes_plugged": false,
+  "fetched_at": "2026-09-24T21:53:42Z",
+  "schema": [
+    "api",
+    "name",
+    "operator",
+    "state",
+    "commodity",
+    "status_raw",
+    "status_class",
+    "status_date",
+    "last_prod_date",
+    "lat",
+    "lon",
+    "source_name",
+    "source_url",
+    "source_updated",
+    "fetched_at_utc"
+  ],
+  "states": {
+    "AL": {
+      "coverage": "live full status",
+      "counts": {
+        "active": 5296,
+        "inactive": 413,
+        "plugged": 5192,
+        "other": 184,
+        "unknown": 13
+      },
+      "source_updated": "2025-11-24",
+      "fetched_at": "2026-09-24T21:56:23Z",
+      "errors": "",
+      "source_name": "OGB map (layer 3)",
+      "source_url": "https://map.ogb.state.al.us/arcgis/rest/services/OGB/map/MapServer/3",
+      "agency": "State Oil and Gas Board of Alabama",
+      "note": "",
+      "total": 11098
+    },
+    "AK": {
+      "coverage": "partial status",
+      "counts": {
+        "active": 326,
+        "inactive": 0,
+        "plugged": 0,
+        "other": 0,
+        "unknown": 0
+      },
+      "source_updated": "UNKNOWN",
+      "fetched_at": "2026-09-24T21:53:42Z",
+      "errors": "",
+      "source_name": "AOGCC_SQL_Test MapServer (layer 5)",
+      "source_url": "https://maps.commerce.alaska.gov/server/rest/services/AOGCC/AOGCC_SQL_Test/MapServer/5",
+      "agency": "Alaska Oil and Gas Conservation Commission",
+      "note": "Gas is identifiable while the well is active. Idle and plugged gas counts are UNKNOWN.",
+      "total": 326
+    },
+    "AZ": {
+      "coverage": "UNKNOWN",
+      "counts": {},
+      "source_updated": "UNKNOWN",
+      "fetched_at": "",
+      "errors": "no official gas-well source in the verified catalog",
+      "source_name": "",
+      "source_url": "",
+      "agency": ""
+    },
+    "AR": {
+      "coverage": "live full status",
+      "counts": {
+        "active": 12356,
+        "inactive": 271,
+        "plugged": 5710,
+        "other": 740,
+        "unknown": 5
+      },
+      "source_updated": "UNKNOWN",
+      "fetched_at": "2026-09-24T21:56:06Z",
+      "errors": "",
+      "source_name": "FEATURESERVICES Utilities (layer 5)",
+      "source_url": "https://gis.arkansas.gov/arcgis/rest/services/FEATURESERVICES/Utilities/FeatureServer/5",
+      "agency": "Arkansas Oil and Gas Commission (via Arkansas GIS Office)",
+      "note": "",
+      "total": 19082
+    },
+    "CA": {
+      "coverage": "live full status",
+      "counts": {
+        "active": 819,
+        "inactive": 1256,
+        "plugged": 4216,
+        "other": 240,
+        "unknown": 0
+      },
+      "source_updated": "UNKNOWN",
+      "fetched_at": "2026-09-24T21:56:39Z",
+      "errors": "",
+      "source_name": "WellSTAR Wells (layer 0)",
+      "source_url": "https://gis.conservation.ca.gov/server/rest/services/WellSTAR/Wells/MapServer/0",
+      "agency": "CA Geologic Energy Management Division (CalGEM)",
+      "note": "",
+      "total": 6531
+    },
+    "CO": {
+      "coverage": "file snapshot",
+      "counts": {
+        "active": 23210,
+        "inactive": 4281,
+        "plugged": 14300,
+        "other": 623,
+        "unknown": 8
+      },
+      "source_updated": "2026-09-23",
+      "fetched_at": "2026-09-24T21:55:58Z",
+      "errors": "",
+      "source_name": "WELLS_SHP.ZIP bulk shapefile",
+      "source_url": "https://ecmc.state.co.us/documents/data/downloads/gis/WELLS_SHP.ZIP",
+      "agency": "Colorado Energy and Carbon Management Commission (ECMC)",
+      "note": "",
+      "total": 42422
+    },
+    "CT": {
+      "coverage": "UNKNOWN",
+      "counts": {},
+      "source_updated": "UNKNOWN",
+      "fetched_at": "",
+      "errors": "no official gas-well source in the verified catalog",
+      "source_name": "",
+      "source_url": "",
+      "agency": ""
+    },
+    "DE": {
+      "coverage": "UNKNOWN",
+      "counts": {},
+      "source_updated": "UNKNOWN",
+      "fetched_at": "",
+      "errors": "no official gas-well source in the verified catalog",
+      "source_name": "",
+      "source_url": "",
+      "agency": ""
+    },
+    "FL": {
+      "coverage": "UNKNOWN",
+      "counts": {},
+      "source_updated": "UNKNOWN",
+      "fetched_at": "",
+      "errors": "no official gas-well source in the verified catalog",
+      "source_name": "",
+      "source_url": "",
+      "agency": ""
+    },
+    "GA": {
+      "coverage": "UNKNOWN",
+      "counts": {},
+      "source_updated": "UNKNOWN",
+      "fetched_at": "",
+      "errors": "no official gas-well source in the verified catalog",
+      "source_name": "",
+      "source_url": "",
+      "agency": ""
+    },
+    "HI": {
+      "coverage": "UNKNOWN",
+      "counts": {},
+      "source_updated": "UNKNOWN",
+      "fetched_at": "",
+      "errors": "no official gas-well source in the verified catalog",
+      "source_name": "",
+      "source_url": "",
+      "agency": ""
+    },
+    "ID": {
+      "coverage": "UNKNOWN",
+      "counts": {},
+      "source_updated": "UNKNOWN",
+      "fetched_at": "",
+      "errors": "no official gas-well source in the verified catalog",
+      "source_name": "",
+      "source_url": "",
+      "agency": ""
+    },
+    "IL": {
+      "coverage": "partial status",
+      "counts": {
+        "active": 1698,
+        "inactive": 0,
+        "plugged": 660,
+        "other": 0,
+        "unknown": 0
+      },
+      "source_updated": "2026-08-28",
+      "fetched_at": "2026-09-24T21:53:42Z",
+      "errors": "",
+      "source_name": "ILOIL Wells (layer 8)",
+      "source_url": "https://maps.isgs.illinois.edu/arcgis/rest/services/ILOIL/Wells/MapServer/8",
+      "agency": "Illinois State Geological Survey",
+      "note": "Status text marks plugged wells. Active versus idle is UNKNOWN.",
+      "total": 2358
+    },
+    "IN": {
+      "coverage": "UNKNOWN",
+      "counts": {},
+      "source_updated": "UNKNOWN",
+      "fetched_at": "",
+      "errors": "no official gas-well source in the verified catalog",
+      "source_name": "",
+      "source_url": "",
+      "agency": ""
+    },
+    "IA": {
+      "coverage": "UNKNOWN",
+      "counts": {},
+      "source_updated": "UNKNOWN",
+      "fetched_at": "",
+      "errors": "no official gas-well source in the verified catalog",
+      "source_name": "",
+      "source_url": "",
+      "agency": ""
+    },
+    "KS": {
+      "coverage": "partial status",
+      "counts": {
+        "active": 34822,
+        "inactive": 0,
+        "plugged": 19098,
+        "other": 0,
+        "unknown": 0
+      },
+      "source_updated": "UNKNOWN",
+      "fetched_at": "2026-09-24T21:56:29Z",
+      "errors": "",
+      "source_name": "oilgas_wells (layer 0)",
+      "source_url": "https://services.kgs.ku.edu/arcgis8/rest/services/oilgas/oilgas_wells/MapServer/0",
+      "agency": "Kansas Geological Survey (KGS)",
+      "note": "KGS does not distinguish active from idle. Unplugged gas symbols are classed active.",
+      "total": 53920
+    },
+    "KY": {
+      "coverage": "partial status",
+      "counts": {
+        "active": 24305,
+        "inactive": 0,
+        "plugged": 3887,
+        "other": 0,
+        "unknown": 0
+      },
+      "source_updated": "2026-09-21",
+      "fetched_at": "2026-09-24T21:53:42Z",
+      "errors": "",
+      "source_name": "KYOilGasWells_static_WGS84 (layer 1)",
+      "source_url": "https://kgs.uky.edu/arcgis/rest/services/KYOilGas/KYOilGasWells_static_WGS84/MapServer/1",
+      "agency": "Kentucky Geological Survey (KGS)",
+      "note": "Completion result plus a plugged flag. Active versus idle is UNKNOWN.",
+      "total": 28192
+    },
+    "LA": {
+      "coverage": "live full status",
+      "counts": {
+        "active": 13618,
+        "inactive": 8503,
+        "plugged": 21549,
+        "other": 3031,
+        "unknown": 133
+      },
+      "source_updated": "2026-09-23",
+      "fetched_at": "2026-09-24T21:55:50Z",
+      "errors": "",
+      "source_name": "DNRSvc OC wells (layer 0)",
+      "source_url": "https://sonris-gis.dnr.la.gov/arcgis/rest/services/DNRSvc/OC/MapServer/0",
+      "agency": "Louisiana Dept of Conservation and Energy (SONRIS)",
+      "note": "",
+      "total": 46834
+    },
+    "ME": {
+      "coverage": "UNKNOWN",
+      "counts": {},
+      "source_updated": "UNKNOWN",
+      "fetched_at": "",
+      "errors": "no official gas-well source in the verified catalog",
+      "source_name": "",
+      "source_url": "",
+      "agency": ""
+    },
+    "MD": {
+      "coverage": "UNKNOWN",
+      "counts": {},
+      "source_updated": "UNKNOWN",
+      "fetched_at": "",
+      "errors": "no official gas-well source in the verified catalog",
+      "source_name": "",
+      "source_url": "",
+      "agency": ""
+    },
+    "MA": {
+      "coverage": "UNKNOWN",
+      "counts": {},
+      "source_updated": "UNKNOWN",
+      "fetched_at": "",
+      "errors": "no official gas-well source in the verified catalog",
+      "source_name": "",
+      "source_url": "",
+      "agency": ""
+    },
+    "MI": {
+      "coverage": "live full status",
+      "counts": {
+        "active": 9165,
+        "inactive": 329,
+        "plugged": 3990,
+        "other": 27,
+        "unknown": 0
+      },
+      "source_updated": "2026-08-25",
+      "fetched_at": "2026-09-24T21:56:04Z",
+      "errors": "",
+      "source_name": "GrmdOpenData oil and gas wells (layer 10)",
+      "source_url": "https://gisagoegle.state.mi.us/arcgis/rest/services/EGLE/GrmdOpenData/MapServer/10",
+      "agency": "Michigan EGLE",
+      "note": "",
+      "total": 13511
+    },
+    "MN": {
+      "coverage": "UNKNOWN",
+      "counts": {},
+      "source_updated": "UNKNOWN",
+      "fetched_at": "",
+      "errors": "no official gas-well source in the verified catalog",
+      "source_name": "",
+      "source_url": "",
+      "agency": ""
+    },
+    "MS": {
+      "coverage": "file snapshot",
+      "counts": {
+        "active": 1133,
+        "inactive": 567,
+        "plugged": 1799,
+        "other": 0,
+        "unknown": 185
+      },
+      "source_updated": "2025-07",
+      "fetched_at": "2026-09-24T21:53:42Z",
+      "errors": "",
+      "source_name": "MS_Oil_n_Gas_Board_Wells_July_2025 (layer 0)",
+      "source_url": "https://gis.mississippi.edu/server/rest/services/UtilityTelecom/MS_Oil_n_Gas_Board_Wells_July_2025/MapServer/0",
+      "agency": "MS Oil and Gas Board data, hosted by MARIS (university)",
+      "note": "No operator on this layer. Snapshot July 2025.",
+      "total": 3684
+    },
+    "MO": {
+      "coverage": "UNKNOWN",
+      "counts": {},
+      "source_updated": "UNKNOWN",
+      "fetched_at": "",
+      "errors": "no official gas-well source in the verified catalog",
+      "source_name": "",
+      "source_url": "",
+      "agency": ""
+    },
+    "MT": {
+      "coverage": "live full status",
+      "counts": {
+        "active": 4950,
+        "inactive": 1482,
+        "plugged": 4036,
+        "other": 104,
+        "unknown": 302
+      },
+      "source_updated": "UNKNOWN",
+      "fetched_at": "2026-09-24T21:56:21Z",
+      "errors": "",
+      "source_name": "BOG DataMiner (layer 11)",
+      "source_url": "https://gis.dnrc.mt.gov/arcgis/rest/services/BOG/DataMiner/FeatureServer/11",
+      "agency": "Montana Board of Oil and Gas Conservation (DNRC)",
+      "note": "",
+      "total": 10874
+    },
+    "NE": {
+      "coverage": "file snapshot",
+      "counts": {
+        "active": 90,
+        "inactive": 5,
+        "plugged": 422,
+        "other": 3,
+        "unknown": 0
+      },
+      "source_updated": "2026-09-24",
+      "fetched_at": "2026-09-24T21:56:40Z",
+      "errors": "",
+      "source_name": "NE_WELLS.zip daily shapefile",
+      "source_url": "http://nogcc.ne.gov/Publications/NE_WELLS.zip",
+      "agency": "Nebraska Oil and Gas Conservation Commission",
+      "note": "",
+      "total": 520
+    },
+    "NV": {
+      "coverage": "UNKNOWN",
+      "counts": {},
+      "source_updated": "UNKNOWN",
+      "fetched_at": "",
+      "errors": "no official gas-well source in the verified catalog",
+      "source_name": "",
+      "source_url": "",
+      "agency": ""
+    },
+    "NH": {
+      "coverage": "UNKNOWN",
+      "counts": {},
+      "source_updated": "UNKNOWN",
+      "fetched_at": "",
+      "errors": "no official gas-well source in the verified catalog",
+      "source_name": "",
+      "source_url": "",
+      "agency": ""
+    },
+    "NJ": {
+      "coverage": "UNKNOWN",
+      "counts": {},
+      "source_updated": "UNKNOWN",
+      "fetched_at": "",
+      "errors": "no official gas-well source in the verified catalog",
+      "source_name": "",
+      "source_url": "",
+      "agency": ""
+    },
+    "NM": {
+      "coverage": "live full status",
+      "counts": {
+        "active": 25273,
+        "inactive": 198,
+        "plugged": 13213,
+        "other": 9580,
+        "unknown": 40
+      },
+      "source_updated": "2026-08-01",
+      "fetched_at": "2026-09-24T21:55:40Z",
+      "errors": "",
+      "source_name": "OCDView Wells_Public (layer 0)",
+      "source_url": "https://gis.emnrd.nm.gov/arcgis/rest/services/OCDView/Wells_Public/FeatureServer/0",
+      "agency": "NM EMNRD Oil Conservation Division",
+      "note": "",
+      "total": 48304
+    },
+    "NY": {
+      "coverage": "live full status",
+      "counts": {
+        "active": 6764,
+        "inactive": 535,
+        "plugged": 2045,
+        "other": 1214,
+        "unknown": 99
+      },
+      "source_updated": "2026-09-23",
+      "fetched_at": "2026-09-24T21:56:10Z",
+      "errors": "",
+      "source_name": "Oil, Gas and Other Regulated Wells (Socrata szye-wmt3)",
+      "source_url": "https://data.ny.gov/resource/szye-wmt3.json",
+      "agency": "NY DEC Division of Mineral Resources (data.ny.gov)",
+      "note": "",
+      "total": 10657
+    },
+    "NC": {
+      "coverage": "UNKNOWN",
+      "counts": {},
+      "source_updated": "UNKNOWN",
+      "fetched_at": "",
+      "errors": "no official gas-well source in the verified catalog",
+      "source_name": "",
+      "source_url": "",
+      "agency": ""
+    },
+    "ND": {
+      "coverage": "live full status",
+      "counts": {
+        "active": 19744,
+        "inactive": 1432,
+        "plugged": 5873,
+        "other": 12590,
+        "unknown": 980
+      },
+      "source_updated": "2026-09-16",
+      "fetched_at": "2026-09-24T21:56:25Z",
+      "errors": "",
+      "source_name": "DMR public Wells (layer 0)",
+      "source_url": "https://gis.dmr.nd.gov/dmrpublicservices/rest/services/Wells/FeatureServer/0",
+      "agency": "ND Dept of Mineral Resources, Oil and Gas Division",
+      "note": "OG wells are oil and gas combined. The source does not separate associated gas.",
+      "total": 40619
+    },
+    "OH": {
+      "coverage": "live full status",
+      "counts": {
+        "active": 53295,
+        "inactive": 6451,
+        "plugged": 44411,
+        "other": 7468,
+        "unknown": 6
+      },
+      "source_updated": "2026-09-21",
+      "fetched_at": "2026-09-24T21:55:08Z",
+      "errors": "",
+      "source_name": "Oilgas_Wells_public (layer 0)",
+      "source_url": "https://gis.ohiodnr.gov/arcgis/rest/services/DOG_Services/Oilgas_Wells_public/MapServer/0",
+      "agency": "Ohio DNR Division of Oil and Gas",
+      "note": "",
+      "total": 111631
+    },
+    "OK": {
+      "coverage": "live full status",
+      "counts": {
+        "active": 42848,
+        "inactive": 657,
+        "plugged": 23890,
+        "other": 6513,
+        "unknown": 61
+      },
+      "source_updated": "2026-09-24",
+      "fetched_at": "2026-09-24T21:55:36Z",
+      "errors": "",
+      "source_name": "RBDMS_WELLS (layer 2)",
+      "source_url": "https://gis.occ.ok.gov/server/rest/services/Hosted/RBDMS_WELLS/FeatureServer/2",
+      "agency": "Oklahoma Corporation Commission",
+      "note": "",
+      "total": 73969
+    },
+    "OR": {
+      "coverage": "UNKNOWN",
+      "counts": {},
+      "source_updated": "UNKNOWN",
+      "fetched_at": "",
+      "errors": "no official gas-well source in the verified catalog",
+      "source_name": "",
+      "source_url": "",
+      "agency": ""
+    },
+    "PA": {
+      "coverage": "live full status",
+      "counts": {
+        "active": 73490,
+        "inactive": 170,
+        "plugged": 16242,
+        "other": 36725,
+        "unknown": 0
+      },
+      "source_updated": "2026-09-02",
+      "fetched_at": "2026-09-24T21:54:25Z",
+      "errors": "",
+      "source_name": "Oil Gas Locations Conventional Unconventional 2026_09 (layer 22)",
+      "source_url": "https://mapservices.pasda.psu.edu/server/rest/services/pasda/DEP/MapServer/22",
+      "agency": "PA DEP (served by PASDA)",
+      "note": "",
+      "total": 126627
+    },
+    "RI": {
+      "coverage": "UNKNOWN",
+      "counts": {},
+      "source_updated": "UNKNOWN",
+      "fetched_at": "",
+      "errors": "no official gas-well source in the verified catalog",
+      "source_name": "",
+      "source_url": "",
+      "agency": ""
+    },
+    "SC": {
+      "coverage": "UNKNOWN",
+      "counts": {},
+      "source_updated": "UNKNOWN",
+      "fetched_at": "",
+      "errors": "no official gas-well source in the verified catalog",
+      "source_name": "",
+      "source_url": "",
+      "agency": ""
+    },
+    "SD": {
+      "coverage": "live full status",
+      "counts": {
+        "active": 43,
+        "inactive": 33,
+        "plugged": 75,
+        "other": 5,
+        "unknown": 0
+      },
+      "source_updated": "2026-09-11",
+      "fetched_at": "2026-09-24T21:56:40Z",
+      "errors": "",
+      "source_name": "SDGS Interactive Data Map (layer 26)",
+      "source_url": "https://gis.usd.edu/arcgis/rest/services/SDGS_Interactive_Data_Map/MapServer/26",
+      "agency": "SD DANR / SD Geological Survey (hosted by USD)",
+      "note": "",
+      "total": 156
+    },
+    "TN": {
+      "coverage": "partial status",
+      "counts": {
+        "active": 2818,
+        "inactive": 700,
+        "plugged": 0,
+        "other": 0,
+        "unknown": 0
+      },
+      "source_updated": "2026-08-06",
+      "fetched_at": "2026-09-24T21:53:42Z",
+      "errors": "",
+      "source_name": "Oil_and_Gas2 Oil and Gas Wells (layer 0)",
+      "source_url": "https://tdeconline.tn.gov/arcgis/rest/services/Oil_and_Gas2/MapServer/0",
+      "agency": "TN Dept of Environment and Conservation, Oil and Gas",
+      "note": "Only Shut-in Gas carries an idle status. Other gas symbols are not split into producing versus idle.",
+      "total": 3518
+    },
+    "TX": {
+      "coverage": "partial status",
+      "counts": {
+        "active": 149636,
+        "inactive": 2100,
+        "plugged": 91817,
+        "other": 0,
+        "unknown": 0
+      },
+      "source_updated": "UNKNOWN",
+      "fetched_at": "2026-09-24T21:53:42Z",
+      "errors": "",
+      "source_name": "RRC Public GIS Viewer, Well Locations (layer 1)",
+      "source_url": "https://gis.rrc.texas.gov/server/rest/services/rrc_public/RRC_Public_Viewer_Srvs/MapServer/1",
+      "agency": "Railroad Commission of Texas (RRC)",
+      "note": "RRC GIS has shut-in versus gas-well status only. No operator or dates in this layer.",
+      "total": 243553
+    },
+    "UT": {
+      "coverage": "live full status",
+      "counts": {
+        "active": 6412,
+        "inactive": 1122,
+        "plugged": 2172,
+        "other": 6642,
+        "unknown": 70
+      },
+      "source_updated": "2026-09-24",
+      "fetched_at": "2026-09-24T21:56:03Z",
+      "errors": "",
+      "source_name": "viewAGRC_WellData_Surf (layer 0)",
+      "source_url": "https://services.arcgis.com/ZzrwjTRez6FJiOq4/arcgis/rest/services/viewAGRC_WellData_Surf/FeatureServer/0",
+      "agency": "Utah DNR Division of Oil, Gas and Mining (via UGRC)",
+      "note": "",
+      "total": 16418
+    },
+    "VT": {
+      "coverage": "UNKNOWN",
+      "counts": {},
+      "source_updated": "UNKNOWN",
+      "fetched_at": "",
+      "errors": "no official gas-well source in the verified catalog",
+      "source_name": "",
+      "source_url": "",
+      "agency": ""
+    },
+    "VA": {
+      "coverage": "live full status",
+      "counts": {
+        "active": 8057,
+        "inactive": 357,
+        "plugged": 1987,
+        "other": 0,
+        "unknown": 156
+      },
+      "source_updated": "2026-09-22",
+      "fetched_at": "2026-09-24T21:56:18Z",
+      "errors": "",
+      "source_name": "DGO_wells Active Wells (layer 0) and Plugged (layer 5)",
+      "source_url": "https://energy.virginia.gov/gis/rest/services/DGO/DGO_wells/FeatureServer/0",
+      "agency": "Virginia Energy, Division of Gas and Oil",
+      "note": "",
+      "total": 10557
+    },
+    "WA": {
+      "coverage": "UNKNOWN",
+      "counts": {},
+      "source_updated": "UNKNOWN",
+      "fetched_at": "",
+      "errors": "no official gas-well source in the verified catalog",
+      "source_name": "",
+      "source_url": "",
+      "agency": ""
+    },
+    "WV": {
+      "coverage": "live full status",
+      "counts": {
+        "active": 58583,
+        "inactive": 230,
+        "plugged": 7297,
+        "other": 11262,
+        "unknown": 417
+      },
+      "source_updated": "UNKNOWN",
+      "fetched_at": "2026-09-24T21:55:20Z",
+      "errors": "",
+      "source_name": "All DEP Wells (layer 7)",
+      "source_url": "https://tagis.dep.wv.gov/arcgis/rest/services/WVDEP_enterprise/oil_gas/MapServer/7",
+      "agency": "WV DEP Office of Oil and Gas",
+      "note": "",
+      "total": 77789
+    },
+    "WI": {
+      "coverage": "UNKNOWN",
+      "counts": {},
+      "source_updated": "UNKNOWN",
+      "fetched_at": "",
+      "errors": "no official gas-well source in the verified catalog",
+      "source_name": "",
+      "source_url": "",
+      "agency": ""
+    },
+    "WY": {
+      "coverage": "file snapshot",
+      "counts": {
+        "active": 20371,
+        "inactive": 2377,
+        "plugged": 19833,
+        "other": 30180,
+        "unknown": 790
+      },
+      "source_updated": "2025-01-03",
+      "fetched_at": "2026-09-24T21:53:42Z",
+      "errors": "",
+      "source_name": "OilGas Data_layers (layer 12, January 3, 2025 well download)",
+      "source_url": "https://portal.wsgs.wyo.gov/ags/rest/services/OilGas/Data_layers/MapServer/12",
+      "agency": "Wyoming State Geological Survey (WOGCC data)",
+      "note": "",
+      "total": 73551
+    },
+    "DC": {
+      "coverage": "UNKNOWN",
+      "counts": {},
+      "source_updated": "UNKNOWN",
+      "fetched_at": "",
+      "errors": "no official gas-well source in the verified catalog",
+      "source_name": "",
+      "source_url": "",
+      "agency": ""
+    },
+    "US-OCS": {
+      "coverage": "UNKNOWN",
+      "counts": {},
+      "source_updated": "UNKNOWN",
+      "fetched_at": "",
+      "errors": "no official gas-well source in the verified catalog",
+      "source_name": "",
+      "source_url": "",
+      "agency": ""
+    }
+  },
+  "totals": {
+    "AL": 11098,
+    "AK": 326,
+    "AZ": 0,
+    "AR": 19082,
+    "CA": 6531,
+    "CO": 42422,
+    "CT": 0,
+    "DE": 0,
+    "FL": 0,
+    "GA": 0,
+    "HI": 0,
+    "ID": 0,
+    "IL": 2358,
+    "IN": 0,
+    "IA": 0,
+    "KS": 53920,
+    "KY": 28192,
+    "LA": 46834,
+    "ME": 0,
+    "MD": 0,
+    "MA": 0,
+    "MI": 13511,
+    "MN": 0,
+    "MS": 3684,
+    "MO": 0,
+    "MT": 10874,
+    "NE": 520,
+    "NV": 0,
+    "NH": 0,
+    "NJ": 0,
+    "NM": 48304,
+    "NY": 10657,
+    "NC": 0,
+    "ND": 40619,
+    "OH": 111631,
+    "OK": 73969,
+    "OR": 0,
+    "PA": 126627,
+    "RI": 0,
+    "SC": 0,
+    "SD": 156,
+    "TN": 3518,
+    "TX": 243553,
+    "UT": 16418,
+    "VT": 0,
+    "VA": 10557,
+    "WA": 0,
+    "WV": 77789,
+    "WI": 0,
+    "WY": 73551,
+    "DC": 0,
+    "US-OCS": 0
+  }
+}

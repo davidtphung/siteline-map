@@ -1,4 +1,5 @@
 /** Browse vs Inspect. Pure helpers so the dock can be tested without a map. */
+import { honestStatus } from "./well-status.mjs";
 
 export const LAYER_FACTS = {
   "sl-tx": { sentence: "High voltage transmission lines.", source: "HIFLD", vintage: "UNKNOWN" },
@@ -10,7 +11,7 @@ export const LAYER_FACTS = {
   "oim-telecom-toggle": { sentence: "Telecom lines mapped in OpenStreetMap.", source: "OpenInfraMap", vintage: "UNKNOWN" },
   "sl-subsea-toggle": { sentence: "Subsea cables mapped in OpenStreetMap.", source: "OpenStreetMap", vintage: "UNKNOWN" },
   "sl-water": { sentence: "Rivers, streams, and waterbodies.", source: "NHD", vintage: "UNKNOWN" },
-  "sl-well-gas": { sentence: "Natural gas wells in the current view. Active is solid orange. Inactive is an orange ring.", source: "NM OCD, CO ECMC, Texas RRC", vintage: "NM live. CO status dates through 2025-03-26." },
+  "sl-well-gas": { sentence: "Natural gas wells in the current view. Active is solid orange. Inactive is an orange ring.", source: "State oil and gas agencies", vintage: "See the coverage table. Texas non-shut-in gas wells are Active (RRC map symbol, producing status not confirmed). Shut-in gas is Inactive, shut-in (RRC). Data as of UNKNOWN." },
   "sl-well-oil": { sentence: "Oil wells in the current view.", source: "Texas RRC", vintage: "UNKNOWN" },
   "sl-well-mixed": { sentence: "Wells with both oil and gas.", source: "Texas RRC", vintage: "UNKNOWN" },
   "sl-well-other": { sentence: "Wells whose commodity is other or unknown.", source: "Texas RRC", vintage: "UNKNOWN" },
@@ -120,6 +121,9 @@ const LAYER_INFO = {
   "sl-gas-lines": { name: "Gas pipelines", source: "EIA" },
   "sl-wells-cluster-count": { name: "Wells", source: "Texas RRC" },
   "sl-live-wells-cluster-count": { name: "Natural gas wells", source: "NM OCD" },
+  "sl-gaswells-pt": { name: "Natural gas wells", source: "State oil and gas agencies" },
+  "sl-gaswells-cluster": { name: "Natural gas wells", source: "State oil and gas agencies" },
+  "sl-gaswells-cluster-count": { name: "Natural gas wells", source: "State oil and gas agencies" },
 };
 
 for (const id of Object.keys(LAYER_INFO)) registerInteractiveLayer(id, defaultTapHandler);
@@ -150,6 +154,19 @@ function plain(value) {
     .trim();
 }
 
+export function displayApi(value) {
+  const text = plain(value);
+  if (!text || text === "UNKNOWN") return text || "UNKNOWN";
+  if (!/^\d+$/.test(text)) return text;
+  if (text.length === 14) {
+    const base = text.slice(0, 2) + "-" + text.slice(2, 5) + "-" + text.slice(5, 10);
+    if (text.slice(10) === "0000") return base;
+    return base + "-" + text.slice(10, 12) + "-" + text.slice(12);
+  }
+  if (text.length === 10) return text.slice(0, 2) + "-" + text.slice(2, 5) + "-" + text.slice(5);
+  return text;
+}
+
 function firstField(props, keys) {
   for (const key of keys) {
     const value = props?.[key];
@@ -167,10 +184,10 @@ export function featureSummary(feature) {
   const sample = /fixture|sample/i.test(String(props.dataset_origin || props.origin || ""));
   const name = firstField(props, ["name", "NAME", "Plant_Name", "api_raw", "lease_name", "operator_name", "id", "ID"]);
   const fields = [
-    ["API", firstField(props, ["api_raw", "API_Label", "API", "api_normalized", "id"])],
+    ["API", displayApi(firstField(props, ["api", "api_raw", "API_Label", "API", "api_normalized", "id"]))],
     ["Operator", firstField(props, ["operator_name", "Operator", "OPERATOR", "operator", "ogrid_name", "Utility_Name", "OWNER"])],
-    ["Type", firstField(props, ["type", "commodity_group", "TYPE", "PrimSource", "symnum_raw_label"])],
-    ["Status", firstField(props, ["status_label", "status", "STATUS", "Facil_Stat"])],
+    ["Type", firstField(props, ["commodity", "type", "commodity_group", "TYPE", "PrimSource", "symnum_raw_label"])],
+    ["Status", layerId.startsWith("sl-gaswells") ? honestStatus(props) : firstField(props, ["status_raw", "status_label", "status", "STATUS", "Facil_Stat"])],
   ];
   const extra = [
     ["Capacity", firstField(props, ["Total_MW", "capacity_mw"])],
@@ -181,13 +198,21 @@ export function featureSummary(feature) {
   }
   const dated = firstField(props, ["status_date"]);
   if (dated !== "UNKNOWN") fields.push(["Date", dated]);
+  const statusDate = plain(props.status_date || "");
+  const updated = plain(props.source_updated || "");
+  const asOf = (statusDate && statusDate !== "UNKNOWN" ? statusDate : "") || (updated && updated !== "UNKNOWN" ? updated : "") || "UNKNOWN";
+  const manifestAgency = typeof window !== "undefined" ? window.__SITELINE_GAS_MANIFEST__?.states?.[props.state]?.agency : "";
+  const agency = plain(props.source_name || manifestAgency || "");
+  if (layerId.startsWith("sl-gaswells")) {
+    fields.push(["As of", asOf || "UNKNOWN"]);
+  }
   const note = plain(props.source_note || "");
-  const record = props.source_of_record ? plain(props.source_of_record) : known.source;
+  const record = agency || (props.source_of_record ? plain(props.source_of_record) : known.source);
   const summary = {
     name,
     layer: known.name,
     source: record,
-    vintage: note || firstField(props, ["vintage", "as_of", "asOf"]),
+    vintage: layerId.startsWith("sl-gaswells") ? "data as of " + (asOf || "UNKNOWN") : note || firstField(props, ["vintage", "as_of", "asOf"]),
     sample,
     fields: layerId.startsWith("sl-wells") || layerId.startsWith("sl-live-wells") || /well/i.test(layerId) ? fields : fields.filter((row) => row[1] !== "UNKNOWN"),
   };

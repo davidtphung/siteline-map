@@ -550,7 +550,7 @@ async function addContours(map) {
             " ft",
           ],
           "text-size": 10,
-          "text-font": ["Open Sans Regular", "Arial Unicode MS Regular"],
+          "text-font": ["Noto Sans Regular"],
           "text-max-angle": 25,
           "text-padding": 2,
         },
