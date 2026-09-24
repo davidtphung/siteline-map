@@ -26,6 +26,24 @@ export const LAYER_FACTS = {
   "sl-dc": { sentence: "Data center sites mapped in OpenStreetMap.", source: "OpenStreetMap", vintage: "UNKNOWN" },
 };
 
+/** Visual dock order. Arrow keys and aria-controls follow this list. */
+export const DOCK_TABS = [
+  { id: "layers", pane: "sl-pane-layers" },
+  { id: "jump", pane: "sl-pane-jump" },
+  { id: "inspect", pane: "sl-pane-inspect" },
+  { id: "wells", pane: "sl-pane-wells", badge: true },
+  { id: "about", pane: "sl-pane-about" },
+];
+
+export function dockTabMove(index, key, length = DOCK_TABS.length) {
+  const count = length || DOCK_TABS.length;
+  if (key === "ArrowRight") return (index + 1) % count;
+  if (key === "ArrowLeft") return (index - 1 + count) % count;
+  if (key === "Home") return 0;
+  if (key === "End") return count - 1;
+  return index;
+}
+
 export function normalizeMode(value) {
   return value === "inspect" ? "inspect" : "browse";
 }

@@ -3,16 +3,17 @@
  * Collapsed on first visit. Last open state is kept in localStorage.
  */
 import { JUMP_PLACES, renderJumpList } from "./jump-places.mjs";
-import { normalizeMode, shouldCloseOnMapTap } from "./dock-mode.mjs";
+import { DOCK_TABS, dockTabMove, normalizeMode, shouldCloseOnMapTap } from "./dock-mode.mjs";
 
 const STORE = "siteline.dock.v1";
-const TABS = [
-  { id: "layers", label: "Layers", pane: "sl-pane-layers", icon: "layers" },
-  { id: "jump", label: "Jump", pane: "sl-pane-jump", icon: "jump" },
-  { id: "inspect", label: "Inspect", pane: "sl-pane-inspect", icon: "inspect" },
-  { id: "about", label: "About", pane: "sl-pane-about", icon: "about" },
-  { id: "wells", label: "Wells", pane: "sl-pane-wells", icon: "wells", badge: true },
-];
+const TAB_META = {
+  layers: { label: "Layers", icon: "layers" },
+  jump: { label: "Jump", icon: "jump" },
+  inspect: { label: "Inspect", icon: "inspect" },
+  wells: { label: "Wells", icon: "wells" },
+  about: { label: "About", icon: "about" },
+};
+const TABS = DOCK_TABS.map((tab) => ({ ...tab, ...TAB_META[tab.id] }));
 
 const ICONS = {
   layers:
@@ -355,12 +356,8 @@ function wire(tray) {
     const current = document.activeElement;
     const index = tabs.indexOf(current);
     if (index < 0) return;
-    let next = -1;
-    if (event.key === "ArrowRight") next = (index + 1) % tabs.length;
-    else if (event.key === "ArrowLeft") next = (index - 1 + tabs.length) % tabs.length;
-    else if (event.key === "Home") next = 0;
-    else if (event.key === "End") next = tabs.length - 1;
-    else return;
+    if (event.key !== "ArrowRight" && event.key !== "ArrowLeft" && event.key !== "Home" && event.key !== "End") return;
+    const next = dockTabMove(index, event.key, tabs.length);
     event.preventDefault();
     tabs[next].focus();
     openDock(tabs[next].getAttribute("data-dock-tab"));
