@@ -2,6 +2,7 @@
  * Atlas-style dock: a slim pill under a card that opens on demand.
  * Collapsed on first visit. Last open state is kept in localStorage.
  */
+import { cardRects } from "./card-layout.mjs";
 import { JUMP_PLACES, renderJumpList } from "./jump-places.mjs";
 import { DOCK_TABS, cycleFeature, dockTabMove, escapeInField, featureSummary, hitBox, isInteractiveFeature, isTypingTarget, keyboardResizeKeepsSheet, moreHereLine, normalizeMode, shouldCloseFromPointer, shouldCloseOnMapTap, shouldMoveDockTab, shouldSwipeClose } from "./dock-mode.mjs";
 
@@ -250,12 +251,52 @@ function toggleTab(tab) {
   else openDock(tab);
 }
 
+function phoneLayout() {
+  return window.matchMedia("(max-width: 768px)").matches;
+}
+
+function slotCard(node, rect) {
+  if (!node || !rect) return;
+  if (node.parentElement !== document.body) document.body.appendChild(node);
+  node.dataset.slSlot = "1";
+  const style = node.style;
+  style.setProperty("position", "fixed", "important");
+  style.setProperty("left", rect.x + "px", "important");
+  style.setProperty("top", rect.y + "px", "important");
+  style.setProperty("width", rect.w + "px", "important");
+  style.setProperty("height", rect.h + "px", "important");
+  style.setProperty("max-height", rect.h + "px", "important");
+  style.setProperty("right", "auto", "important");
+  style.setProperty("bottom", "auto", "important");
+  style.setProperty("transform", "none", "important");
+  style.setProperty("opacity", "1", "important");
+  style.setProperty("z-index", "46", "important");
+  style.setProperty("overflow", "auto", "important");
+  style.setProperty("pointer-events", "auto", "important");
+}
+
+function clearSlot(node) {
+  if (!node || node.dataset.slSlot !== "1") return;
+  delete node.dataset.slSlot;
+  ["position", "left", "top", "width", "height", "max-height", "right", "bottom", "transform", "opacity", "z-index", "overflow", "pointer-events"].forEach((key) => node.style.removeProperty(key));
+}
+
+function placeDesktopSlots(brief, wells) {
+  const { rects } = cardRects({ open: { brief: true, wells: true } }, { width: window.innerWidth, height: window.innerHeight });
+  slotCard(brief, rects.brief);
+  slotCard(wells, rects.wells);
+}
+
+function stackHost() {
+  return document.getElementById("sl-card-stack");
+}
+
 function stackFloatingCards(tray) {
-  const phone = window.matchMedia("(max-width: 768px)").matches;
+  const phone = phoneLayout();
   const card = document.getElementById("sl-dock-card");
   const stage = card?.querySelector(".sl-tray-stage");
   if (!stage) return;
-  let stack = document.getElementById("sl-card-stack");
+  let stack = stackHost();
   if (!stack) {
     stack = document.createElement("div");
     stack.id = "sl-card-stack";
@@ -265,20 +306,43 @@ function stackFloatingCards(tray) {
   const wells = document.getElementById("sl-well-card");
   if (!phone) {
     tray.classList.remove("sl-stack");
+    const briefOpen = !!brief?.classList.contains("open");
+    const wellsOpen = !!(wells && (wells.dataset.open === "1" || (isOpen(tray) && tray.dataset.dockTab === "wells")));
+    if (briefOpen && wellsOpen) {
+      placeDesktopSlots(brief, wells);
+      return;
+    }
+    clearSlot(brief);
+    clearSlot(wells);
     parkWells(tray);
     parkBrief();
     return;
   }
+  clearSlot(brief);
+  clearSlot(wells);
   const briefOpen = !!brief?.classList.contains("open");
-  const wellsOpen = wells?.dataset.open === "1" || tray.dataset.dockTab === "wells";
+  const wellsOpen = !!(wells && (wells.dataset.open === "1" || (isOpen(tray) && tray.dataset.dockTab === "wells")));
   if (briefOpen && brief.parentElement !== stack) stack.appendChild(brief);
-  if (wells && wells.parentElement !== stack) stack.appendChild(wells);
+  else if (brief && !briefOpen && stack.contains(brief)) {
+    brief.remove();
+    parkBrief();
+  }
+  if (wellsOpen && wells.parentElement !== stack) stack.appendChild(wells);
+  else if (wells && !wellsOpen && stack.contains(wells)) {
+    wells.remove();
+    parkWells(tray);
+  }
   tray.classList.toggle("sl-stack", briefOpen || wellsOpen);
   if ((briefOpen || wellsOpen) && !isOpen(tray)) openDock(briefOpen ? "inspect" : "wells");
 }
 
+function heldInStack(node) {
+  return phoneLayout() && !!node && stackHost()?.contains(node);
+}
+
 function parkWells(tray) {
   const card = document.getElementById("sl-well-card");
+  if (heldInStack(card)) return;
   const inspect = document.getElementById("sl-pane-inspect");
   const wells = document.getElementById("sl-pane-wells");
   const dest = modeOf(tray) === "inspect" && isOpen(tray) ? inspect : wells;
@@ -313,7 +377,7 @@ function setMode(mode) {
 function parkBrief() {
   const pane = document.getElementById("sl-pane-inspect");
   const panel = document.querySelector(".brief-panel");
-  if (!pane || !panel) return;
+  if (!pane || !panel || heldInStack(panel)) return;
   if (panel.parentElement !== pane) pane.prepend(panel);
   const open = panel.classList.contains("open");
   if (modeOf(document.getElementById("sl-tray")) !== "inspect") {
@@ -998,6 +1062,7 @@ const DOCK_CSS = `
 }
 #sl-tray.sl-dock[data-dock="open"] .sl-dock-chev { transform: rotate(45deg); margin-top: -3px; }
 #sl-card-stack { display: flex; flex-direction: column; gap: 8px; }
+#sl-tray.sl-dock.sl-stack .sl-dock-card { overflow: auto; }
 @media (max-width: 768px) {
   #sl-tray.sl-dock.sl-stack #sl-card-stack .brief-panel,
   #sl-tray.sl-dock.sl-stack #sl-card-stack .brief-panel.open,
@@ -1082,12 +1147,22 @@ const DOCK_CSS = `
 }
 `;
 
-const obs = new MutationObserver(() => {
-  const tray = document.getElementById("sl-tray");
-  boot();
-  if (tray) onTrayMutation(tray);
-  syncWellBadge();
-});
+let layingOut = false;
+function settleDock() {
+  if (layingOut) return;
+  layingOut = true;
+  obs.disconnect();
+  try {
+    const tray = document.getElementById("sl-tray");
+    boot();
+    if (tray) onTrayMutation(tray);
+    syncWellBadge();
+  } finally {
+    layingOut = false;
+    obs.observe(document.body, { childList: true, subtree: true });
+  }
+}
+const obs = new MutationObserver(() => settleDock());
 obs.observe(document.body, { childList: true, subtree: true });
 const watchTray = () => {
   const tray = document.getElementById("sl-tray");
@@ -1097,4 +1172,4 @@ const watchTray = () => {
 };
 watchTray();
 setInterval(watchTray, 500);
-boot();
+settleDock();
