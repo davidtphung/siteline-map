@@ -562,8 +562,11 @@ function renderCard() {
         "</ul>" +
         (matched.length > 6 ? "<p class=\"sl-well-note\">6 shown. Narrow the text to see fewer.</p>" : "")
       : "";
-  const keepFind = document.activeElement?.id === "sl-well-find";
-  const caret = keepFind ? document.activeElement.selectionStart : null;
+  const active = document.activeElement;
+  const keepFind = active && card.contains(active) && (active.tagName === "INPUT" || active.tagName === "TEXTAREA" || active.tagName === "SELECT" || active.isContentEditable);
+  const caret = keepFind ? active.selectionStart : null;
+  const caretEnd = keepFind ? active.selectionEnd : null;
+  const keepId = keepFind ? active.id : "";
   card.dataset.open = state.cardOpen ? "1" : "0";
   card.innerHTML =
     "<button type=\"button\" class=\"sl-card-toggle\" id=\"sl-well-toggle\" aria-expanded=\"" +
@@ -630,10 +633,12 @@ function renderCard() {
     state.cardQuery = event.target.value;
     renderCard();
   };
-  if (keepFind && find) {
-    find.focus();
-    const pos = caret == null ? find.value.length : caret;
-    find.setSelectionRange(pos, pos);
+  const restored = keepId ? document.getElementById(keepId) : find;
+  if (keepFind && restored) {
+    restored.focus();
+    const pos = caret == null ? restored.value.length : caret;
+    const end = caretEnd == null ? pos : caretEnd;
+    restored.setSelectionRange?.(pos, end);
   }
   card.querySelectorAll("[data-well-id]").forEach((btn) => {
     btn.onclick = () => focusWell(btn.dataset.wellId);
@@ -988,7 +993,9 @@ function boot() {
     if (state.bound || tries > 80) window.clearInterval(timer);
   }, 250);
   document.addEventListener("keydown", (event) => {
-    if (event.target?.closest?.("#sl-place, #sl-well-find, input, textarea")) return;
+    const tag = event.target?.tagName;
+    if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || event.target?.isContentEditable) return;
+    if (event.target?.closest?.("#sl-place, #sl-well-find, input, textarea, select")) return;
     if (event.key === "Enter" && state.draw === "polygon") closePolygon();
     if (event.key === "Escape") {
       state.draw = null;

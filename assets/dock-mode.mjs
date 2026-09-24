@@ -91,6 +91,54 @@ export function afterLayerToggle(state) {
   };
 }
 
+const FIELD_TAGS = new Set(["INPUT", "TEXTAREA", "SELECT"]);
+
+export function isTypingTarget(target) {
+  if (!target) return false;
+  const node = target.nodeType === 3 ? target.parentElement : target;
+  if (!node) return false;
+  if (node.isContentEditable) return true;
+  if (node.closest?.("[contenteditable='true'], [contenteditable='']")) return true;
+  if (FIELD_TAGS.has(node.tagName)) return true;
+  return !!node.closest?.("input, textarea, select");
+}
+
+/** First Escape clears a filled field. A second Escape blurs it. Neither closes the card. */
+export function escapeInField(state) {
+  if (!state?.focused) return { action: "close", value: state?.value || "", focused: false };
+  if (String(state.value || "").length) return { action: "clear", value: "", focused: true, caret: 0 };
+  return { action: "blur", value: "", focused: false };
+}
+
+export function shouldMoveDockTab(target) {
+  return !isTypingTarget(target);
+}
+
+export function shouldCloseFromPointer({ insideCard, fromCard, typing }) {
+  if (typing || insideCard || fromCard) return false;
+  return true;
+}
+
+export function afterFieldInput(state, { value, caret }) {
+  const text = String(value ?? "");
+  return {
+    open: state.open !== false,
+    tab: state.tab || "wells",
+    value: text,
+    caret: Number.isFinite(caret) ? caret : text.length,
+    focused: true,
+  };
+}
+
+export function shouldSwipeClose({ dy, typing, fromHandle }) {
+  if (typing || !fromHandle) return false;
+  return dy > 36;
+}
+
+export function keyboardResizeKeepsSheet(open) {
+  return open !== false;
+}
+
 export function layerStatusLine({ on, zoom, minZoom, health, shown }) {
   if (!on) return "off";
   if (typeof zoom === "number" && typeof minZoom === "number" && zoom < minZoom) {

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { afterLayerToggle, applyLegendClick, applyMapTap, DOCK_TABS, dockTabMove, gasStatusSummary, shouldCloseOnMapTap } from "./dock-mode.mjs";
+import { afterFieldInput, afterLayerToggle, applyLegendClick, applyMapTap, DOCK_TABS, dockTabMove, escapeInField, gasStatusSummary, keyboardResizeKeepsSheet, shouldCloseFromPointer, shouldCloseOnMapTap, shouldMoveDockTab, shouldSwipeClose } from "./dock-mode.mjs";
 
 test("Inspect card persists across map taps", () => {
   let state = { mode: "inspect", open: true, tab: "inspect", pin: null };
@@ -51,6 +51,30 @@ test("dock tabs run Layers, Jump, Inspect, Wells, About", () => {
   assert.equal(DOCK_TABS[dockTabMove(DOCK_TABS.length - 1, "ArrowLeft")].id, "wells");
   assert.equal(DOCK_TABS[dockTabMove(2, "Home")].id, "layers");
   assert.equal(DOCK_TABS[dockTabMove(0, "End")].id, "about");
+});
+
+test("type 10 characters into a Wells input, card stays open, input keeps focus and value", () => {
+  let state = { open: true, tab: "wells", value: "", caret: 0, focused: true };
+  const text = "abandoned1";
+  for (const ch of text) {
+    assert.equal(shouldMoveDockTab({ tagName: "INPUT", closest: () => null }), false);
+    assert.equal(shouldCloseFromPointer({ insideCard: true, fromCard: true, typing: true }), false);
+    state = afterFieldInput(state, { value: state.value + ch, caret: state.value.length + 1 });
+  }
+  assert.equal(text.length, 10);
+  assert.equal(state.open, true);
+  assert.equal(state.tab, "wells");
+  assert.equal(state.focused, true);
+  assert.equal(state.value, text);
+  assert.equal(state.caret, 10);
+  const cleared = escapeInField({ value: state.value, focused: true });
+  assert.equal(cleared.action, "clear");
+  assert.equal(cleared.focused, true);
+  const blurred = escapeInField({ value: "", focused: true });
+  assert.equal(blurred.action, "blur");
+  assert.equal(keyboardResizeKeepsSheet(state.open), true);
+  assert.equal(shouldSwipeClose({ dy: 80, typing: true, fromHandle: true }), false);
+  assert.equal(shouldCloseFromPointer({ insideCard: false, fromCard: false, typing: false }), true);
 });
 
 test("gas well summary counts match the features in view", () => {

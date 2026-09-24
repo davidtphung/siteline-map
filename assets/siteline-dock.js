@@ -3,7 +3,7 @@
  * Collapsed on first visit. Last open state is kept in localStorage.
  */
 import { JUMP_PLACES, renderJumpList } from "./jump-places.mjs";
-import { DOCK_TABS, dockTabMove, normalizeMode, shouldCloseOnMapTap } from "./dock-mode.mjs";
+import { DOCK_TABS, dockTabMove, escapeInField, isTypingTarget, keyboardResizeKeepsSheet, normalizeMode, shouldCloseFromPointer, shouldCloseOnMapTap, shouldMoveDockTab, shouldSwipeClose } from "./dock-mode.mjs";
 
 const STORE = "siteline.dock.v1";
 const TAB_META = {
@@ -29,6 +29,8 @@ const ICONS = {
 };
 
 let applying = false;
+let typingInside = false;
+let gestureFromCard = false;
 
 function readStore() {
   try {
@@ -329,8 +331,11 @@ function wire(tray) {
     card.dataset.slStop = "1";
     const stop = (event) => event.stopPropagation();
     card.addEventListener("click", stop);
+    card.addEventListener("pointerdown", stop);
     card.addEventListener("pointerup", stop);
+    card.addEventListener("touchstart", stop);
     card.addEventListener("touchend", stop);
+    card.addEventListener("focusin", stop);
   }
   tray.addEventListener("click", (event) => {
     const modeBtn = event.target.closest?.("button[data-dock-mode]");
@@ -352,6 +357,7 @@ function wire(tray) {
     }
   });
   tray.addEventListener("keydown", (event) => {
+    if (!shouldMoveDockTab(event.target)) return;
     const tabs = [...tray.querySelectorAll(".sl-dock-tab")];
     const current = document.activeElement;
     const index = tabs.indexOf(current);
@@ -377,7 +383,7 @@ function wire(tray) {
       };
       const up = () => {
         tray.style.removeProperty("--sl-dock-drag");
-        if (dy > 36) closeDock();
+        if (shouldSwipeClose({ dy, typing: typingInside, fromHandle: true })) closeDock();
         handle.removeEventListener("pointermove", move);
         handle.removeEventListener("pointerup", up);
         handle.removeEventListener("pointercancel", up);
@@ -394,13 +400,62 @@ function wireGlobal() {
   window.__slDockGlobal = true;
   document.addEventListener("keydown", (event) => {
     if (event.key !== "Escape") return;
-    const tag = (event.target && event.target.tagName) || "";
-    if (tag === "INPUT" || tag === "TEXTAREA" || event.target?.isContentEditable) return;
+    if (isTypingTarget(event.target)) {
+      event.preventDefault();
+      event.stopPropagation();
+      const field = event.target;
+      const next = escapeInField({ value: field.value, focused: true });
+      if (next.action === "clear") {
+        field.value = "";
+        field.dispatchEvent(new Event("input", { bubbles: true }));
+        field.focus();
+        field.setSelectionRange?.(0, 0);
+      } else field.blur();
+      return;
+    }
     const tray = document.getElementById("sl-tray");
     if (!tray || !isOpen(tray)) return;
     event.preventDefault();
     closeDock();
   });
+  const markTyping = (event) => {
+    const tray = document.getElementById("sl-tray");
+    if (!tray) return;
+    const node = event.target?.nodeType === 1 ? event.target : event.target?.parentElement;
+    if (!node || !tray.contains(node)) return;
+    if (event.type === "focusin" || event.type === "pointerdown" || event.type === "touchstart") {
+      gestureFromCard = true;
+      if (isTypingTarget(node)) {
+        typingInside = true;
+        tray.classList.add("sl-dock-typing");
+        const card = document.getElementById("sl-dock-card");
+        if (card && keyboardResizeKeepsSheet(isOpen(tray))) {
+          tray.style.setProperty("--sl-dock-card-lock", Math.max(card.clientHeight, 120) + "px");
+        }
+      }
+    }
+  };
+  document.addEventListener("focusin", markTyping);
+  document.addEventListener("pointerdown", markTyping, true);
+  document.addEventListener("touchstart", markTyping, true);
+  document.addEventListener("focusout", (event) => {
+    const tray = document.getElementById("sl-tray");
+    const next = event.relatedTarget;
+    if (next && tray?.contains(next) && isTypingTarget(next)) return;
+    requestAnimationFrame(() => {
+      if (isTypingTarget(document.activeElement) && tray?.contains(document.activeElement)) return;
+      typingInside = false;
+      gestureFromCard = false;
+      tray?.classList.remove("sl-dock-typing");
+    });
+  });
+  const holdSheet = () => {
+    if (!typingInside) return;
+    const tray = document.getElementById("sl-tray");
+    if (tray && keyboardResizeKeepsSheet(isOpen(tray))) tray.style.removeProperty("--sl-dock-drag");
+  };
+  window.addEventListener("resize", holdSheet);
+  window.visualViewport?.addEventListener("resize", holdSheet);
   const insideDock = (event) => {
     const tray = document.getElementById("sl-tray");
     if (!tray) return false;
@@ -414,7 +469,9 @@ function wireGlobal() {
     if (!tray || !isOpen(tray)) return;
     const node = event.target?.nodeType === 1 ? event.target : event.target?.parentElement;
     const onEmptyMap = !!(node && node.closest?.(".maplibregl-canvas, .maplibregl-map"));
-    if (!shouldCloseOnMapTap({ mode: modeOf(tray), insideDock: insideDock(event), onEmptyMap })) return;
+    const fromCard = gestureFromCard || insideDock(event);
+    if (!shouldCloseFromPointer({ insideCard: insideDock(event), fromCard, typing: typingInside })) return;
+    if (!shouldCloseOnMapTap({ mode: modeOf(tray), insideDock: fromCard, onEmptyMap })) return;
     closeDock();
   };
   document.addEventListener("click", onPointer);
@@ -576,6 +633,12 @@ const DOCK_CSS = `
   font-family: Inter, system-ui, sans-serif;
   transform-origin: center bottom;
   transition: opacity 180ms ease, transform 180ms ease, max-height 180ms ease, margin 180ms ease;
+}
+#sl-tray.sl-dock.sl-dock-typing .sl-dock-card {
+  max-height: var(--sl-dock-card-lock, 60vh) !important;
+  opacity: 1 !important;
+  overflow: auto !important;
+  pointer-events: auto !important;
 }
 #sl-tray.sl-dock[data-dock="closed"] .sl-dock-card {
   max-height: 0 !important;
