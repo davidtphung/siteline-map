@@ -37,7 +37,7 @@ export function cardRects(state, viewport) {
     const ids = ["brief", "wells"].filter((id) => open[id]);
     const gap = 8;
     let y = zoom.y + zoom.h + 8;
-    const available = Math.max(80, dock.y - y - 8);
+    const available = Math.max(80, dock.y - y - 28);
     const each = Math.floor((available - gap * Math.max(0, ids.length - 1)) / Math.max(ids.length, 1));
     for (const id of ids) {
       rects[id] = { x: 8, y, w: width - 16, h: Math.min(each, available) };
