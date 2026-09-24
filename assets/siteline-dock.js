@@ -2,6 +2,8 @@
  * Atlas-style dock: a slim pill under a card that opens on demand.
  * Collapsed on first visit. Last open state is kept in localStorage.
  */
+import { JUMP_PLACES, renderJumpList } from "./jump-places.mjs";
+
 const STORE = "siteline.dock.v1";
 const TABS = [
   { id: "layers", label: "Layers", pane: "sl-pane-layers", icon: "layers" },
@@ -95,18 +97,9 @@ function ensureStructure(tray) {
     jump.hidden = true;
     stage.appendChild(jump);
   }
-  const row = tray.querySelector(".sl-jump-row");
-  if (row && !jump.contains(row)) {
-    const label = row.previousElementSibling;
-    if (label && label.classList.contains("sl-tray-label")) jump.appendChild(label);
-    else {
-      const p = document.createElement("p");
-      p.className = "sl-tray-label";
-      p.textContent = "Jump";
-      jump.appendChild(p);
-    }
-    jump.appendChild(row);
-  }
+  renderJumpList(jump);
+  const stray = tray.querySelectorAll(".sl-jump-row, .sl-jump-host");
+  if (stray.length) stray.forEach((node) => node.remove());
 
   let wells = document.getElementById("sl-pane-wells");
   if (!wells) {
@@ -367,13 +360,23 @@ function boot() {
   parkWells(tray);
   parkBrief();
   syncWellBadge();
-  const jump = document.querySelector(".sl-jump-row");
   const jumpPane = document.getElementById("sl-pane-jump");
-  if (jump && jumpPane && !jumpPane.contains(jump)) {
-    const label = jump.previousElementSibling;
-    if (label && label.classList.contains("sl-tray-label")) jumpPane.appendChild(label);
-    jumpPane.appendChild(jump);
+  if (jumpPane) {
+    renderJumpList(jumpPane);
+    if (jumpPane.dataset.slJumpWired !== "1") {
+      jumpPane.dataset.slJumpWired = "1";
+      jumpPane.addEventListener("click", (event) => {
+        const btn = event.target.closest?.("[data-jump]");
+        if (!btn || !jumpPane.contains(btn)) return;
+        const place = JUMP_PLACES.find((item) => item.id === btn.dataset.jump);
+        const map = window.__SITELINE_MAP__;
+        if (!place || !map?.flyTo) return;
+        map.flyTo({ center: place.center, zoom: place.zoom, essential: true, duration: 1200 });
+      });
+    }
   }
+  const stray = tray.querySelectorAll(".sl-jump-row, .sl-jump-host");
+  if (stray.length) stray.forEach((node) => node.remove());
   if (tray.dataset.slDockReady !== "1") {
     tray.dataset.slDockReady = "1";
     const saved = readStore();
@@ -464,6 +467,37 @@ const DOCK_CSS = `
   background: rgba(255,255,255,0.28);
 }
 #sl-tray.sl-dock .sl-tray-stage { display: block !important; padding: 4px 12px 12px; }
+#sl-pane-jump .sl-jump-list { display: flex; flex-direction: column; gap: 4px; }
+#sl-pane-jump .sl-jump-place {
+  appearance: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 2px;
+  width: 100%;
+  min-height: 44px;
+  margin: 0;
+  padding: 8px 10px;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
+  background: transparent;
+  color: #fff;
+  text-align: left;
+  text-transform: none;
+  letter-spacing: 0;
+  font-family: Inter, system-ui, sans-serif;
+  cursor: pointer;
+}
+#sl-pane-jump .sl-jump-place:hover,
+#sl-pane-jump .sl-jump-place:focus-visible { background: rgba(255,255,255,0.06); }
+#sl-pane-jump .sl-jump-name { font-size: 13px; font-weight: 500; }
+#sl-pane-jump .sl-jump-detail {
+  color: rgba(255,255,255,0.55);
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 500;
+}
 #sl-tray.sl-dock[data-sheet="peek"] .sl-tray-stage { display: block !important; }
 #sl-tray.sl-dock .sl-dock-bar {
   display: flex;

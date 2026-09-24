@@ -233,6 +233,7 @@ function injectCss() {
 }
 
 function ensureCameronJump() {
+  if (document.getElementById("sl-jump-list")) return;
   const row = document.querySelector("#sl-tray .sl-jump-row");
   if (!row || document.getElementById("sl-jump-cameron")) return;
   const btn = document.createElement("button");
