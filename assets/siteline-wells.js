@@ -21,7 +21,7 @@ import {
 } from "./well-context.mjs";
 import { bindLiveWells, labelClusters } from "./live-wells.js";
 import { bindGasWells } from "./gas-wells.js";
-import { TEXAS_GIS_NOTE, coverageRows } from "./gas-wells.mjs";
+import { PARTIAL_PLUG_NOTE, TEXAS_GIS_NOTE, coverageRows, pluggedToggleState } from "./gas-wells.mjs";
 import { featuresInBounds, wellViewHeader } from "./well-view.mjs";
 
 const SRC = "sl-wells-src";
@@ -291,7 +291,7 @@ function ensureTrayToggles() {
     '<label class="sl-tray-row"><input type="checkbox" id="sl-well-oil" /><span class="swatch well-oil"></span><span>Oil wells</span></label>' +
     '<label class="sl-tray-row"><input type="checkbox" id="sl-well-mixed" /><span class="swatch well-mixed"></span><span>Mixed oil and gas</span></label>' +
     '<label class="sl-tray-row"><input type="checkbox" id="sl-well-other" /><span class="swatch well-other"></span><span>Other / unknown</span></label>' +
-    '<label class="sl-tray-row"><input type="checkbox" id="sl-well-plugged" /><span class="swatch well-other"></span><span>Show plugged</span></label>' +
+    '<label class="sl-tray-row"><input type="checkbox" id="sl-well-plugged" /><span class="swatch well-other"></span><span id="sl-well-plugged-label">Show plugged</span></label>' +
     '<p class="sl-honesty-chip catalog" id="sl-well-honesty">RRC · Texas system of record</p>' +
     '<p class="sl-tray-note">EIA pipelines stay public pipeline context, separate from wells.</p>';
   const pipelines = pane.querySelector("#sl-gas-toggle")?.closest(".sl-tray-row");
@@ -436,6 +436,8 @@ function coverageHtml() {
   return (
     "<p class=\"sl-well-kicker\">Coverage</p><p class=\"sl-well-note\">" +
     esc(TEXAS_GIS_NOTE) +
+    "</p><p class=\"sl-well-note\">" +
+    esc(PARTIAL_PLUG_NOTE) +
     "</p><div class=\"sl-coverage-wrap\"><table class=\"sl-coverage\"><thead><tr><th>State</th><th>Coverage</th><th>Active</th><th>Inactive</th><th>As of</th></tr></thead><tbody>" +
     body +
     "</tbody></table></div>"
@@ -949,7 +951,7 @@ function ensureLayers(map) {
       layout: {
         "text-field": ["to-string", ["get", "point_count"]],
         "text-size": 12,
-        "text-font": ["Open Sans Bold", "Arial Unicode MS Bold"],
+        "text-font": ["Noto Sans Bold"],
       },
       paint: { "text-color": "#14120e" },
     });

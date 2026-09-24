@@ -2,7 +2,7 @@
 
 import { Protocol } from "https://esm.sh/pmtiles@3.2.1";
 import { statusPaint } from "./well-status.mjs";
-import { GAS_MANIFEST_URL, GAS_TILE_URLS, pointFilter, useCameronFixture } from "./gas-wells.mjs";
+import { GAS_MANIFEST_URL, GAS_TILE_URLS, pluggedToggleState, pointFilter, useCameronFixture } from "./gas-wells.mjs";
 
 const SRC = "sl-gaswells";
 const LAYER = "sl-gaswells-pt";
@@ -29,7 +29,20 @@ function gasOn() {
 }
 
 function pluggedOn() {
-  return !!document.getElementById("sl-well-plugged")?.checked;
+  const input = document.getElementById("sl-well-plugged");
+  if (input?.disabled) return false;
+  return !!input?.checked;
+}
+
+function applyPluggedToggle(manifest) {
+  const input = document.getElementById("sl-well-plugged");
+  const label = document.getElementById("sl-well-plugged-label");
+  const next = pluggedToggleState(manifest);
+  if (input) {
+    input.disabled = next.disabled;
+    if (next.disabled) input.checked = false;
+  }
+  if (label) label.textContent = next.label;
 }
 
 function ensureProtocol(maplibregl) {
@@ -69,6 +82,7 @@ export async function bindGasWells(map) {
   } catch (_) {}
   window.__SITELINE_GAS_MANIFEST__ = manifest;
   window.__SITELINE_TX_FIXTURE__ = useCameronFixture(manifest);
+  applyPluggedToggle(manifest);
   const tileUrl = await firstTileUrl();
   if (!tileUrl || map.getSource(SRC)) {
     window.dispatchEvent(new CustomEvent("siteline-gas-manifest"));
@@ -114,7 +128,7 @@ export async function bindGasWells(map) {
       layout: {
         "text-field": ["to-string", ["coalesce", ["get", "point_count"], ""]],
         "text-size": 12,
-        "text-font": ["Open Sans Bold", "Arial Unicode MS Bold"],
+        "text-font": ["Noto Sans Bold"],
       },
       paint: { "text-color": "#14120e" },
     });

@@ -1,12 +1,13 @@
 /** Capture MapLibre Map instances for Siteline enhance overlays. */
 import maplibregl from "https://esm.sh/maplibre-gl@4.7.1";
+import { layerWithNoto, withGlyphs } from "./glyphs.mjs";
 
 const OriginalMap = maplibregl.Map;
 
 const addLayer = OriginalMap.prototype.addLayer;
 OriginalMap.prototype.addLayer = function (layer, before) {
-  if (layer && layer.id === "sl-contour-labels") return this;
-  return before === undefined ? addLayer.call(this, layer) : addLayer.call(this, layer, before);
+  const next = layerWithNoto(layer);
+  return before === undefined ? addLayer.call(this, next) : addLayer.call(this, next, before);
 };
 
 const setLayout = OriginalMap.prototype.setLayoutProperty;
@@ -21,7 +22,9 @@ OriginalMap.prototype.setLayoutProperty = function (id, name, value) {
 
 class SitelineMap extends OriginalMap {
   constructor(options) {
-    super(options);
+    const next = options ? { ...options } : {};
+    if (next.style && typeof next.style === "object") next.style = withGlyphs(next.style);
+    super(next);
     try {
       window.__SITELINE_MAP__ = this;
       window.dispatchEvent(new CustomEvent("siteline-map-created", { detail: this }));

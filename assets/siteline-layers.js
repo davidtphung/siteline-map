@@ -11,7 +11,7 @@ import {
 } from "./layer-territory.mjs";
 import { describeWellState } from "./well-layer-status.mjs";
 import { LAYER_FACTS, gasStatusSummary, layerStatusLine } from "./dock-mode.mjs";
-import { TEXAS_GIS_NOTE, coverageRows } from "./gas-wells.mjs";
+import { PARTIAL_PLUG_NOTE, TEXAS_GIS_NOTE, coverageRows } from "./gas-wells.mjs";
 
 const TERRITORY_LAYER = "sl-util-territory";
 const TERRITORY_SRC = "sl-util-territory-src";
@@ -896,7 +896,7 @@ function showLayerInfo(id) {
     ];
     grid = '<div class="sl-info-grid">' + cells.map(([label, n]) => "<div>" + label + "<br>" + n + "</div>").join("") + "</div>";
     const rows = coverageRows(window.__SITELINE_GAS_MANIFEST__);
-    grid += "<p>" + escapeHtml(TEXAS_GIS_NOTE) + "</p>";
+    grid += "<p>" + escapeHtml(TEXAS_GIS_NOTE) + "</p><p>" + escapeHtml(PARTIAL_PLUG_NOTE) + "</p>";
     if (rows.length) {
       grid +=
         '<div class="sl-coverage-wrap"><table class="sl-coverage"><thead><tr><th>State</th><th>Coverage</th><th>Active</th><th>Inactive</th></tr></thead><tbody>' +

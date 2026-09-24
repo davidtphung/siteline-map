@@ -87,6 +87,7 @@ def main(argv=None):
             print(f"  {code} {len(rows)} {counts}", flush=True)
     manifest = {
         "fetched_at": fetched_at,
+        "includes_plugged": True,
         "schema": list(SCHEMA),
         "states": manifest_states,
         "totals": {code: grand.get(code, 0) for code in ALL_AREAS},

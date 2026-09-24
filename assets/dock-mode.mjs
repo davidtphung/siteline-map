@@ -1,4 +1,5 @@
 /** Browse vs Inspect. Pure helpers so the dock can be tested without a map. */
+import { honestStatus } from "./well-status.mjs";
 
 export const LAYER_FACTS = {
   "sl-tx": { sentence: "High voltage transmission lines.", source: "HIFLD", vintage: "UNKNOWN" },
@@ -10,7 +11,7 @@ export const LAYER_FACTS = {
   "oim-telecom-toggle": { sentence: "Telecom lines mapped in OpenStreetMap.", source: "OpenInfraMap", vintage: "UNKNOWN" },
   "sl-subsea-toggle": { sentence: "Subsea cables mapped in OpenStreetMap.", source: "OpenStreetMap", vintage: "UNKNOWN" },
   "sl-water": { sentence: "Rivers, streams, and waterbodies.", source: "NHD", vintage: "UNKNOWN" },
-  "sl-well-gas": { sentence: "Natural gas wells in the current view. Active is solid orange. Inactive is an orange ring.", source: "State oil and gas agencies", vintage: "See the coverage table. Texas RRC has shut-in versus gas-well status only, with no operator or dates in the GIS layer." },
+  "sl-well-gas": { sentence: "Natural gas wells in the current view. Active is solid orange. Inactive is an orange ring.", source: "State oil and gas agencies", vintage: "See the coverage table. Texas non-shut-in gas wells are Active (RRC map symbol, producing status not confirmed). Shut-in gas is Inactive, shut-in (RRC). Data as of UNKNOWN." },
   "sl-well-oil": { sentence: "Oil wells in the current view.", source: "Texas RRC", vintage: "UNKNOWN" },
   "sl-well-mixed": { sentence: "Wells with both oil and gas.", source: "Texas RRC", vintage: "UNKNOWN" },
   "sl-well-other": { sentence: "Wells whose commodity is other or unknown.", source: "Texas RRC", vintage: "UNKNOWN" },
@@ -186,7 +187,7 @@ export function featureSummary(feature) {
     ["API", displayApi(firstField(props, ["api", "api_raw", "API_Label", "API", "api_normalized", "id"]))],
     ["Operator", firstField(props, ["operator_name", "Operator", "OPERATOR", "operator", "ogrid_name", "Utility_Name", "OWNER"])],
     ["Type", firstField(props, ["commodity", "type", "commodity_group", "TYPE", "PrimSource", "symnum_raw_label"])],
-    ["Status", firstField(props, ["status_raw", "status_label", "status", "STATUS", "Facil_Stat"])],
+    ["Status", layerId.startsWith("sl-gaswells") ? honestStatus(props) : firstField(props, ["status_raw", "status_label", "status", "STATUS", "Facil_Stat"])],
   ];
   const extra = [
     ["Capacity", firstField(props, ["Total_MW", "capacity_mw"])],

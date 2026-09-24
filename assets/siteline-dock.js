@@ -4,7 +4,7 @@
  */
 import { cardRects } from "./card-layout.mjs?v=slots-2";
 import { JUMP_PLACES, renderJumpList } from "./jump-places.mjs";
-import { DOCK_TABS, clusterStatusLine, cycleFeature, displayApi, dockTabMove, escapeInField, featureSummary, hitBox, isInteractiveFeature, isTypingTarget, keyboardResizeKeepsSheet, moreHereLine, normalizeMode, shouldCloseFromPointer, shouldCloseOnMapTap, shouldMoveDockTab, shouldSwipeClose, tapHandlerFor } from "./dock-mode.mjs?v=gaswells-3";
+import { DOCK_TABS, clusterStatusLine, cycleFeature, displayApi, dockTabMove, escapeInField, featureSummary, hitBox, isInteractiveFeature, isTypingTarget, keyboardResizeKeepsSheet, moreHereLine, normalizeMode, shouldCloseFromPointer, shouldCloseOnMapTap, shouldMoveDockTab, shouldSwipeClose, tapHandlerFor } from "./dock-mode.mjs?v=gaswells-4";
 
 const STORE = "siteline.dock.v1";
 const TAB_META = {

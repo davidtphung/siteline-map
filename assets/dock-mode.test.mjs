@@ -127,6 +127,17 @@ test("gas well popup shows the dashed API, raw status, and a real date", () => {
   assert.equal(card.name, "LITTLE JEWEL COM #001");
   assert.equal(card.fields.find((row) => row[0] === "API")[1], "30-015-20368");
   assert.equal(card.fields.find((row) => row[0] === "Status")[1], "Active");
+  const texas = featureSummary({
+    layer: { id: "sl-gaswells-pt", type: "circle" },
+    properties: { api: "43934285", name: "3H", state: "TX", status_class: "active", status_raw: "Gas Well", status_date: "UNKNOWN", source_updated: "UNKNOWN" },
+  });
+  assert.equal(texas.fields.find((row) => row[0] === "Status")[1], "Active (RRC map symbol, producing status not confirmed)");
+  assert.equal(texas.vintage, "data as of UNKNOWN");
+  const kansas = featureSummary({
+    layer: { id: "sl-gaswells-pt", type: "circle" },
+    properties: { state: "KS", status_class: "active", status_raw: "GAS" },
+  });
+  assert.equal(kansas.fields.find((row) => row[0] === "Status")[1], "Not plugged (state reports plugged or not only)");
   assert.equal(card.fields.find((row) => row[0] === "Type")[1], "gas");
   assert.equal(card.source, "New Mexico Oil Conservation Division");
   assert.equal(card.vintage, "data as of 2026-07-01");

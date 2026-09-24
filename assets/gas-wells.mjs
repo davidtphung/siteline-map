@@ -2,7 +2,8 @@
 
 export const GAS_TILE_URLS = ["/tiles/gaswells.pmtiles", "/data/gaswells.pmtiles"];
 export const GAS_MANIFEST_URL = "/tiles/gaswells-manifest.json";
-export const TEXAS_GIS_NOTE = "Texas RRC data has shut-in versus gas-well status only, with no operator or dates in the GIS layer.";
+export const TEXAS_GIS_NOTE = "Texas non-shut-in gas wells show as Active (RRC map symbol, producing status not confirmed). Shut-in gas shows as Inactive, shut-in (RRC). Data as of UNKNOWN. The RRC GIS layer has no operator or dates.";
+export const PARTIAL_PLUG_NOTE = "Kansas, Kentucky, Illinois, and Alaska non-plugged wells show as Not plugged (state reports plugged or not only).";
 
 export function sourceAsOf(props) {
   const agency = String(props?.source_name || props?.agency || "").trim() || "UNKNOWN";
@@ -39,6 +40,15 @@ export function coverageTableText(rows) {
     lines.push([row.state, row.coverage, row.active, row.inactive, row.source_updated].join(" | "));
   }
   return lines.join("\n");
+}
+
+export function pluggedToggleState(manifest) {
+  const included = manifest?.includes_plugged === true;
+  return {
+    included,
+    disabled: !included,
+    label: included ? "Show plugged" : "Plugged wells available after nightly build",
+  };
 }
 
 export function pointFilter(showPlugged) {

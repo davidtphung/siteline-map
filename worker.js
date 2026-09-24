@@ -38,9 +38,9 @@ const CSP = [
   "object-src 'none'",
   "script-src 'self' 'unsafe-inline' https://esm.sh https://cdn.jsdelivr.net",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com",
-  "font-src 'self' https://fonts.gstatic.com data:",
+  "font-src 'self' https://fonts.gstatic.com https://demotiles.maplibre.org data:",
   "img-src 'self' data: blob: https://*.tile.opentopomap.org https://basemap.nationalmap.gov https://server.arcgisonline.com https://*.tile.openstreetmap.org https://openinframap.org https://s3.amazonaws.com",
-  "connect-src 'self' https://esm.sh https://cdn.jsdelivr.net https://nominatim.openstreetmap.org https://photon.komoot.io https://overpass-api.de https://epqs.nationalmap.gov https://arcgis.netl.doe.gov https://services.arcgis.com https://services2.arcgis.com https://services3.arcgis.com https://services5.arcgis.com https://services8.arcgis.com https://data.dnrgis.state.co.us https://hazards.fema.gov https://hydro.nationalmap.gov https://api.eia.gov https://waterservices.usgs.gov https://www.caiso.com https://basemap.nationalmap.gov https://server.arcgisonline.com https://openinframap.org https://s3.amazonaws.com https://*.tile.openstreetmap.org https://*.tile.opentopomap.org",
+  "connect-src 'self' https://esm.sh https://cdn.jsdelivr.net https://nominatim.openstreetmap.org https://photon.komoot.io https://overpass-api.de https://epqs.nationalmap.gov https://arcgis.netl.doe.gov https://services.arcgis.com https://services2.arcgis.com https://services3.arcgis.com https://services5.arcgis.com https://services8.arcgis.com https://data.dnrgis.state.co.us https://hazards.fema.gov https://hydro.nationalmap.gov https://api.eia.gov https://waterservices.usgs.gov https://www.caiso.com https://basemap.nationalmap.gov https://server.arcgisonline.com https://openinframap.org https://s3.amazonaws.com https://*.tile.openstreetmap.org https://*.tile.opentopomap.org https://demotiles.maplibre.org",
   "worker-src 'self' blob:",
 ].join("; ");
 
@@ -165,6 +165,7 @@ async function serveR2OrAsset(request, env, key, contentType, maxAge) {
     "Content-Type": contentType,
     "Accept-Ranges": "bytes",
     "Cache-Control": "public, max-age=" + maxAge,
+    ...securityHeaders(),
     ...corsHeaders(request),
   };
   if (env.TILES) {
