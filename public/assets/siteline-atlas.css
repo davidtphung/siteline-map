@@ -1,0 +1,120 @@
+/* atlas-sheet: bottom-left float. Hide map jump floaters and React Layers wall. */
+.map-jump-bar,
+.map-wrap > .map-jump-bar,
+.map-stage .map-jump-bar,
+.map-root + .map-jump-bar {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+.layer-panel,
+#layer-panel,
+.app-shell.layers-open .layer-panel,
+.sheet-backdrop {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  opacity: 0 !important;
+}
+#sl-tray {
+  left: 12px !important;
+  right: auto !important;
+  top: auto !important;
+  bottom: 16px !important;
+  width: min(320px, calc(100vw - 24px)) !important;
+  max-height: min(52vh, 480px) !important;
+  height: auto;
+  padding: 8px 10px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(5, 6, 8, 0.94);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.55);
+  transform: translateY(var(--sl-drag, 0px));
+  transform-origin: left bottom;
+}
+#sl-tray .sl-tray-grab {
+  display: block;
+  width: 32px;
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.22);
+  margin: 1px auto 6px;
+  cursor: ns-resize;
+  flex: 0 0 auto;
+}
+#sl-tray[data-sheet="peek"] {
+  max-height: 64px !important;
+  height: auto !important;
+}
+#sl-tray[data-sheet="peek"] .sl-tray-stage { display: none !important; }
+#sl-tray[data-sheet="half"],
+#sl-tray[data-sheet="full"] {
+  max-height: min(52vh, 480px) !important;
+}
+#sl-tray[data-tab="inspect"][data-empty="1"] {
+  max-height: 132px !important;
+}
+#sl-tray .sl-jump-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 4px;
+  margin: 0 0 8px;
+}
+#sl-tray .sl-jump-row .sl-chip {
+  width: 100%;
+  text-align: center;
+}
+#sl-tray .sl-tray-label {
+  font-family: var(--mono);
+  font-size: 0.56rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+#sl-tray .sl-inspect-empty {
+  padding: 0.35rem 0.1rem 0.15rem;
+  font-size: 0.72rem;
+  text-align: left;
+}
+@media (max-width: 980px) {
+  #sl-tray {
+    left: 12px !important;
+    right: auto !important;
+    top: auto !important;
+    bottom: 16px !important;
+    width: min(320px, calc(100vw - 24px)) !important;
+    max-height: min(52vh, 480px) !important;
+    border-radius: 10px !important;
+  }
+  .map-jump-bar { display: none !important; }
+}
+
+#sl-tray .sl-about-lead {
+  margin: 0 0 0.55rem;
+}
+#sl-tray .sl-about-lead p {
+  margin: 0 0 0.32rem;
+  color: #cbd5e1;
+  font-size: 0.68rem;
+  line-height: 1.4;
+  font-weight: 400;
+}
+
+.atlas-nav,
+.menu-btn {
+  display: none !important;
+}
+.sl-layers-chip {
+  margin-left: auto;
+  appearance: none;
+  min-height: 28px;
+  padding: 0.18rem 0.72rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(5, 6, 8, 0.86);
+  color: #fff;
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
