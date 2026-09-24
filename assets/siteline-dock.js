@@ -2,7 +2,7 @@
  * Atlas-style dock: a slim pill under a card that opens on demand.
  * Collapsed on first visit. Last open state is kept in localStorage.
  */
-import { cardRects } from "./card-layout.mjs";
+import { cardRects } from "./card-layout.mjs?v=slots-2";
 import { JUMP_PLACES, renderJumpList } from "./jump-places.mjs";
 import { DOCK_TABS, cycleFeature, dockTabMove, escapeInField, featureSummary, hitBox, isInteractiveFeature, isTypingTarget, keyboardResizeKeepsSheet, moreHereLine, normalizeMode, shouldCloseFromPointer, shouldCloseOnMapTap, shouldMoveDockTab, shouldSwipeClose } from "./dock-mode.mjs";
 
