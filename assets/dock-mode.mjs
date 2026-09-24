@@ -48,6 +48,127 @@ export function normalizeMode(value) {
   return value === "inspect" ? "inspect" : "browse";
 }
 
+const INTERACTIVE_TYPES = new Set(["circle", "symbol", "line"]);
+const SKIP_LAYERS = new Set([
+  "sl-feature-hl-line",
+  "sl-feature-hl-pt",
+  "sl-well-rings-line",
+  "sl-well-aoi-line",
+  "sl-well-draw-line",
+  "sl-contour-lines",
+]);
+const LAYER_INFO = {
+  "sl-wells-pt": { name: "Wells", source: "Texas RRC" },
+  "sl-wells-cluster": { name: "Wells", source: "Texas RRC" },
+  "hifld-subs": { name: "Substations", source: "HIFLD" },
+  "hifld-tx": { name: "Transmission", source: "HIFLD" },
+  "eia-plants": { name: "Plants", source: "EIA" },
+  "osm-datacenters": { name: "Data centers", source: "OpenStreetMap" },
+  "fcc-bdc": { name: "Broadband", source: "FCC BDC" },
+  "fema-flood": { name: "Flood hazard", source: "FEMA" },
+  "nhd-flowline": { name: "Water", source: "NHD" },
+  "nhd-waterbody": { name: "Water", source: "NHD" },
+  "sl-util-territory": { name: "Electric retail service territories", source: "HIFLD" },
+  "sl-util-territory-line": { name: "Electric retail service territories", source: "HIFLD" },
+  "netl-orphaned": { name: "NETL orphaned wells", source: "NETL" },
+  "netl-operating": { name: "NETL operating wells", source: "NETL" },
+  "nm-ocd-wells": { name: "NM OCD wells", source: "NM OCD" },
+  "co-ogcc-wells": { name: "CO OGCC wells", source: "CO OGCC" },
+};
+
+export function hitPadding(touch) {
+  return touch ? 14 : 10;
+}
+
+export function hitBox(point, touch) {
+  const pad = hitPadding(!!touch);
+  const x = Number(point?.x) || 0;
+  const y = Number(point?.y) || 0;
+  return [[x - pad, y - pad], [x + pad, y + pad]];
+}
+
+export function isInteractiveFeature(feature) {
+  const type = feature?.layer?.type;
+  const id = feature?.layer?.id || "";
+  if (!INTERACTIVE_TYPES.has(type)) return false;
+  if (SKIP_LAYERS.has(id)) return false;
+  return true;
+}
+
+function plain(value) {
+  return String(value ?? "")
+    .replace(/\u2014/g, ", ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function firstField(props, keys) {
+  for (const key of keys) {
+    const value = props?.[key];
+    if (value == null) continue;
+    const text = plain(value);
+    if (text) return text;
+  }
+  return "UNKNOWN";
+}
+
+export function featureSummary(feature) {
+  const props = feature?.properties || {};
+  const layerId = feature?.layer?.id || "";
+  const known = LAYER_INFO[layerId] || { name: layerId || "UNKNOWN", source: "UNKNOWN" };
+  const sample = /fixture|sample/i.test(String(props.dataset_origin || props.origin || ""));
+  const name = firstField(props, ["name", "NAME", "api_raw", "lease_name", "operator_name", "id", "ID"]);
+  const fields = [
+    ["Operator", firstField(props, ["operator_name", "OPERATOR", "operator"])],
+    ["Status", firstField(props, ["status_label", "STATUS", "status"])],
+    ["Type", firstField(props, ["commodity_group", "TYPE", "type", "symnum_raw_label"])],
+    ["API", firstField(props, ["api_raw", "API", "api_normalized"])],
+  ];
+  const summary = {
+    name,
+    layer: known.name,
+    source: props.source_of_record ? plain(props.source_of_record) : known.source,
+    vintage: firstField(props, ["vintage", "as_of", "asOf"]),
+    sample,
+    fields: layerId.startsWith("sl-wells") || /well/i.test(layerId) ? fields : fields.filter((row) => row[1] !== "UNKNOWN"),
+  };
+  if (!summary.fields.length) summary.fields = [["Detail", "UNKNOWN"]];
+  if (summary.vintage === "UNKNOWN") summary.vintage = "UNKNOWN";
+  return summary;
+}
+
+export function moreHereLine(total) {
+  const extra = Math.max(0, Number(total) || 0);
+  if (extra < 1) return "";
+  return "+" + extra + " more here";
+}
+
+export function applyBrowseFeatureTap(state, features) {
+  const mode = normalizeMode(state.mode);
+  const hits = (features || []).filter(isInteractiveFeature);
+  if (mode !== "browse") return { ...state, mode };
+  if (!hits.length) return { ...state, mode, pin: null, popup: null };
+  return { ...state, mode, pin: state.pin ?? null, popup: { index: 0, total: hits.length } };
+}
+
+export function applyEmptyBrowseTap(state) {
+  const mode = normalizeMode(state.mode);
+  if (mode !== "browse") return state;
+  return { ...state, mode, pin: null, popup: null };
+}
+
+export function applyInspectFeatureTap(state, pin, features) {
+  const next = applyMapTap({ ...state, mode: "inspect" }, pin);
+  const hits = (features || []).filter(isInteractiveFeature);
+  return { ...next, pin: next.pin, feature: hits[0] || null, extra: Math.max(0, hits.length - 1) };
+}
+
+export function cycleFeature(popup) {
+  const total = popup?.total || 0;
+  if (total < 2) return popup;
+  return { ...popup, index: ((popup.index || 0) + 1) % total };
+}
+
 export function applyMapTap(state, pin) {
   const mode = normalizeMode(state.mode);
   if (mode === "inspect") {

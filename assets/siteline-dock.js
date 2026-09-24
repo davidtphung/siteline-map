@@ -3,7 +3,7 @@
  * Collapsed on first visit. Last open state is kept in localStorage.
  */
 import { JUMP_PLACES, renderJumpList } from "./jump-places.mjs";
-import { DOCK_TABS, dockTabMove, escapeInField, isTypingTarget, keyboardResizeKeepsSheet, normalizeMode, shouldCloseFromPointer, shouldCloseOnMapTap, shouldMoveDockTab, shouldSwipeClose } from "./dock-mode.mjs";
+import { DOCK_TABS, cycleFeature, dockTabMove, escapeInField, featureSummary, hitBox, isInteractiveFeature, isTypingTarget, keyboardResizeKeepsSheet, moreHereLine, normalizeMode, shouldCloseFromPointer, shouldCloseOnMapTap, shouldMoveDockTab, shouldSwipeClose } from "./dock-mode.mjs";
 
 const STORE = "siteline.dock.v1";
 const TAB_META = {
@@ -497,6 +497,113 @@ function esc(value) {
   return String(value ?? "").replace(/[&<>]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[ch]));
 }
 
+let featurePopup = null;
+let featureHits = [];
+let featureIndex = 0;
+
+function queryHits(map, point, touch) {
+  if (!map?.queryRenderedFeatures || !point) return [];
+  try {
+    const hits = map.queryRenderedFeatures(hitBox(point, touch)) || [];
+    return hits.filter(isInteractiveFeature);
+  } catch (_) {
+    return [];
+  }
+}
+
+function popupHtml(feature, total, index) {
+  const card = featureSummary(feature);
+  const rows = card.fields
+    .map((row) => "<p>" + esc(row[0]) + ": " + esc(row[1]) + "</p>")
+    .join("");
+  const sample = card.sample ? "<p>Sample data</p>" : "";
+  const more = moreHereLine(total - 1);
+  const cycle = more
+    ? "<button type=\"button\" class=\"sl-feature-more\" data-sl-more=\"1\">" + esc(more) + "</button>"
+    : "";
+  return (
+    "<div class=\"sl-feature-card\" data-feature-index=\"" + index + "\">" +
+    "<p class=\"sl-feature-name\">" + esc(card.name) + "</p>" +
+    "<p>Layer: " + esc(card.layer) + "</p>" +
+    rows +
+    "<p>Source: " + esc(card.source) + "</p>" +
+    "<p>Vintage: " + esc(card.vintage) + "</p>" +
+    sample +
+    cycle +
+    "</div>"
+  );
+}
+
+function popupAnchor(map, point) {
+  const height = map.getCanvas?.()?.clientHeight || 0;
+  const width = map.getCanvas?.()?.clientWidth || 0;
+  if (point && height && point.y > height * 0.42) return "bottom";
+  if (point && width && point.x < 80) return "left";
+  if (point && width && point.x > width - 80) return "right";
+  return "top";
+}
+
+function closeFeaturePopup() {
+  featurePopup?.remove?.();
+  featurePopup = null;
+  featureHits = [];
+  featureIndex = 0;
+}
+
+function showFeaturePopup(map, lngLat, point, hits, index) {
+  if (!window.maplibregl?.Popup || !hits.length) return;
+  const feature = hits[index] || hits[0];
+  const at = feature?.geometry?.type === "Point" && feature.geometry.coordinates
+    ? { lng: feature.geometry.coordinates[0], lat: feature.geometry.coordinates[1] }
+    : lngLat;
+  closeFeaturePopup();
+  featureHits = hits;
+  featureIndex = index;
+  featurePopup = new window.maplibregl.Popup({
+    closeButton: true,
+    closeOnClick: false,
+    maxWidth: "min(280px, calc(100vw - 24px))",
+    anchor: popupAnchor(map, point),
+    offset: 12,
+    className: "sl-feature-popup",
+  })
+    .setLngLat(at)
+    .setHTML(popupHtml(feature, hits.length, index))
+    .addTo(map);
+  featurePopup.getElement?.()?.querySelector("[data-sl-more]")?.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const next = cycleFeature({ index: featureIndex, total: featureHits.length });
+    showFeaturePopup(map, lngLat, point, featureHits, next.index);
+  });
+}
+
+function renderInspectFeature(hits) {
+  const pane = document.getElementById("sl-pane-inspect");
+  if (!pane) return;
+  let box = document.getElementById("sl-inspect-feature");
+  if (!hits.length) {
+    box?.remove();
+    return;
+  }
+  if (!box) {
+    box = document.createElement("div");
+    box.id = "sl-inspect-feature";
+    pane.prepend(box);
+  }
+  const feature = hits[0];
+  const card = featureSummary(feature);
+  const extra = moreHereLine(hits.length - 1);
+  box.innerHTML =
+    "<p class=\"sl-feature-name\">" + esc(card.name) + "</p>" +
+    "<p>Layer: " + esc(card.layer) + "</p>" +
+    card.fields.map((row) => "<p>" + esc(row[0]) + ": " + esc(row[1]) + "</p>").join("") +
+    "<p>Source: " + esc(card.source) + "</p>" +
+    "<p>Vintage: " + esc(card.vintage) + "</p>" +
+    (card.sample ? "<p>Sample data</p>" : "") +
+    (extra ? "<p>" + esc(extra) + "</p>" : "");
+}
+
 function guardMapClicks() {
   const map = window.__SITELINE_MAP__;
   if (!map || map.__slModeGuard || typeof map.fire !== "function") return;
@@ -504,38 +611,28 @@ function guardMapClicks() {
   const fire = map.fire.bind(map);
   map.fire = (type, data) => {
     const name = typeof type === "string" ? type : type && type.type;
-    if (name === "click" && modeOf(document.getElementById("sl-tray")) === "browse") {
-      let hit = null;
-      try {
-        hit = data?.point ? map.queryRenderedFeatures(data.point)[0] : null;
-      } catch (_) {
-        hit = null;
+    if (name === "click") {
+      const touch = data?.originalEvent?.pointerType === "touch" || data?.originalEvent?.type === "touchend";
+      const hits = queryHits(map, data?.point, touch);
+      const mode = modeOf(document.getElementById("sl-tray"));
+      if (mode === "browse") {
+        if (hits.length && data?.lngLat) showFeaturePopup(map, data.lngLat, data.point, hits, 0);
+        else closeFeaturePopup();
+        return map;
       }
-      if (hit && window.maplibregl?.Popup && data?.lngLat) {
-        const props = hit.properties || {};
-        const label = props.name || props.NAME || props.api_raw || props.lease_name || props.operator_name || "UNKNOWN";
-        const kind = props.TYPE || props.status_label || props.commodity_group || hit.layer?.id || "UNKNOWN";
-        const source = {
-          "sl-wells-pt": "Texas RRC",
-          "hifld-tx": "HIFLD",
-          "hifld-subs": "HIFLD",
-          "eia-plants": "EIA",
-          "osm-datacenters": "OpenStreetMap",
-          "fcc-bdc": "FCC BDC",
-          "fema-flood": "FEMA",
-          "nhd-flowline": "NHD",
-          "nhd-waterbody": "NHD",
-          "sl-util-territory": "HIFLD",
-        }[hit.layer?.id] || "UNKNOWN";
-        new window.maplibregl.Popup({ closeButton: true, maxWidth: "260px" })
-          .setLngLat(data.lngLat)
-          .setHTML("<strong>" + esc(label) + "</strong><br>Type: " + esc(kind) + "<br>Source: " + esc(source))
-          .addTo(map);
-      }
-      return map;
+      if (mode === "inspect") renderInspectFeature(hits);
     }
     return fire(type, data);
   };
+  if (map.__slCursor !== "1") {
+    map.__slCursor = "1";
+    map.on("mousemove", (event) => {
+      const canvas = map.getCanvas?.();
+      if (!canvas) return;
+      const hits = queryHits(map, event?.point, false);
+      canvas.style.cursor = hits.length ? "pointer" : "";
+    });
+  }
 }
 
 function boot() {
@@ -633,6 +730,37 @@ const DOCK_CSS = `
   font-family: Inter, system-ui, sans-serif;
   transform-origin: center bottom;
   transition: opacity 180ms ease, transform 180ms ease, max-height 180ms ease, margin 180ms ease;
+}
+.sl-feature-popup.maplibregl-popup { z-index: 50; max-width: min(280px, calc(100vw - 24px)); }
+.sl-feature-popup .maplibregl-popup-content {
+  max-height: min(42vh, 280px);
+  overflow: auto;
+  background: rgba(5, 6, 8, 0.96);
+  color: #e7e5e4;
+  border-radius: 12px;
+  font: 500 12px/1.35 Inter, system-ui, sans-serif;
+}
+.sl-feature-popup .sl-feature-name { margin: 0 0 4px; font-size: 13px; color: #fff; }
+.sl-feature-popup p { margin: 0 0 3px; }
+.sl-feature-popup .sl-feature-more {
+  appearance: none;
+  margin-top: 6px;
+  min-height: 32px;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  font: 500 12px/1 Inter, system-ui, sans-serif;
+  cursor: pointer;
+}
+#sl-inspect-feature {
+  margin: 0 0 8px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.12);
+}
+#sl-inspect-feature p { margin: 0 0 3px; font-size: 12px; }
+@media (max-width: 700px) {
+  .sl-feature-popup .sl-feature-more { min-height: 44px; }
 }
 #sl-tray.sl-dock.sl-dock-typing .sl-dock-card {
   max-height: var(--sl-dock-card-lock, 60vh) !important;

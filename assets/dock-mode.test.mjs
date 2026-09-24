@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { afterFieldInput, afterLayerToggle, applyLegendClick, applyMapTap, DOCK_TABS, dockTabMove, escapeInField, gasStatusSummary, keyboardResizeKeepsSheet, shouldCloseFromPointer, shouldCloseOnMapTap, shouldMoveDockTab, shouldSwipeClose } from "./dock-mode.mjs";
+import { afterFieldInput, afterLayerToggle, applyBrowseFeatureTap, applyEmptyBrowseTap, applyInspectFeatureTap, applyLegendClick, applyMapTap, cycleFeature, DOCK_TABS, dockTabMove, escapeInField, featureSummary, gasStatusSummary, hitBox, hitPadding, keyboardResizeKeepsSheet, moreHereLine, shouldCloseFromPointer, shouldCloseOnMapTap, shouldMoveDockTab, shouldSwipeClose } from "./dock-mode.mjs";
 
 test("Inspect card persists across map taps", () => {
   let state = { mode: "inspect", open: true, tab: "inspect", pin: null };
@@ -75,6 +75,61 @@ test("type 10 characters into a Wells input, card stays open, input keeps focus 
   assert.equal(keyboardResizeKeepsSheet(state.open), true);
   assert.equal(shouldSwipeClose({ dy: 80, typing: true, fromHandle: true }), false);
   assert.equal(shouldCloseFromPointer({ insideCard: false, fromCard: false, typing: false }), true);
+});
+
+test("Browse tap on a feature opens the popup with the right fields", () => {
+  const well = {
+    layer: { id: "sl-wells-pt", type: "circle" },
+    properties: {
+      api_raw: "06100001",
+      operator_name: "Fixture Operator",
+      status_label: "Historical gas well \u2014 status unconfirmed",
+      commodity_group: "gas",
+      dataset_origin: "fixture",
+      source_of_record: "Texas RRC",
+    },
+  };
+  const other = { layer: { id: "hifld-subs", type: "circle" }, properties: { NAME: "Ashburn" } };
+  const state = applyBrowseFeatureTap({ mode: "browse", open: true, tab: "layers", pin: null, popup: null }, [well, other]);
+  assert.equal(state.pin, null);
+  assert.equal(state.popup.total, 2);
+  assert.equal(state.popup.index, 0);
+  const card = featureSummary(well);
+  assert.equal(card.name, "06100001");
+  assert.equal(card.layer, "Wells");
+  assert.equal(card.source, "Texas RRC");
+  assert.equal(card.vintage, "UNKNOWN");
+  assert.equal(card.sample, true);
+  assert.deepEqual(card.fields.find((row) => row[0] === "Operator"), ["Operator", "Fixture Operator"]);
+  assert.equal(card.fields.find((row) => row[0] === "Status")[1].includes("\u2014"), false);
+  assert.equal(moreHereLine(1), "+1 more here");
+  assert.equal(cycleFeature(state.popup).index, 1);
+  assert.equal(hitPadding(false), 10);
+  assert.equal(hitPadding(true), 14);
+  assert.deepEqual(hitBox({ x: 20, y: 30 }, false), [[10, 20], [30, 40]]);
+});
+
+test("Browse tap on empty map opens no popup", () => {
+  const state = applyEmptyBrowseTap({ mode: "browse", open: true, tab: "layers", pin: null, popup: { index: 0, total: 1 } });
+  assert.equal(state.popup, null);
+  assert.equal(state.pin, null);
+  const missed = applyBrowseFeatureTap({ mode: "browse", pin: null, popup: { index: 0, total: 1 } }, [
+    { layer: { id: "sl-contour-lines", type: "line" }, properties: {} },
+  ]);
+  assert.equal(missed.popup, null);
+});
+
+test("Inspect tap still pins and keeps feature details", () => {
+  const feature = { layer: { id: "hifld-subs", type: "circle" }, properties: { NAME: "Ashburn sub" } };
+  const state = applyInspectFeatureTap({ mode: "inspect", open: true, tab: "inspect", pin: null }, { lng: -77.49, lat: 39.04 }, [feature]);
+  assert.equal(state.open, true);
+  assert.equal(state.tab, "inspect");
+  assert.deepEqual(state.pin, { lng: -77.49, lat: 39.04 });
+  assert.equal(state.feature.properties.NAME, "Ashburn sub");
+  assert.equal(featureSummary(feature).layer, "Substations");
+  const again = applyInspectFeatureTap(state, { lng: -77.5, lat: 39.1 }, [feature]);
+  assert.equal(again.open, true);
+  assert.deepEqual(again.pin, { lng: -77.5, lat: 39.1 });
 });
 
 test("gas well summary counts match the features in view", () => {
