@@ -1,11 +1,15 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  applyLocalNotes,
   assignLabel,
   baCodeForName,
   buildChecklist,
   dailyPeaks,
+  emptyKit,
   formatPct,
+  kitSummary,
+  longPole,
   pickSmallestTerritory,
   siteBriefMarkdown,
   yearOverYearPeak,
@@ -54,6 +58,7 @@ test("truth labels stay inside the allowed set and empty checklist rows stay UNK
   assert.equal(assignLabel("scenario"), "SCENARIO");
   assert.equal(assignLabel("press"), "PRESS");
   assert.equal(assignLabel("claim"), "CLAIM");
+  assert.equal(assignLabel("proxy"), "PROXY");
   assert.equal(assignLabel("nope"), "UNKNOWN");
 
   const rows = buildChecklist({
@@ -83,6 +88,62 @@ test("smallest retail territory wins when polygons overlap", () => {
   ]);
   assert.equal(picked.utility.NAME, "SMALL CO");
   assert.equal(picked.overlap, 2);
+});
+
+test("long pole flags the undated gap, otherwise the latest expected date", () => {
+  const undated = longPole([
+    { id: "grid", title: "Grid path", status: "Known", expectedDate: "2030-01-01" },
+    { id: "hv", title: "HV transformer and switchgear", status: "Scenario", expectedDate: "2028-01-01" },
+    { id: "water", title: "Water", status: "Unknown", expectedDate: "" },
+    { id: "fiber", title: "Fiber", status: "Unknown", expectedDate: null },
+  ]);
+  assert.equal(undated.id, "water");
+  assert.equal(undated.reason, "no date");
+  assert.equal(undated.alsoUndated, 1);
+  assert.match(undated.flag, /Not an automatic decision/);
+
+  const dated = longPole([
+    { id: "hv", title: "HV", status: "Scenario", expectedDate: "2027-04-01" },
+    { id: "chillers", title: "Chillers", status: "Unknown", expectedDate: "2029-06-01" },
+    { id: "fiber", title: "Fiber", status: "Known", expectedDate: "2035-01-01" },
+  ]);
+  assert.equal(dated.id, "chillers");
+  assert.equal(dated.reason, "latest date");
+  assert.equal(dated.expectedDate, "2029-06-01");
+  assert.equal(longPole([{ id: "grid", title: "Grid path", status: "Known" }]), null);
+});
+
+test("proxy and kit fields stay empty until a local note exists", () => {
+  assert.deepEqual(emptyKit(), {
+    unitCost: "",
+    vendorCapacity: "",
+    leadTime: "",
+    vendorCount: "",
+    buffer: "",
+    quality: "",
+    reusable: "",
+  });
+  assert.equal(kitSummary(emptyKit()), "");
+  const rows = applyLocalNotes(
+    [
+      { id: "water", title: "Water", status: "Unknown", label: "UNKNOWN", text: "UNKNOWN" },
+      { id: "hv", title: "HV transformer and switchgear", status: "Unknown", label: "UNKNOWN", text: "UNKNOWN" },
+    ],
+    {
+      proxy: { water: { value: "nearby river name only", from: "NHD name plus a state water plan" } },
+      kits: { hv: { leadTime: "typed by hand", unitCost: "" } },
+    },
+  );
+  const water = rows.find((row) => row.id === "water");
+  assert.equal(water.status, "Proxy");
+  assert.equal(water.label, "PROXY");
+  assert.equal(water.text, "nearby river name only");
+  assert.equal(water.proxyFrom, "NHD name plus a state water plan");
+  const hv = rows.find((row) => row.id === "hv");
+  assert.equal(hv.status, "Scenario");
+  assert.equal(hv.label, "SCENARIO");
+  assert.match(hv.text, /Lead time: typed by hand/);
+  assert.equal(hv.text.includes("Unit cost"), false);
 });
 
 test("site brief carries truth labels and does not invent a figure", () => {

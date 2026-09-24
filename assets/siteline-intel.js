@@ -5,8 +5,11 @@
  */
 import {
   HONESTY,
+  KIT_FIELDS,
+  applyLocalNotes,
   buildChecklist,
   formatPct,
+  longPole,
   siteBriefCsv,
   siteBriefMarkdown,
 } from "./intel/transforms.mjs";
@@ -169,9 +172,9 @@ function answers() {
 }
 
 function mergedChecklist() {
-  const base = (state.context && state.context.checklist) || buildChecklist({ scenario: {} });
   const s = scenario();
-  return base.map((row) => {
+  const base = (state.context && state.context.checklist) || buildChecklist({ scenario: {} });
+  const withNotes = base.map((row) => {
     if (row.status === "Known") return row;
     const text = s[row.id];
     if (text && String(text).trim()) {
@@ -185,6 +188,7 @@ function mergedChecklist() {
     }
     return { ...row, status: "Unknown", label: "UNKNOWN", text: "UNKNOWN", source: null };
   });
+  return applyLocalNotes(withNotes, s);
 }
 
 function briefModel() {
@@ -211,7 +215,9 @@ function briefModel() {
       retrievedAt: demand.retrievedAt,
     },
   ];
-  for (const item of mergedChecklist()) {
+  const list = mergedChecklist();
+  const pole = longPole(list);
+  for (const item of list) {
     rows.push({
       question: item.title,
       answer: item.text,
@@ -219,33 +225,85 @@ function briefModel() {
       truth: item.label,
       source: item.source,
       url: item.url,
-      asOf: item.asOf,
+      asOf: item.asOf || item.expectedDate || null,
       retrievedAt: item.retrievedAt,
     });
   }
+  if (pole) {
+    rows.push({
+      question: "Long pole",
+      answer: `${pole.title}. ${pole.flag}`,
+      status: pole.reason === "no date" ? "No date" : pole.expectedDate,
+      truth: "UNKNOWN",
+      source: "Local expected dates",
+      url: null,
+      asOf: pole.expectedDate,
+      retrievedAt: null,
+    });
+  }
+  const months = scenario().targetBuildMonths;
+  rows.push({
+    question: "Target build time (months)",
+    answer: months ? String(months) : "EMPTY PRIMARY",
+    status: months ? "Scenario" : "Unknown",
+    truth: months ? "SCENARIO" : "UNKNOWN",
+    source: months ? "Local scenario input" : null,
+    url: null,
+    asOf: null,
+    retrievedAt: null,
+  });
   return { pin: state.pin, label: state.pin && state.pin.label, rows, fetches: state.fetches };
+}
+
+function noteField(id, title) {
+  const s = scenario();
+  const value = s[id] ? esc(s[id]) : "";
+  return `<label class="sl-intel-field"><span>${esc(title)} ${chip(s[id] ? "SCENARIO" : "UNKNOWN")}</span><input data-scenario="${esc(id)}" value="${value}" placeholder="EMPTY PRIMARY"/></label>`;
+}
+
+function kitBlock(id, title) {
+  const kits = scenario().kits || {};
+  const kit = kits[id] || {};
+  const inputs = KIT_FIELDS.map(([key, label]) => {
+    const value = kit[key] ? esc(kit[key]) : "";
+    if (key === "quality") {
+      return `<label class="sl-intel-field"><span>${esc(label)} ${chip(value ? "SCENARIO" : "UNKNOWN")}</span><select data-kit="${esc(id)}" data-kit-field="${esc(key)}"><option value="">EMPTY PRIMARY</option><option value="high"${kit[key] === "high" ? " selected" : ""}>high</option><option value="med"${kit[key] === "med" ? " selected" : ""}>med</option><option value="low"${kit[key] === "low" ? " selected" : ""}>low</option></select></label>`;
+    }
+    if (key === "reusable") {
+      return `<label class="sl-intel-field"><span>${esc(label)} ${chip(value ? "SCENARIO" : "UNKNOWN")}</span><select data-kit="${esc(id)}" data-kit-field="${esc(key)}"><option value="">EMPTY PRIMARY</option><option value="yes"${kit[key] === "yes" ? " selected" : ""}>yes</option><option value="no"${kit[key] === "no" ? " selected" : ""}>no</option><option value="unknown"${kit[key] === "unknown" ? " selected" : ""}>unknown</option></select></label>`;
+    }
+    return `<label class="sl-intel-field"><span>${esc(label)} ${chip(value ? "SCENARIO" : "UNKNOWN")}</span><input data-kit="${esc(id)}" data-kit-field="${esc(key)}" value="${value}" placeholder="EMPTY PRIMARY"/></label>`;
+  }).join("");
+  return `<fieldset class="sl-intel-kit"><legend>${esc(title)} ${chip("SCENARIO")}</legend>${inputs}</fieldset>`;
 }
 
 function scenarioFields() {
   const s = scenario();
-  const fields = [
-    ["customer", "Customer and chip mix"],
-    ["halls", "Halls"],
-    ["hv", "HV transformer and switchgear"],
-    ["lv", "LV gear"],
-    ["chillers", "Chillers"],
-    ["generation", "Generation, bridge or permanent"],
-    ["oem", "OEM supply"],
-    ["labor", "Labor"],
-    ["nuclear", "Nuclear or SMR (scenario only)"],
-  ];
-  return fields
-    .map(([id, title]) => {
-      const value = s[id] ? esc(s[id]) : "";
-      const shown = s[id] ? esc(s[id]) : "EMPTY PRIMARY";
-      return `<label class="sl-intel-field"><span>${esc(title)} ${chip(s[id] ? "SCENARIO" : "UNKNOWN")}</span><input data-scenario="${esc(id)}" value="${value}" placeholder="${shown}"/></label>`;
-    })
-    .join("");
+  const months = s.targetBuildMonths ? esc(s.targetBuildMonths) : "";
+  return [
+    `<label class="sl-intel-field"><span>Target build time (months) ${chip(months ? "SCENARIO" : "UNKNOWN")}</span><input data-scenario="targetBuildMonths" value="${months}" placeholder="EMPTY PRIMARY" inputmode="decimal"/></label>`,
+    noteField("customer", "Customer and chip mix"),
+    noteField("halls", "Halls"),
+    kitBlock("hv", "HV transformer and switchgear"),
+    kitBlock("lv", "LV"),
+    kitBlock("chillers", "Chillers"),
+    kitBlock("generation", "Generation, bridge or permanent"),
+    noteField("oem", "OEM supply"),
+    noteField("labor", "Labor"),
+    noteField("nuclear", "Nuclear or SMR (scenario only)"),
+  ].join("");
+}
+
+function proxyFields(item) {
+  if (item.status === "Known") return "";
+  const s = scenario();
+  const proxy = (s.proxy && s.proxy[item.id]) || {};
+  const date = (s.dates && s.dates[item.id]) || "";
+  return `<div class="sl-intel-extra">
+    <label>Expected date <input type="date" data-date="${esc(item.id)}" value="${esc(date)}"/></label>
+    <label>Proxy ${chip(item.status === "Proxy" ? "PROXY" : "UNKNOWN")}<input data-proxy="${esc(item.id)}" data-proxy-field="value" value="${esc(proxy.value || "")}" placeholder="EMPTY PRIMARY"/></label>
+    <label>Triangulated from <input data-proxy="${esc(item.id)}" data-proxy-field="from" value="${esc(proxy.from || "")}" placeholder="EMPTY PRIMARY"/></label>
+  </div>`;
 }
 
 function render() {
@@ -277,10 +335,14 @@ function render() {
           <div class="sl-intel-q-label">What is missing to build?</div>
           <ul class="sl-intel-check">
             ${list
-              .map(
-                (item) =>
-                  `<li><span>${esc(item.title)}</span> ${statusChip(item.status)} ${chip(item.label)} <em>${esc(item.text)}</em></li>`,
-              )
+              .map((item) => {
+                const pole = longPole(list);
+                const on = pole && pole.id === item.id;
+                const note = on
+                  ? `<div class="sl-intel-pole-flag">Long pole. ${esc(pole.flag)}${pole.reason === "no date" ? " No expected date." : ` Expected ${esc(pole.expectedDate)}.`}${pole.alsoUndated ? ` ${pole.alsoUndated} other item${pole.alsoUndated === 1 ? "" : "s"} also have no date.` : ""}</div>`
+                  : "";
+                return `<li class="${on ? "is-pole" : ""}"><span>${esc(item.title)}</span> ${statusChip(item.status)} ${chip(item.label)} <em>${esc(item.text)}</em>${note}${proxyFields(item)}</li>`;
+              })
               .join("")}
           </ul>
         </div>
@@ -397,6 +459,44 @@ function bind(root) {
       const value = input.value.trim();
       if (value) next[input.dataset.scenario] = value;
       else delete next[input.dataset.scenario];
+      saveScenario(next);
+      render();
+    });
+  });
+  root.querySelectorAll("[data-date]").forEach((input) => {
+    input.addEventListener("change", () => {
+      const next = scenario();
+      next.dates = next.dates || {};
+      if (input.value) next.dates[input.dataset.date] = input.value;
+      else delete next.dates[input.dataset.date];
+      saveScenario(next);
+      render();
+    });
+  });
+  root.querySelectorAll("[data-proxy]").forEach((input) => {
+    input.addEventListener("change", () => {
+      const next = scenario();
+      next.proxy = next.proxy || {};
+      const id = input.dataset.proxy;
+      const field = input.dataset.proxyField;
+      next.proxy[id] = next.proxy[id] || {};
+      const value = input.value.trim();
+      if (value) next.proxy[id][field] = value;
+      else delete next.proxy[id][field];
+      saveScenario(next);
+      render();
+    });
+  });
+  root.querySelectorAll("[data-kit]").forEach((input) => {
+    input.addEventListener("change", () => {
+      const next = scenario();
+      next.kits = next.kits || {};
+      const id = input.dataset.kit;
+      const field = input.dataset.kitField;
+      next.kits[id] = next.kits[id] || {};
+      const value = input.value.trim();
+      if (value) next.kits[id][field] = value;
+      else delete next.kits[id][field];
       saveScenario(next);
       render();
     });
@@ -519,6 +619,13 @@ function ensureStyle() {
 .sl-intel-truth-scenario { color: #1a1404; background: #e6c35c; }
 .sl-intel-truth-unknown, .sl-intel-status-unknown { color: rgba(255,255,255,0.8); background: rgba(255,255,255,0.08); }
 .sl-intel-truth-claim, .sl-intel-truth-press { color: #1a0d0d; background: #f0a0a8; }
+.sl-intel-truth-proxy, .sl-intel-status-proxy { color: #1a1208; background: #f0c48a; }
+.sl-intel-check li.is-pole { margin: 2px 0; padding: 4px 6px; border-left: 2px solid #e6c35c; background: rgba(230, 195, 92, 0.08); }
+.sl-intel-pole-flag { margin-top: 3px; color: #e6c35c; font: 500 10px/1.35 "JetBrains Mono", ui-monospace, monospace; }
+.sl-intel-extra, .sl-intel-kit { display: grid; gap: 4px; margin-top: 4px; }
+.sl-intel-kit { border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 6px; }
+.sl-intel-kit legend { padding: 0 4px; }
+.sl-intel-extra input, .sl-intel-field select { width: 100%; border-radius: 8px; border: 1px solid rgba(255,255,255,0.12); background: rgba(0,0,0,0.35); color: white; padding: 4px 6px; font: 500 12px/1.3 "JetBrains Mono", ui-monospace, monospace; }
 .sl-intel-check { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 4px; }
 .sl-intel-check em { font-style: normal; color: rgba(255,255,255,0.72); }
 .sl-intel-actions { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }

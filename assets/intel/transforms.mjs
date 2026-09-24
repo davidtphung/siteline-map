@@ -3,7 +3,19 @@
  * No network. Empty stays empty.
  */
 
-export const TRUTH_LABELS = ["LIVE", "CATALOG", "CLAIM", "PRESS", "SCENARIO", "UNKNOWN"];
+export const TRUTH_LABELS = ["LIVE", "CATALOG", "CLAIM", "PRESS", "SCENARIO", "PROXY", "UNKNOWN"];
+
+export const KIT_IDS = ["hv", "lv", "chillers", "generation"];
+
+export const KIT_FIELDS = [
+  ["unitCost", "Unit cost"],
+  ["vendorCapacity", "Vendor capacity"],
+  ["leadTime", "Lead time"],
+  ["vendorCount", "Vendor count (concentration risk)"],
+  ["buffer", "Buffer on hand"],
+  ["quality", "Data quality"],
+  ["reusable", "Reusable across designs"],
+];
 
 const HONESTY = "Regional grid demand, not site capacity. Proximity is not deliverability.";
 
@@ -22,6 +34,8 @@ export function assignLabel(kind) {
       return "PRESS";
     case "scenario":
       return "SCENARIO";
+    case "proxy":
+      return "PROXY";
     default:
       return "UNKNOWN";
   }
@@ -191,6 +205,102 @@ export function nearestPoint(originLng, originLat, features, readLngLat) {
     if (!best || miles < best.miles) best = { miles, feature, lng: pos.lng, lat: pos.lat };
   }
   return best;
+}
+
+export function emptyKit() {
+  return {
+    unitCost: "",
+    vendorCapacity: "",
+    leadTime: "",
+    vendorCount: "",
+    buffer: "",
+    quality: "",
+    reusable: "",
+  };
+}
+
+export function kitSummary(kit) {
+  const parts = [];
+  for (const [key, label] of KIT_FIELDS) {
+    const value = String((kit && kit[key]) || "").trim();
+    if (value) parts.push(`${label}: ${value}`);
+  }
+  return parts.join("; ");
+}
+
+function cleanDate(value) {
+  const text = String(value || "").trim();
+  return /^\d{4}-\d{2}-\d{2}$/.test(text) ? text : "";
+}
+
+/**
+ * One flag among Unknown and Scenario rows.
+ * No date outranks any dated row. Dated rows use the latest expected date.
+ * Ties keep checklist order. This is a flag, not a decision.
+ */
+export function longPole(rows) {
+  const candidates = (rows || []).filter((row) => row.status === "Unknown" || row.status === "Scenario");
+  if (!candidates.length) return null;
+  const undated = candidates.filter((row) => !cleanDate(row.expectedDate));
+  const flag = "Flag for a person to decide. Not an automatic decision.";
+  if (undated.length) {
+    return {
+      id: undated[0].id,
+      title: undated[0].title,
+      reason: "no date",
+      expectedDate: null,
+      alsoUndated: undated.length - 1,
+      flag,
+    };
+  }
+  const dated = candidates.filter((row) => cleanDate(row.expectedDate));
+  dated.sort((a, b) => (a.expectedDate < b.expectedDate ? 1 : a.expectedDate > b.expectedDate ? -1 : 0));
+  return {
+    id: dated[0].id,
+    title: dated[0].title,
+    reason: "latest date",
+    expectedDate: dated[0].expectedDate,
+    alsoUndated: 0,
+    flag,
+  };
+}
+
+export function applyLocalNotes(rows, local) {
+  const notes = local || {};
+  const dates = notes.dates || {};
+  const proxies = notes.proxy || {};
+  const kits = notes.kits || {};
+  return (rows || []).map((row) => {
+    if (row.status === "Known") return { ...row, expectedDate: null };
+    const expectedDate = cleanDate(dates[row.id]) || null;
+    const kitText = KIT_IDS.includes(row.id) ? kitSummary(kits[row.id]) : "";
+    const proxy = proxies[row.id] || {};
+    const proxyValue = String(proxy.value || "").trim();
+    const proxyFrom = String(proxy.from || "").trim();
+    if (row.status !== "Scenario" && !kitText && proxyValue && proxyFrom) {
+      return {
+        ...row,
+        status: "Proxy",
+        label: assignLabel("proxy"),
+        text: proxyValue,
+        source: proxyFrom,
+        url: null,
+        expectedDate,
+        proxyFrom,
+      };
+    }
+    if (row.status !== "Scenario" && kitText) {
+      return {
+        ...row,
+        status: "Scenario",
+        label: assignLabel("scenario"),
+        text: kitText,
+        source: "Local scenario input",
+        expectedDate,
+      };
+    }
+    return { ...row, expectedDate };
+  });
 }
 
 export function checklistRow(spec) {
