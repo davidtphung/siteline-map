@@ -19,11 +19,13 @@ const BLOCKED = [
   /^\/wrangler\.toml$/i,
   /^\/package\.json$/i,
   /^\/package-lock\.json$/i,
-  /^\/README\.md$/i,
   /^\/docs(?:\/|$)/i,
   /^\/services(?:\/|$)/i,
+  /\.md$/i,
   /\.src\.js$/i,
+  /\.test\.mjs$/i,
   /^\/\.env/i,
+  /^\/\.assetsignore$/i,
   /^\/secrets\.json$/i,
 ];
 
@@ -37,7 +39,7 @@ const CSP = [
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com",
   "font-src 'self' https://fonts.gstatic.com data:",
   "img-src 'self' data: blob: https://*.tile.opentopomap.org https://basemap.nationalmap.gov https://server.arcgisonline.com https://*.tile.openstreetmap.org https://openinframap.org https://s3.amazonaws.com",
-  "connect-src 'self' https://esm.sh https://cdn.jsdelivr.net https://nominatim.openstreetmap.org https://photon.komoot.io https://overpass-api.de https://epqs.nationalmap.gov https://arcgis.netl.doe.gov https://services.arcgis.com https://services2.arcgis.com https://services5.arcgis.com https://services8.arcgis.com https://data.dnrgis.state.co.us https://hazards.fema.gov https://hydro.nationalmap.gov https://waterservices.usgs.gov https://www.caiso.com https://basemap.nationalmap.gov https://server.arcgisonline.com https://openinframap.org https://s3.amazonaws.com https://*.tile.openstreetmap.org https://*.tile.opentopomap.org",
+  "connect-src 'self' https://esm.sh https://cdn.jsdelivr.net https://nominatim.openstreetmap.org https://photon.komoot.io https://overpass-api.de https://epqs.nationalmap.gov https://arcgis.netl.doe.gov https://services.arcgis.com https://services2.arcgis.com https://services3.arcgis.com https://services5.arcgis.com https://services8.arcgis.com https://data.dnrgis.state.co.us https://hazards.fema.gov https://hydro.nationalmap.gov https://api.eia.gov https://waterservices.usgs.gov https://www.caiso.com https://basemap.nationalmap.gov https://server.arcgisonline.com https://openinframap.org https://s3.amazonaws.com https://*.tile.openstreetmap.org https://*.tile.opentopomap.org",
   "worker-src 'self' blob:",
 ].join("; ");
 
@@ -68,7 +70,7 @@ function corsHeaders(request) {
 
 function securityHeaders() {
   return {
-    "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+    "Strict-Transport-Security": "max-age=31536000",
     "Content-Security-Policy": CSP,
     "X-Content-Type-Options": "nosniff",
     "Referrer-Policy": "strict-origin-when-cross-origin",
