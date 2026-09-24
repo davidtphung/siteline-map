@@ -11,7 +11,7 @@ import {
 } from "./layer-territory.mjs";
 import { describeWellState } from "./well-layer-status.mjs";
 import { LAYER_FACTS, gasStatusSummary, layerStatusLine } from "./dock-mode.mjs";
-import { PARTIAL_PLUG_NOTE, TEXAS_GIS_NOTE, coverageRows } from "./gas-wells.mjs";
+import { PARTIAL_PLUG_NOTE, TEXAS_GIS_NOTE, coverageRows, pluggedToggleState } from "./gas-wells.mjs";
 
 const TERRITORY_LAYER = "sl-util-territory";
 const TERRITORY_SRC = "sl-util-territory-src";
@@ -249,6 +249,7 @@ function buildGroups() {
         { existing: "sl-well-oil", label: "Oil wells", legend: "circle", swatch: "--sl-c-oil" },
         { existing: "sl-well-mixed", label: "Mixed oil and gas", legend: "circle", swatch: "--sl-c-well" },
         { existing: "sl-well-other", label: "Other or unknown", legend: "circle", swatch: "--sl-c-well" },
+        { existing: "sl-well-plugged", label: "", legend: "ring", swatch: "--sl-c-well" },
         { id: "sl-orphan", label: "NETL orphaned", legend: "ring", swatch: "--sl-c-well", react: "orphaned", note: "Hollow ring. Commodity is not confirmed on this catalog." },
         { id: "sl-operating", label: "NETL operating", legend: "circle", swatch: "--sl-c-well", react: "operating" },
         { id: "sl-nm", label: "NM OCD wells", legend: "circle", swatch: "--sl-c-gas", react: "nmWells", note: "Live EMNRD OCDView. Active is solid orange. Inactive is an orange ring." },
@@ -286,6 +287,14 @@ function buildGroups() {
     if (!groups.contains(node)) node.remove();
   });
   pane.dataset.slGrouped = "1";
+  const plugged = document.getElementById("sl-well-plugged");
+  const pluggedLabel = document.getElementById("sl-well-plugged-label");
+  if (plugged && pluggedLabel) {
+    const next = pluggedToggleState(window.__SITELINE_GAS_MANIFEST__);
+    plugged.disabled = next.disabled;
+    if (next.disabled) plugged.checked = false;
+    pluggedLabel.textContent = next.label;
+  }
   groups.addEventListener("mousedown", (event) => {
     if (event.target.closest("input, .sl-layer-sec-h")) return;
     if (event.target.closest(".sl-tray-row")) event.preventDefault();
