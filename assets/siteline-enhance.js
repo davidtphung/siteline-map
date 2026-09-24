@@ -437,6 +437,7 @@ function bootPlaceSearch() {
       map.flyTo({ center: [hit.lon, hit.lat], zoom, essential: true, duration: 1200 });
     }
     dropPin(map, hit.lon, hit.lat);
+    window.dispatchEvent(new CustomEvent("siteline-pin", { detail: { lng: hit.lon, lat: hit.lat, label: hit.title || null } }));
   };
 
   const dropPin = (map, lon, lat) => {

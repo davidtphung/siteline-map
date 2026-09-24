@@ -1,0 +1,88 @@
+{
+  "notes": "Public catalog endpoints used by Siteline Intel. Verified with HTTP checks on 2026-09-24. EIA-930 series need a Worker secret and are not called from the browser.",
+  "honesty": "Regional grid demand, not site capacity. Proximity is not deliverability.",
+  "eia": {
+    "name": "EIA Open Data API v2, electricity/rto/region-data",
+    "url": "https://api.eia.gov/v2/electricity/rto/region-data/data/",
+    "docs": "https://www.eia.gov/opendata/browser/electricity/rto/region-data",
+    "gridMonitor": "https://www.eia.gov/electricity/gridmonitor/dashboard/electric_overview/US48/US48",
+    "types": { "demand": "D", "dayAheadForecast": "DF" },
+    "cacheSeconds": 3600,
+    "verified": "docs and grid monitor returned HTTP 200 on 2026-09-24. The data route requires EIA_API_KEY."
+  },
+  "balancingAuthority": {
+    "name": "HIFLD Electric Control Areas (hosted copy)",
+    "url": "https://services5.arcgis.com/HDRa0B57OVrv2E1q/arcgis/rest/services/Control_Areas/FeatureServer/0",
+    "query": "https://services5.arcgis.com/HDRa0B57OVrv2E1q/arcgis/rest/services/Control_Areas/FeatureServer/0/query",
+    "license": "HIFLD-class public catalog. Attributes cite FERC 714, EIA 860, EIA 861, and Census TIGER.",
+    "verified": "HTTP 200. Point query returned ERCOT at Harlingen TX and PJM at Ashburn VA on 2026-09-24.",
+    "staleCapacityFields": "PEAK_LOAD, TOTAL_CAP, and AVAIL_CAP on this layer are a 2018 snapshot. Siteline does not display them as current demand or headroom."
+  },
+  "utility": {
+    "name": "HIFLD Electric Retail Service Territories",
+    "url": "https://services3.arcgis.com/OYP7N6mAJJCyH6hd/arcgis/rest/services/Electric_Retail_Service_Territories_HIFLD/FeatureServer/0",
+    "query": "https://services3.arcgis.com/OYP7N6mAJJCyH6hd/arcgis/rest/services/Electric_Retail_Service_Territories_HIFLD/FeatureServer/0/query",
+    "verified": "HTTP 200. Point query returned Magic Valley Electric Coop at Harlingen TX and Virginia Electric and Power Co at Ashburn VA on 2026-09-24."
+  },
+  "grid": {
+    "substations": {
+      "name": "HIFLD substations",
+      "url": "https://services.arcgis.com/njFNhDsUCentVYJW/ArcGIS/rest/services/Substations/FeatureServer/0/query"
+    },
+    "transmission": {
+      "name": "HIFLD transmission lines",
+      "url": "https://services2.arcgis.com/LYMgRMwHfrWWEg3s/arcgis/rest/services/HIFLD_US_Electric_Power_Transmission_Lines/FeatureServer/0/query"
+    }
+  },
+  "water": {
+    "name": "USGS National Hydrography Dataset",
+    "url": "https://hydro.nationalmap.gov/arcgis/rest/services/nhd/MapServer/6/query"
+  },
+  "fiber": {
+    "name": "FCC Broadband Data Collection",
+    "url": "https://services8.arcgis.com/peDZJliSvYims39Q/arcgis/rest/services/FCC_Broadband_Data_Collection_December_2024_View/FeatureServer/3/query"
+  },
+  "flood": {
+    "name": "FEMA National Flood Hazard Layer",
+    "url": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/28/query"
+  },
+  "cronRespondents": ["ERCO", "PJM", "MISO", "SWPP", "CISO", "NYIS", "ISNE"],
+  "presetBas": {
+    "cameronCountyTx": "ERCO",
+    "ashburnVa": "PJM"
+  },
+  "baCodeByName": {
+    "MIDCONTINENT INDEPENDENT TRANSMISSION SYSTEM OPERATOR, INC.": "MISO",
+    "SOUTHWEST POWER POOL": "SWPP",
+    "PJM INTERCONNECTION, LLC": "PJM",
+    "ELECTRIC RELIABILITY COUNCIL OF TEXAS, INC.": "ERCO",
+    "CALIFORNIA INDEPENDENT SYSTEM OPERATOR": "CISO",
+    "ISO NEW ENGLAND INC.": "ISNE",
+    "NEW YORK INDEPENDENT SYSTEM OPERATOR": "NYIS",
+    "TENNESSEE VALLEY AUTHORITY": "TVA",
+    "BONNEVILLE POWER ADMINISTRATION": "BPAT",
+    "SOUTHERN COMPANY SERVICES, INC. - TRANS": "SOCO",
+    "LOS ANGELES DEPARTMENT OF WATER AND POWER": "LDWP",
+    "BALANCING AUTHORITY OF NORTHERN CALIFORNIA": "BANC",
+    "ARIZONA PUBLIC SERVICE COMPANY": "AZPS",
+    "PACIFICORP - EAST": "PACE",
+    "PACIFICORP - WEST": "PACW",
+    "NEVADA POWER COMPANY": "NEVP",
+    "IDAHO POWER COMPANY": "IPCO",
+    "PUBLIC SERVICE COMPANY OF NEW MEXICO": "PNM",
+    "PUBLIC SERVICE COMPANY OF COLORADO": "PSCO",
+    "DUKE ENERGY CAROLINAS": "DUK",
+    "DUKE ENERGY PROGRESS EAST": "CPLE",
+    "DUKE ENERGY PROGRESS WEST": "CPLW",
+    "FLORIDA POWER & LIGHT COMPANY": "FPL",
+    "DUKE ENERGY FLORIDA INC": "FPC",
+    "EL PASO ELECTRIC COMPANY": "EPE",
+    "ASSOCIATED ELECTRIC COOPERATIVE, INC.": "AECI",
+    "AVISTA CORPORATION": "AVA",
+    "PUGET SOUND ENERGY": "PSEI",
+    "PORTLAND GENERAL ELECTRIC COMPANY": "PGE",
+    "SALT RIVER PROJECT": "SRP",
+    "TUCSON ELECTRIC POWER COMPANY": "TEPC",
+    "SEATTLE CITY LIGHT": "SCL"
+  }
+}
