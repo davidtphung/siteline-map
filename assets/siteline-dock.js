@@ -324,13 +324,13 @@ function stackFloatingCards(tray) {
   const wellsOpen = !!(wells && (wells.dataset.open === "1" || (isOpen(tray) && tray.dataset.dockTab === "wells")));
   if (briefOpen && brief.parentElement !== stack) stack.appendChild(brief);
   else if (brief && !briefOpen && stack.contains(brief)) {
-    brief.remove();
-    parkBrief();
+    const pane = document.getElementById("sl-pane-inspect");
+    if (pane) pane.prepend(brief);
   }
   if (wellsOpen && wells.parentElement !== stack) stack.appendChild(wells);
   else if (wells && !wellsOpen && stack.contains(wells)) {
-    wells.remove();
-    parkWells(tray);
+    const pane = document.getElementById("sl-pane-wells");
+    if (pane) pane.appendChild(wells);
   }
   tray.classList.toggle("sl-stack", briefOpen || wellsOpen);
   if ((briefOpen || wellsOpen) && !isOpen(tray)) openDock(briefOpen ? "inspect" : "wells");
@@ -1071,11 +1071,20 @@ const DOCK_CSS = `
     inset: auto !important;
     top: auto !important;
     right: auto !important;
+    bottom: auto !important;
     width: 100% !important;
     max-height: none !important;
     transform: none !important;
     opacity: 1 !important;
     margin: 0;
+    overflow: visible !important;
+  }
+  #sl-tray.sl-dock.sl-stack #sl-card-stack .brief-panel .brief-body,
+  #sl-tray.sl-dock.sl-stack #sl-card-stack .brief-panel .loading,
+  #sl-tray.sl-dock.sl-stack #sl-card-stack .brief-panel .unknown-list,
+  #sl-tray.sl-dock.sl-stack #sl-card-stack .brief-panel .error-list,
+  #sl-tray.sl-dock.sl-stack #sl-card-stack #sl-well-card .sl-well-body {
+    display: block !important;
   }
 }
 #sl-pane-wells #sl-well-card {
