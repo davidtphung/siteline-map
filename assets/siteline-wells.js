@@ -330,6 +330,39 @@ function scopedFeatures(features) {
   return features;
 }
 
+function computeCoverage(features) {
+  let west = Infinity;
+  let south = Infinity;
+  let east = -Infinity;
+  let north = -Infinity;
+  for (const feature of features || []) {
+    const coords = feature?.geometry?.coordinates;
+    if (!coords || coords.length < 2) continue;
+    const lon = Number(coords[0]);
+    const lat = Number(coords[1]);
+    if (!Number.isFinite(lon) || !Number.isFinite(lat)) continue;
+    west = Math.min(west, lon);
+    east = Math.max(east, lon);
+    south = Math.min(south, lat);
+    north = Math.max(north, lat);
+  }
+  if (!Number.isFinite(west)) return null;
+  const pad = 0.2;
+  return { west: west - pad, south: south - pad, east: east + pad, north: north + pad };
+}
+
+function pointInBox(lon, lat, box) {
+  return lon >= box.west && lon <= box.east && lat >= box.south && lat <= box.north;
+}
+
+function coverageApplies() {
+  const box = state.coverage;
+  const map = state.map || window.__SITELINE_MAP__;
+  if (!box || !map?.getCenter) return false;
+  const center = map.getCenter();
+  return pointInBox(center.lng, center.lat, box);
+}
+
 function summaryLine(focus, separated) {
   const gasOnly =
     state.flags.include_gas && !state.flags.include_oil && !state.flags.include_mixed && !state.flags.include_other;
@@ -402,9 +435,35 @@ function focusWell(id) {
   renderCard();
 }
 
+function renderOutsideCard() {
+  const card = ensureCard();
+  card.dataset.open = state.cardOpen ? "1" : "0";
+  card.innerHTML =
+    "<button type=\"button\" class=\"sl-card-toggle\" id=\"sl-well-toggle\" aria-expanded=\"" +
+    (state.cardOpen ? "true" : "false") +
+    "\" aria-controls=\"sl-well-body\">" +
+    "<span class=\"sl-card-titles\"><span class=\"sl-well-kicker\">Wells</span>" +
+    "<span class=\"sl-card-title\" id=\"sl-well-title\">No well data loaded for this area</span>" +
+    "<span class=\"sl-card-summary\">Outside the Cameron fixture</span></span>" +
+    "<span class=\"sl-chevron\" aria-hidden=\"true\"></span></button>" +
+    "<div class=\"sl-well-body\" id=\"sl-well-body\">" +
+    "<p class=\"sl-well-note\">No well data loaded for this area. Live Texas RRC data isn't wired yet.</p>" +
+    "</div>";
+  document.getElementById("sl-well-toggle").onclick = () => {
+    state.cardOpen = !state.cardOpen;
+    renderCard();
+  };
+  syncStack();
+}
+
 function renderCard() {
   const card = ensureCard();
   const rules = state.rules;
+  if (!rules) return;
+  if (state.origin === "fixture" && !coverageApplies()) {
+    renderOutsideCard();
+    return;
+  }
   const title = contextTitle(state.flags, rules);
   const visible = visibleFeatures();
   const focus = scopedFeatures(visible);
@@ -853,6 +912,7 @@ function bindMap(map) {
     true,
   );
   map.on("click", onMapClick);
+  map.on("moveend", () => renderCard());
   map.on("dblclick", (event) => {
     if (state.draw !== "polygon") return;
     event.preventDefault();
@@ -861,6 +921,7 @@ function bindMap(map) {
   ensureLayers(map);
   state.bound = true;
   paint(map);
+  renderCard();
 }
 
 function render() {
@@ -896,6 +957,7 @@ async function loadData() {
   const json = await local.json();
   state.features = json.features || [];
   state.origin = json.dataset_origin || "fixture";
+  state.coverage = computeCoverage(state.features);
 }
 
 function boot() {

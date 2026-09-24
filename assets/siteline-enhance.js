@@ -198,6 +198,11 @@ function bootPlaceSearch() {
   appearance: none;
   -webkit-appearance: none;
 }
+#sl-place-input:focus-visible {
+  outline: 2px solid #4da3ff;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
 #sl-place-input::placeholder { color: rgba(255,255,255,0.42); }
 #sl-place-input::-webkit-search-decoration,
 #sl-place-input::-webkit-search-cancel-button,
@@ -366,7 +371,7 @@ function bootPlaceSearch() {
       list.hidden = false;
       input.setAttribute('aria-expanded', 'true');
       const item = document.createElement('li');
-      item.textContent = 'No OSM place for that text.';
+      item.textContent = 'No matches. Try a city, county, or road.';
       item.style.cssText = 'padding:0.45rem 0.55rem;color:rgba(255,255,255,0.55);font:500 12px/1.3 Inter,system-ui,sans-serif;';
       list.appendChild(item);
       return;
@@ -499,6 +504,11 @@ function bootPlaceSearch() {
       ui.shownQuery = query;
       ui.hits = hits;
       ui.active = ui.hits.length ? 0 : -1;
+      if (!ui.hits.length) {
+        paintList();
+        note.textContent = 'No matches. Try a city, county, or road.';
+        return;
+      }
       if (pickBest && ui.hits[0]) {
         const chosenAt = ui.chosenAt;
         choose(0);
@@ -525,6 +535,16 @@ function bootPlaceSearch() {
 
   const commitSearch = () => {
     const query = input.value.trim();
+    if (!query) {
+      window.clearTimeout(ui.timer);
+      ui.controller?.abort();
+      ui.searching = false;
+      ui.hits = [];
+      ui.shownQuery = '';
+      closeList();
+      note.textContent = 'Type a place or address';
+      return;
+    }
     const fresh = !list.hidden && !ui.searching && query === ui.shownQuery && ui.active >= 0 && ui.hits[ui.active];
     window.clearTimeout(ui.timer);
     if (fresh) {
@@ -597,11 +617,38 @@ function bootPlaceSearch() {
   };
 }
 
+function withDeadline(signal, ms) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ms);
+  const onAbort = () => controller.abort();
+  if (signal) {
+    if (signal.aborted) controller.abort();
+    else signal.addEventListener('abort', onAbort, { once: true });
+  }
+  return {
+    signal: controller.signal,
+    clear() {
+      clearTimeout(timer);
+      if (signal) signal.removeEventListener('abort', onAbort);
+    },
+  };
+}
+
 async function nominatimRows(params, signal, mod) {
-  const res = await fetch('https://nominatim.openstreetmap.org/search?' + params.toString(), {
-    signal,
-    headers: { Accept: 'application/json' },
-  });
+  const deadline = withDeadline(signal, 8000);
+  let res;
+  try {
+    res = await fetch('https://nominatim.openstreetmap.org/search?' + params.toString(), {
+      signal: deadline.signal,
+      headers: { Accept: 'application/json' },
+    });
+  } catch (err) {
+    if (signal?.aborted) throw err;
+    if (deadline.signal.aborted) throw new Error('nominatim timeout');
+    throw err;
+  } finally {
+    deadline.clear();
+  }
   if (!res.ok) throw new Error('nominatim ' + res.status);
   return mod.parseNominatim(await res.json());
 }
@@ -659,10 +706,45 @@ async function fetchPlaces(query, area, signal, mod) {
     const ranked = mod.rankHits(rows, area, query);
     if (ranked.length) return ranked;
   } catch (err) {
-    if (err?.name === 'AbortError') throw err;
+    if (signal?.aborted) throw err;
   }
+  const photonQuery = plan.roadQuery || plan.query || query;
+  const rankedPhoton = keepTokenHits(await photonSearch(photonQuery, area, signal, mod), photonQuery);
+  if (rankedPhoton.length) return rankedPhoton;
+  const fuzzy = fuzzyPhotonQuery(photonQuery);
+  if (fuzzy && fuzzy.toLowerCase() !== String(photonQuery).toLowerCase()) {
+    return keepTokenHits(await photonSearch(fuzzy, area, signal, mod), photonQuery);
+  }
+  return [];
+}
+
+function keepTokenHits(hits, query) {
+  const skip = new Set(['texas', 'virginia', 'mexico', 'united', 'states', 'road', 'county']);
+  const tokens = String(query || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .split(/\s+/)
+    .filter((token) => token.length >= 4 && !skip.has(token));
+  if (!tokens.length) return hits;
+  return (hits || []).filter((hit) => {
+    const hay = (hit.title + ' ' + hit.subtitle).toLowerCase();
+    return tokens.some((token) => hay.includes(token));
+  });
+}
+
+function fuzzyPhotonQuery(query) {
+  const raw = String(query || '').trim();
+  if (!raw) return '';
+  const state = raw.match(/,\s*([A-Za-z]{2})\b/);
+  const names = { tx: 'Texas', va: 'Virginia', nm: 'New Mexico' };
+  const expanded = state && names[state[1].toLowerCase()] ? raw.replace(state[0], ' ' + names[state[1].toLowerCase()]) : raw;
+  const loosened = expanded.replace(/[^a-z0-9\s]/gi, ' ').replace(/\s+/g, ' ').trim();
+  return loosened === raw ? '' : loosened;
+}
+
+async function photonSearch(query, area, signal, mod) {
   const photon = new URLSearchParams({
-    q: plan.roadQuery || plan.query || query,
+    q: query,
     limit: '8',
     lang: 'en',
   });
@@ -670,10 +752,20 @@ async function fetchPlaces(query, area, signal, mod) {
     photon.set('lat', String(area.center[1]));
     photon.set('lon', String(area.center[0]));
   }
-  const res = await fetch('https://photon.komoot.io/api/?' + photon.toString(), {
-    signal,
-    headers: { Accept: 'application/json' },
-  });
+  const deadline = withDeadline(signal, 8000);
+  let res;
+  try {
+    res = await fetch('https://photon.komoot.io/api/?' + photon.toString(), {
+      signal: deadline.signal,
+      headers: { Accept: 'application/json' },
+    });
+  } catch (err) {
+    if (signal?.aborted) throw err;
+    if (deadline.signal.aborted) throw new Error('photon timeout');
+    throw err;
+  } finally {
+    deadline.clear();
+  }
   if (!res.ok) throw new Error('photon ' + res.status);
   return mod.rankHits(mod.parsePhoton(await res.json()), area, query);
 }

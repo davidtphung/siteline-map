@@ -1,0 +1,10 @@
+.git
+.wrangler
+**/*.md
+**/*.test.mjs
+**/*.src.js
+worker.js
+wrangler.toml
+docs
+services
+.wrangler/**
