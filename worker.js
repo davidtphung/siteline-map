@@ -127,20 +127,22 @@ async function serveBrandPng(env, request, b64Paths) {
   });
 }
 
-async function proxyGet(target, request) {
-  const upstream = await fetch(target, {
-    headers: {
-      Accept: request.headers.get("Accept") || "*/*",
-      "User-Agent": "SitelineMap/1.0 (nlt143.energy; research)",
-    },
-  });
-  const headers = new Headers(upstream.headers);
-  for (const [key, value] of Object.entries({ ...securityHeaders(), ...corsHeaders(request) })) headers.set(key, value);
-  headers.set("Cache-Control", "public, max-age=60");
-  headers.delete("access-control-allow-origin");
-  const origin = allowedOrigin(request.headers.get("Origin"));
-  if (origin) headers.set("Access-Control-Allow-Origin", origin);
-  return new Response(upstream.body, { status: upstream.status, headers });
+async function proxyRequest(target, request) {
+  const headers = {
+    Accept: request.headers.get("Accept") || "*/*",
+    "User-Agent": "SitelineMap/1.0 (nlt143.energy; research)",
+  };
+  const init = { method: request.method, headers };
+  if (request.method !== "GET" && request.method !== "HEAD") {
+    init.body = await request.arrayBuffer();
+    const type = request.headers.get("Content-Type");
+    if (type) headers["Content-Type"] = type;
+  }
+  const upstream = await fetch(target, init);
+  const out = new Headers(upstream.headers);
+  for (const [k, v] of Object.entries(corsHeaders(request))) out.set(k, v);
+  out.set("Cache-Control", "public, max-age=60");
+  return new Response(upstream.body, { status: upstream.status, headers: out });
 }
 
 export default {
@@ -175,13 +177,8 @@ export default {
     }
 
     if (path.startsWith("/api/kardashev/")) {
-      if (!KARDASHEV_PATHS.has(path) || url.search) {
-        return new Response(JSON.stringify({ error: "Not found" }), {
-          status: 404,
-          headers: { "Content-Type": "application/json", ...securityHeaders(), ...corsHeaders(request) },
-        });
-      }
-      return proxyGet(`${KARDASHEV}/health`, request);
+      const rest = path.replace(/^\/api\/kardashev/, "");
+      return proxyRequest(`${KARDASHEV}${rest}${url.search}`, request);
     }
 
     if (path.startsWith("/api/wells") || path.startsWith("/api/gas-wells") || path.startsWith("/api/sites") || path === "/api/sources" || path === "/api/imports" || path === "/api/methodology" || path === "/api/quality-report" || path === "/api/health") {
@@ -192,7 +189,12 @@ export default {
           headers: { "Content-Type": "application/json", ...securityHeaders(), ...corsHeaders(request) },
         });
       }
-      return proxyGet(`${origin.replace(/\/$/, "")}${path}${url.search}`, request);
+      return proxyRequest(`${origin.replace(/\/$/, "")}${path}${url.search}`, request);
+    }
+
+    if (path.startsWith("/api/hydro/")) {
+      const rest = path.slice("/api/hydro".length) || "/";
+      return proxyRequest(`https://hydro.nationalmap.gov${rest}${url.search}`, request);
     }
 
     if (path.startsWith("/api/caiso/")) {
@@ -200,7 +202,7 @@ export default {
       if (!file.endsWith(".csv")) {
         return new Response("Not found", { status: 404, headers: { ...securityHeaders(), ...corsHeaders(request) } });
       }
-      return proxyGet(`${CAISO}/${file}`, request);
+      return proxyRequest(`${CAISO}/${file}`, request);
     }
 
     if (path.startsWith("/api/")) {

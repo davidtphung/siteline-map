@@ -8,6 +8,7 @@ import {
   esriPolygonsToCollection,
   utilitySummary,
 } from "./layer-territory.mjs";
+import { describeWellState } from "./well-layer-status.mjs";
 
 const TERRITORY_LAYER = "sl-util-territory";
 const TERRITORY_SRC = "sl-util-territory-src";
@@ -282,7 +283,14 @@ function buildGroups() {
     if (!groups.contains(node)) node.remove();
   });
   pane.dataset.slGrouped = "1";
-  pane.addEventListener("change", updateCounts);
+  pane.addEventListener("change", (event) => {
+    updateCounts();
+    const id = event.target?.id;
+    if (REMOTE_WELLS[id] && event.target.checked) {
+      event.target.closest(".sl-tray-row").dataset.wellPhase = "loading";
+    }
+    syncWellStatus();
+  });
   const panel = document.getElementById("layer-panel");
   if (panel) {
     const obs = new MutationObserver(() => {
@@ -736,6 +744,7 @@ function bootMap(map) {
     }
   };
   map.__slLayers = true;
+  map.on?.("moveend", syncWellStatus);
   if (map.isStyleLoaded?.()) run();
   map.on?.("idle", run);
   map.on?.("styledata", () => {
@@ -745,6 +754,69 @@ function bootMap(map) {
     } catch (err) {
       console.warn("[siteline-layers] paint", err);
     }
+  });
+}
+
+const REMOTE_WELLS = {
+  "sl-orphan": "NETL orphaned",
+  "sl-operating": "NETL Active",
+  "sl-nm": "NM OCD Active",
+  "sl-co": "CO OGCC PR",
+};
+
+function hiddenWellHealth(label) {
+  const names = document.querySelectorAll("#layer-panel .layer-name");
+  for (const span of names) {
+    if ((span.textContent || "").trim() !== label) continue;
+    const row = span.closest("label");
+    const em = row?.querySelector("em.health");
+    const state = (em?.className || "").replace("health", "").replace("health-", "").trim();
+    const match = (em?.className || "").match(/health-([a-z]+)/);
+    return {
+      health: match ? match[1] : "",
+      title: em?.getAttribute("title") || "",
+      hint: row?.querySelector(".layer-hint")?.textContent || "",
+    };
+  }
+  return { health: "", title: "", hint: "" };
+}
+
+function syncWellStatus() {
+  const zoom = window.__SITELINE_MAP__?.getZoom?.();
+  for (const [id, label] of Object.entries(REMOTE_WELLS)) {
+    const input = document.getElementById(id);
+    const row = input?.closest(".sl-tray-row");
+    if (!row) continue;
+    let state = row.querySelector(".sl-layer-state");
+    if (!state) {
+      state = document.createElement("em");
+      state.className = "sl-layer-state";
+      row.append(state);
+    }
+    const info = hiddenWellHealth(label);
+    const forced = row.dataset.wellPhase || "";
+    const health = forced === "loading" && !info.health ? "loading" : info.health || forced;
+    const text = describeWellState({
+      on: !!input.checked,
+      zoom: typeof zoom === "number" ? zoom : 99,
+      minZoom: 6,
+      health,
+      title: info.title,
+      hint: info.hint,
+    });
+    if (info.health && info.health !== "idle") delete row.dataset.wellPhase;
+    if (state.textContent !== text) state.textContent = text;
+  }
+}
+
+function syncLayerPanelAria() {
+  const panel = document.getElementById("layer-panel");
+  if (!panel) return;
+  const open = panel.classList.contains("open");
+  const value = open ? "true" : "false";
+  if (panel.getAttribute("aria-expanded") !== value) panel.setAttribute("aria-expanded", value);
+  document.querySelectorAll('[aria-controls="layer-panel"]').forEach((node) => {
+    if (node.getAttribute("aria-expanded") !== value) node.setAttribute("aria-expanded", value);
   });
 }
 
@@ -758,6 +830,8 @@ function boot() {
   window.addEventListener("siteline-map-created", (event) => bootMap(event.detail || window.__SITELINE_MAP__));
   const obs = new MutationObserver(() => {
     tryAll();
+    syncWellStatus();
+    syncLayerPanelAria();
     fillUtilityCard().catch(() => {});
   });
   obs.observe(document.body, { childList: true, subtree: true, characterData: true });

@@ -668,3 +668,12 @@ button { cursor: pointer; }
   border-radius: 2px;
 }
 #sl-tray .swatch { display: none; }
+#sl-tray .sl-layer-state {
+  margin-left: auto;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 0.58rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
