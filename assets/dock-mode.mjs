@@ -165,13 +165,20 @@ export function featureSummary(feature) {
   const layerId = feature?.layer?.id || "";
   const known = LAYER_INFO[layerId] || { name: layerId || "UNKNOWN", source: "UNKNOWN" };
   const sample = /fixture|sample/i.test(String(props.dataset_origin || props.origin || ""));
-  const name = firstField(props, ["name", "NAME", "api_raw", "lease_name", "operator_name", "id", "ID"]);
+  const name = firstField(props, ["name", "NAME", "Plant_Name", "api_raw", "lease_name", "operator_name", "id", "ID"]);
   const fields = [
     ["API", firstField(props, ["api_raw", "API_Label", "API", "api_normalized", "id"])],
-    ["Operator", firstField(props, ["operator_name", "Operator", "OPERATOR", "operator", "ogrid_name"])],
-    ["Type", firstField(props, ["type", "commodity_group", "TYPE", "symnum_raw_label"])],
+    ["Operator", firstField(props, ["operator_name", "Operator", "OPERATOR", "operator", "ogrid_name", "Utility_Name", "OWNER"])],
+    ["Type", firstField(props, ["type", "commodity_group", "TYPE", "PrimSource", "symnum_raw_label"])],
     ["Status", firstField(props, ["status_label", "status", "STATUS", "Facil_Stat"])],
   ];
+  const extra = [
+    ["Capacity", firstField(props, ["Total_MW", "capacity_mw"])],
+    ["Voltage", firstField(props, ["VOLTAGE", "voltage", "VOLT_CLASS"])],
+  ];
+  for (const row of extra) {
+    if (row[1] !== "UNKNOWN") fields.push(row);
+  }
   const dated = firstField(props, ["status_date"]);
   if (dated !== "UNKNOWN") fields.push(["Date", dated]);
   const note = plain(props.source_note || "");
