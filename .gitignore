@@ -1,3 +1,6 @@
 __pycache__/
 *.py[cod]
 .playwright-mcp/
+.wrangler/
+.venv/
+.pytest_cache/
