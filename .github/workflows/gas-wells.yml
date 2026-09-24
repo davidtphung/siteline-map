@@ -25,11 +25,12 @@ jobs:
             --force \
             --read-parallel \
             --minimum-zoom=0 \
-            --maximum-zoom=12 \
+            --maximum-zoom=10 \
             --base-zoom=10 \
             --cluster-distance=40 \
-            --drop-densest-as-needed \
-            --extend-zooms-if-still-dropping \
+            --cluster-maxzoom=8 \
+            --no-feature-limit \
+            --no-tile-size-limit \
             "$RUNNER_TEMP/gaswells/gaswells.geojsonl"
           cp "$RUNNER_TEMP/gaswells/gaswells-manifest.json" "$RUNNER_TEMP/gaswells/manifest.json"
       - name: Upload workflow artifact

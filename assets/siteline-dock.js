@@ -4,7 +4,7 @@
  */
 import { cardRects } from "./card-layout.mjs?v=slots-2";
 import { JUMP_PLACES, renderJumpList } from "./jump-places.mjs";
-import { DOCK_TABS, clusterStatusLine, cycleFeature, dockTabMove, escapeInField, featureSummary, hitBox, isInteractiveFeature, isTypingTarget, keyboardResizeKeepsSheet, moreHereLine, normalizeMode, shouldCloseFromPointer, shouldCloseOnMapTap, shouldMoveDockTab, shouldSwipeClose, tapHandlerFor } from "./dock-mode.mjs?v=wells-live-4";
+import { DOCK_TABS, clusterStatusLine, cycleFeature, displayApi, dockTabMove, escapeInField, featureSummary, hitBox, isInteractiveFeature, isTypingTarget, keyboardResizeKeepsSheet, moreHereLine, normalizeMode, shouldCloseFromPointer, shouldCloseOnMapTap, shouldMoveDockTab, shouldSwipeClose, tapHandlerFor } from "./dock-mode.mjs?v=gaswells-3";
 
 const STORE = "siteline.dock.v1";
 const TAB_META = {
@@ -648,7 +648,7 @@ function popupHtml(feature, total, index) {
     .join("");
   const refresh =
     feature?.properties?.state === "NM" && feature?.properties?.api
-      ? "<button type=\"button\" class=\"sl-feature-more\" data-nm-refresh=\"" + esc(feature.properties.api) + "\">Refresh this well</button>"
+      ? "<button type=\"button\" class=\"sl-feature-more\" data-nm-refresh=\"" + esc(displayApi(feature.properties.api)) + "\">Refresh this well</button>"
       : "";
   const sample = card.sample ? "<p>Sample data</p>" : "";
   const more = moreHereLine(total - 1);

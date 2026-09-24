@@ -80,7 +80,7 @@ export async function bindGasWells(map) {
     type: "circle",
     source: SRC,
     "source-layer": "gaswells",
-    minzoom: 10,
+    minzoom: 9,
     filter: pointFilter(false),
     paint: {
       "circle-radius": paintExpr("radius"),
@@ -95,7 +95,7 @@ export async function bindGasWells(map) {
     source: SRC,
     "source-layer": "gaswells",
     filter: ["any", ["has", "point_count"], ["==", ["get", "clustered"], true]],
-    maxzoom: 10,
+    maxzoom: 9,
     paint: {
       "circle-color": "#f97316",
       "circle-radius": ["step", ["coalesce", ["get", "point_count"], 2], 14, 20, 18, 80, 22],
@@ -110,7 +110,7 @@ export async function bindGasWells(map) {
       source: SRC,
       "source-layer": "gaswells",
       filter: ["any", ["has", "point_count"], ["==", ["get", "clustered"], true]],
-      maxzoom: 10,
+      maxzoom: 9,
       layout: {
         "text-field": ["to-string", ["coalesce", ["get", "point_count"], ""]],
         "text-size": 12,

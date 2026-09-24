@@ -36,4 +36,4 @@ The nightly workflow `.github/workflows/gas-wells.yml` also runs on `workflow_di
 
 The Cameron County fixture is drawn for gas wells only when Texas coverage is `UNKNOWN`, and that fallback is labeled Sample data.
 
-The file committed at `tiles/gaswells.pmtiles` is a preview under the Workers 25 MiB asset limit (about 22 MiB). It omits plugged wells. Plugged counts stay in the manifest, and the nightly workflow uploads the full file, including plugged wells, to R2.
+The file committed at `tiles/gaswells.pmtiles` is a preview under the Workers 25 MiB asset limit. It omits plugged wells. Low zooms are clusters. From zoom 9 up every well is its own point (tiles stop at zoom 10 and the map overzooms them). Plugged counts stay in the manifest. The nightly workflow uploads the full file, including plugged wells, to R2.

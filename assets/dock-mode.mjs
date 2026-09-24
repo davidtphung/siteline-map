@@ -153,6 +153,19 @@ function plain(value) {
     .trim();
 }
 
+export function displayApi(value) {
+  const text = plain(value);
+  if (!text || text === "UNKNOWN") return text || "UNKNOWN";
+  if (!/^\d+$/.test(text)) return text;
+  if (text.length === 14) {
+    const base = text.slice(0, 2) + "-" + text.slice(2, 5) + "-" + text.slice(5, 10);
+    if (text.slice(10) === "0000") return base;
+    return base + "-" + text.slice(10, 12) + "-" + text.slice(12);
+  }
+  if (text.length === 10) return text.slice(0, 2) + "-" + text.slice(2, 5) + "-" + text.slice(5);
+  return text;
+}
+
 function firstField(props, keys) {
   for (const key of keys) {
     const value = props?.[key];
@@ -170,10 +183,10 @@ export function featureSummary(feature) {
   const sample = /fixture|sample/i.test(String(props.dataset_origin || props.origin || ""));
   const name = firstField(props, ["name", "NAME", "Plant_Name", "api_raw", "lease_name", "operator_name", "id", "ID"]);
   const fields = [
-    ["API", firstField(props, ["api_raw", "API_Label", "API", "api_normalized", "id"])],
+    ["API", displayApi(firstField(props, ["api", "api_raw", "API_Label", "API", "api_normalized", "id"]))],
     ["Operator", firstField(props, ["operator_name", "Operator", "OPERATOR", "operator", "ogrid_name", "Utility_Name", "OWNER"])],
-    ["Type", firstField(props, ["type", "commodity_group", "TYPE", "PrimSource", "symnum_raw_label"])],
-    ["Status", firstField(props, ["status_label", "status", "STATUS", "Facil_Stat"])],
+    ["Type", firstField(props, ["commodity", "type", "commodity_group", "TYPE", "PrimSource", "symnum_raw_label"])],
+    ["Status", firstField(props, ["status_raw", "status_label", "status", "STATUS", "Facil_Stat"])],
   ];
   const extra = [
     ["Capacity", firstField(props, ["Total_MW", "capacity_mw"])],
