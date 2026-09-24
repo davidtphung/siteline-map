@@ -600,20 +600,36 @@ let featurePopup = null;
 let featureHits = [];
 let featureIndex = 0;
 
+function collectHits(map, point, raw) {
+  const hits = (raw || []).filter(isInteractiveFeature);
+  const points = [];
+  const lines = [];
+  for (const feature of hits) {
+    if (feature.layer?.type === "line") lines.push(feature);
+    else points.push(feature);
+  }
+  points.sort((a, b) => distance2(map, point, a) - distance2(map, point, b));
+  return [...points, ...lines];
+}
+
 function queryHits(map, point, touch) {
   if (!map?.queryRenderedFeatures || !point) return [];
+  const box = hitBox(point, touch);
   try {
-    const hits = (map.queryRenderedFeatures(hitBox(point, touch)) || []).filter(isInteractiveFeature);
-    const points = [];
-    const lines = [];
-    for (const feature of hits) {
-      if (feature.layer?.type === "line") lines.push(feature);
-      else points.push(feature);
+    return collectHits(map, point, map.queryRenderedFeatures(box) || []);
+  } catch (err) {
+    window.__slQueryError = err?.message || String(err);
+    const raw = [];
+    const ids = (map.getStyle?.()?.layers || []).map((layer) => layer.id);
+    for (const id of ids) {
+      if (!map.getLayer?.(id)) continue;
+      try {
+        raw.push(...(map.queryRenderedFeatures(box, { layers: [id] }) || []));
+      } catch (layerErr) {
+        window.__slQueryError = layerErr?.message || String(layerErr);
+      }
     }
-    points.sort((a, b) => distance2(map, point, a) - distance2(map, point, b));
-    return [...points, ...lines];
-  } catch (_) {
-    return [];
+    return collectHits(map, point, raw);
   }
 }
 

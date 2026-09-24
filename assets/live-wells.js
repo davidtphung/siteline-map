@@ -137,21 +137,8 @@ function ensureLayers(map) {
       },
     });
   }
-  if (!map.getLayer(CLUSTER + "-count")) {
-    map.addLayer({
-      id: CLUSTER + "-count",
-      type: "symbol",
-      source: SRC,
-      filter: ["has", "point_count"],
-      maxzoom: 10,
-      layout: {
-        "text-field": ["to-string", ["get", "point_count"]],
-        "text-size": 12,
-        "text-font": ["Open Sans Bold", "Arial Unicode MS Bold"],
-      },
-      paint: { "text-color": "#14120e" },
-    });
-  }
+  map.on?.("idle", () => labelClusters(map));
+  map.on?.("move", () => labelClusters(map));
   if (!map.getLayer(LAYER)) {
     map.addLayer({
       id: LAYER,
@@ -210,6 +197,31 @@ export async function loadLiveWells(map) {
   window.__SITELINE_WELL_NOTES__ = { nm, co };
   map.getSource(SRC)?.setData({ type: "FeatureCollection", features });
   window.dispatchEvent(new CustomEvent("siteline-wells-live"));
+}
+
+export function labelClusters(map) {
+  if (!map?.getCanvasContainer || !map.project) return;
+  let host = document.getElementById("sl-cluster-labels");
+  if (!host) {
+    host = document.createElement("div");
+    host.id = "sl-cluster-labels";
+    host.style.cssText = "position:absolute;inset:0;pointer-events:none;z-index:6;";
+    map.getCanvasContainer().appendChild(host);
+  }
+  const features = [];
+  for (const id of ["sl-wells-cluster", "sl-live-wells-cluster"]) {
+    if (!map.getLayer(id)) continue;
+    try {
+      features.push(...(map.queryRenderedFeatures({ layers: [id] }) || []));
+    } catch (_) {}
+  }
+  host.replaceChildren(...features.slice(0, 40).map((feature) => {
+    const projected = map.project(feature.geometry.coordinates);
+    const mark = document.createElement("span");
+    mark.textContent = String(feature.properties?.point_count || "");
+    mark.style.cssText = "position:absolute;left:" + projected.x + "px;top:" + projected.y + "px;transform:translate(-50%,-55%);color:#14120e;font:700 12px/1 Inter,system-ui,sans-serif;";
+    return mark;
+  }));
 }
 
 export function bindLiveWells(map) {

@@ -19,7 +19,7 @@ import {
   resetGasFlags,
   separatedCounts,
 } from "./well-context.mjs";
-import { bindLiveWells } from "./live-wells.js";
+import { bindLiveWells, labelClusters } from "./live-wells.js";
 import { featuresInBounds, wellViewHeader } from "./well-view.mjs";
 
 const SRC = "sl-wells-src";
@@ -896,19 +896,8 @@ function ensureLayers(map) {
       "circle-stroke-width": 1,
     },
   });
-  map.addLayer({
-    id: CLUSTER + "-count",
-    type: "symbol",
-    source: SRC,
-    filter: ["has", "point_count"],
-    maxzoom: 10,
-    layout: {
-      "text-field": ["to-string", ["get", "point_count"]],
-      "text-size": 12,
-      "text-font": ["Open Sans Bold", "Arial Unicode MS Bold"],
-    },
-    paint: { "text-color": "#14120e" },
-  });
+  map.on("idle", () => labelClusters(map));
+  map.on("move", () => labelClusters(map));
   map.addLayer({
     id: LAYER,
     type: "circle",
