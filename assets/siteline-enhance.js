@@ -30,6 +30,7 @@ document.head.appendChild(atlas);
 
 installBriefCollapse();
 bootPlaceSearch();
+installBriefFacts();
 
 function installBriefCollapse() {
   if (document.getElementById('sl-brief-collapse-css')) return;
@@ -54,9 +55,9 @@ html.sl-brief-collapsed .brief-panel h2::after { transform: rotate(-45deg); vert
   content: attr(data-sl-summary);
   display: block;
   margin-top: 2px;
-  color: rgba(255,255,255,0.5);
+  color: rgba(255,255,255,0.78);
   font-family: "JetBrains Mono", ui-monospace, monospace;
-  font-size: 0.62rem;
+  font-size: 12px;
   font-weight: 500;
   letter-spacing: 0.03em;
 }
@@ -69,6 +70,44 @@ html.sl-brief-collapsed .brief-panel .loading,
 html.sl-brief-collapsed .brief-panel .brief-empty,
 html.sl-brief-collapsed .brief-panel .unknown-list,
 html.sl-brief-collapsed .brief-panel .error-list { display: none !important; }
+#sl-brief-summary {
+  margin: 0.35rem 0 0.55rem;
+  padding: 0.45rem 0.6rem;
+  list-style: none;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 8px;
+  background: rgba(255,255,255,0.04);
+}
+#sl-brief-summary li {
+  margin: 0;
+  color: #e2e8f0;
+  font: 500 13px/1.45 Inter, system-ui, sans-serif;
+}
+.sl-unknown-toggle {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 8px;
+  min-height: 32px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.18);
+  background: transparent;
+  color: #e2e8f0;
+  font: 600 12px/1 Inter, system-ui, sans-serif;
+  cursor: pointer;
+}
+.brief-row.sl-unknown-hide { display: none !important; }
+.sl-brief-retry {
+  margin: 8px 0 0;
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(240,113,120,0.55);
+  background: transparent;
+  color: #f07178;
+  font: 600 13px/1 Inter, system-ui, sans-serif;
+  cursor: pointer;
+}
 @media (min-width: 981px) {
   .brief-panel.open {
     top: calc(12px + var(--sl-well-stack, 76px) + 8px) !important;
@@ -120,7 +159,7 @@ function rowText(row) {
   const strong = row.querySelector('strong');
   if (!strong) return '';
   const clone = strong.cloneNode(true);
-  clone.querySelectorAll('em, .truth').forEach((node) => node.remove());
+  clone.querySelectorAll('em, .truth, .truth-sep, .sl-brief-retry').forEach((node) => node.remove());
   return clone.textContent.replace(/\s+/g, ' ').trim();
 }
 
@@ -158,6 +197,7 @@ function refreshBriefChrome() {
   panel.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
   const summary = briefSummary(panel);
   if (head.dataset.slSummary !== summary) head.dataset.slSummary = summary;
+  decorateBrief(panel);
 }
 
 function bootPlaceSearch() {
@@ -230,11 +270,13 @@ function bootPlaceSearch() {
 #sl-place-go:focus-visible { background: #8cc6ff; }
 #sl-place-note {
   margin: 5px 2px 0;
-  min-height: 2.7em;
-  color: rgba(255,255,255,0.48);
-  font: 500 10px/1.35 "JetBrains Mono", ui-monospace, monospace;
+  min-height: 0;
+  color: rgba(255,255,255,0.82);
+  font: 500 12px/1.4 "JetBrains Mono", ui-monospace, monospace;
   letter-spacing: 0.01em;
 }
+#sl-place-note[data-kind="attr"] { display: none; }
+#sl-place:focus-within #sl-place-note[data-kind="attr"] { display: block; min-height: 2.4em; }
 #sl-place-list {
   list-style: none;
   margin: 6px 0 0;
@@ -306,7 +348,7 @@ function bootPlaceSearch() {
   let modPromise = null;
   const loadMod = () => {
     if (!modPromise) {
-      modPromise = import('./place-search.mjs?v=search-2').catch((err) => {
+      modPromise = import('./place-search.mjs?v=review-2').catch((err) => {
         modPromise = null;
         throw err;
       });
@@ -342,13 +384,20 @@ function bootPlaceSearch() {
   };
 
   const biasNote = (extra) => {
+    const focused = document.activeElement === input;
+    if (ui.pinLabel && !focused && !extra && !ui.searching) {
+      note.dataset.kind = 'pin';
+      if (note.textContent !== ui.pinLabel) note.textContent = ui.pinLabel;
+      return;
+    }
     const area = areaNow();
     const bias = area.label === 'site area' ? 'Biased to the site area.' : 'Biased to the map view.';
     const base = extra || 'OpenStreetMap geocoder. Approximate, not a survey pin. ' + bias;
-    const next = ui.searching ? 'Searching\u2026 ' + base : base;
+    const next = ui.searching ? 'Searching. ' + base : base;
+    note.dataset.kind = extra && /No matches|Type a place|unavailable/i.test(extra) ? 'status' : 'attr';
     if (note.textContent !== next) note.textContent = next;
   };
-  biasNote();
+  note.dataset.kind = 'attr';
 
   const sharesPrefix = (next, prev) => {
     const a = String(next || '').trim().toLowerCase();
@@ -416,8 +465,16 @@ function bootPlaceSearch() {
     if (input.value !== hit.title) input.value = hit.title;
     ui.suppress = false;
     closeList();
-    if (hit.outside) biasNote('OpenStreetMap match is outside this view. Approximate, not a survey pin.');
-    else biasNote();
+    ui.searching = false;
+    loadMod().then((mod) => {
+      ui.pinLabel = mod.pinConfirmLabel(hit.title);
+      note.dataset.kind = 'pin';
+      note.textContent = ui.pinLabel;
+    }).catch(() => {
+      ui.pinLabel = 'Pinned (approximate)';
+      note.dataset.kind = 'pin';
+      note.textContent = ui.pinLabel;
+    });
     flyToHit(hit);
   };
 
@@ -506,6 +563,7 @@ function bootPlaceSearch() {
       ui.active = ui.hits.length ? 0 : -1;
       if (!ui.hits.length) {
         paintList();
+        note.dataset.kind = 'status';
         note.textContent = 'No matches. Try a city, county, or road.';
         return;
       }
@@ -542,6 +600,8 @@ function bootPlaceSearch() {
       ui.hits = [];
       ui.shownQuery = '';
       closeList();
+      ui.pinLabel = '';
+      note.dataset.kind = 'status';
       note.textContent = 'Type a place or address';
       return;
     }
@@ -560,6 +620,12 @@ function bootPlaceSearch() {
     ui.timer = window.setTimeout(() => runSearch(input.value, false), 300);
   });
   input.addEventListener('focus', () => biasNote());
+  input.addEventListener('blur', () => {
+    window.setTimeout(() => {
+      if (document.activeElement === input) return;
+      biasNote();
+    }, 0);
+  });
   form.addEventListener('submit', (event) => {
     event.preventDefault();
     commitSearch();
@@ -768,4 +834,209 @@ async function photonSearch(query, area, signal, mod) {
   }
   if (!res.ok) throw new Error('photon ' + res.status);
   return mod.rankHits(mod.parsePhoton(await res.json()), area, query);
+}
+
+let briefMod = null;
+let decorating = false;
+
+function installBriefFacts() {
+  import('./brief-view.mjs?v=review-2')
+    .then((mod) => {
+      briefMod = mod;
+      refreshBriefChrome();
+    })
+    .catch((err) => console.warn('[siteline] brief view', err));
+  silenceBootLabel();
+}
+
+function silenceBootLabel() {
+  const hide = () => {
+    const veil = document.querySelector('.boot-veil');
+    if (!veil || !veil.classList.contains('ready')) return;
+    const label = veil.querySelector('.boot-label');
+    if (label && label.textContent) label.textContent = '';
+    veil.setAttribute('hidden', '');
+  };
+  hide();
+  const root = document.documentElement;
+  if (root) new MutationObserver(hide).observe(root, { subtree: true, childList: true, attributes: true, attributeFilter: ['class'] });
+  window.addEventListener('siteline-map-ready', hide);
+}
+
+function milesBetween(aLon, aLat, bLon, bLat) {
+  const toRad = Math.PI / 180;
+  const dLat = (bLat - aLat) * toRad;
+  const dLon = (bLon - aLon) * toRad;
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(aLat * toRad) * Math.cos(bLat * toRad) * Math.sin(dLon / 2) ** 2;
+  return 2 * 3958.7613 * Math.asin(Math.min(1, Math.sqrt(h)));
+}
+
+function wellsWithinFive(lon, lat) {
+  const map = window.__SITELINE_MAP__;
+  if (!map?.getSource?.('sl-gaswells')) return { value: 'UNKNOWN', failed: false };
+  const loaded = typeof map.isSourceLoaded === 'function' ? map.isSourceLoaded('sl-gaswells') : false;
+  const bounds = map.getBounds?.();
+  const zoom = map.getZoom?.() ?? 0;
+  const dLat = 5 / 69;
+  const dLon = 5 / (69 * Math.max(0.2, Math.cos(lat * Math.PI / 180)));
+  const covered = bounds && bounds.getWest() <= lon - dLon && bounds.getEast() >= lon + dLon && bounds.getSouth() <= lat - dLat && bounds.getNorth() >= lat + dLat;
+  if (!loaded || zoom < 9 || !covered) return { value: 'UNKNOWN', failed: false };
+  let feats = [];
+  try {
+    feats = map.querySourceFeatures('sl-gaswells', { sourceLayer: 'gaswells' }) || [];
+  } catch (_) {
+    return { value: 'LOOKUP FAILED', failed: true };
+  }
+  const seen = new Set();
+  let count = 0;
+  for (const feature of feats) {
+    if (feature.properties?.point_count) continue;
+    const coords = feature.geometry?.type === 'Point' ? feature.geometry.coordinates : null;
+    if (!coords || coords.length < 2) continue;
+    const id = String(feature.properties?.api || feature.id || coords.join(','));
+    if (seen.has(id)) continue;
+    seen.add(id);
+    if (milesBetween(lon, lat, Number(coords[0]), Number(coords[1])) <= 5) count += 1;
+  }
+  return { value: count === 0 ? 'NONE FOUND' : String(count), failed: false };
+}
+
+function readBriefPin(rows) {
+  const coord = rows.find((row) => /coordinates/i.test(row.label));
+  const match = String(coord?.value || '').match(/(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)/);
+  if (!match) return null;
+  return { lat: Number(match[1]), lng: Number(match[2]) };
+}
+
+function ensureBadgeGap(strong) {
+  const badge = strong.querySelector('.truth');
+  if (!badge) return;
+  const next = badge.nextSibling;
+  if (next && next.nodeType === 1 && next.classList?.contains('truth-sep')) return;
+  const sep = document.createElement('span');
+  sep.className = 'truth-sep';
+  sep.textContent = ' \u00b7 ';
+  badge.after(sep);
+}
+
+function setValueTail(strong, text) {
+  const keep = new Set();
+  strong.querySelectorAll('.truth, .truth-sep').forEach((node) => keep.add(node));
+  [...strong.childNodes].forEach((node) => {
+    if (!keep.has(node)) node.remove();
+  });
+  strong.append(document.createTextNode(text));
+}
+
+function retryBrief(event) {
+  event.preventDefault();
+  event.stopPropagation();
+  const map = window.__SITELINE_MAP__;
+  const body = document.querySelector('.brief-body');
+  if (!map || !body) return;
+  const rows = [...body.querySelectorAll('.brief-row')].map((row) => ({
+    label: row.querySelector('span')?.textContent?.trim() || '',
+    value: rowText(row),
+  }));
+  const pin = readBriefPin(rows);
+  if (!pin) return;
+  document.querySelector('[data-dock-mode="inspect"]')?.click();
+  const point = map.project?.([pin.lng, pin.lat]) || { x: 0, y: 0 };
+  map.fire?.('click', {
+    lngLat: { lng: pin.lng, lat: pin.lat },
+    point,
+    originalEvent: { target: map.getCanvas?.() },
+  });
+}
+
+function decorateBrief(panel) {
+  if (decorating || !briefMod || !panel) return;
+  const body = panel.querySelector('.brief-body');
+  if (!body) return;
+  decorating = true;
+  try {
+    body.querySelectorAll('.brief-row strong').forEach((strong) => {
+      ensureBadgeGap(strong);
+      const tail = rowText(strong.closest('.brief-row'));
+      const next = briefMod.fieldState(tail, false);
+      if ((next === 'NONE FOUND' || next === 'LOOKUP FAILED') && tail !== next) setValueTail(strong, next);
+    });
+    const rows = [...body.querySelectorAll('.brief-row')].map((row) => ({
+      label: row.querySelector('span')?.textContent?.trim() || '',
+      value: rowText(row),
+      failed: false,
+    }));
+    const pin = readBriefPin(rows);
+    if (pin && !rows.some((row) => /wells within 5/i.test(row.label))) {
+      const wells = wellsWithinFive(pin.lng, pin.lat);
+      rows.push({ label: 'Wells within 5 mi', value: wells.value, failed: wells.failed });
+    }
+    const lines = briefMod.briefSummaryLines(rows);
+    let summary = body.querySelector('#sl-brief-summary');
+    if (!summary) {
+      summary = document.createElement('ul');
+      summary.id = 'sl-brief-summary';
+    }
+    const same = summary.childElementCount === lines.length && lines.every((line, index) => summary.children[index].textContent === line);
+    if (!same) {
+      summary.replaceChildren(...lines.map((line) => {
+        const item = document.createElement('li');
+        item.textContent = line;
+        return item;
+      }));
+    }
+    if (body.firstElementChild !== summary) body.prepend(summary);
+
+    const labels = [...body.querySelectorAll(':scope > .section-label')];
+    for (const label of labels) {
+      const fields = [];
+      let node = label.nextElementSibling;
+      while (node && !node.classList.contains('section-label')) {
+        if (node.classList.contains('brief-row')) fields.push(node);
+        node = node.nextElementSibling;
+      }
+      const states = fields.map((row) => briefMod.fieldState(rowText(row), false));
+      const allUnknown = states.length > 0 && states.every((state) => state === 'UNKNOWN');
+      let toggle = label.querySelector('.sl-unknown-toggle');
+      if (!allUnknown) {
+        toggle?.remove();
+        fields.forEach((row) => row.classList.remove('sl-unknown-hide'));
+        continue;
+      }
+      if (!toggle) {
+        toggle = document.createElement('button');
+        toggle.type = 'button';
+        toggle.className = 'sl-unknown-toggle';
+        toggle.addEventListener('click', (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          label.dataset.slShow = label.dataset.slShow === '1' ? '0' : '1';
+          refreshBriefChrome();
+        });
+        label.appendChild(toggle);
+      }
+      const text = states.length + (states.length === 1 ? ' field UNKNOWN' : ' fields UNKNOWN');
+      if (toggle.textContent !== text) toggle.textContent = text;
+      const hide = label.dataset.slShow !== '1';
+      fields.forEach((row) => row.classList.toggle('sl-unknown-hide', hide));
+    }
+
+    const failed = !!body.querySelector('.error-list') || rows.some((row) => briefMod.fieldState(row.value, row.failed) === 'LOOKUP FAILED');
+    let retry = body.querySelector('#sl-brief-retry');
+    if (!failed) {
+      retry?.remove();
+    } else if (!retry) {
+      retry = document.createElement('button');
+      retry.id = 'sl-brief-retry';
+      retry.type = 'button';
+      retry.className = 'sl-brief-retry';
+      retry.textContent = 'Retry';
+      retry.addEventListener('click', retryBrief);
+      const errors = body.querySelector('.error-list');
+      if (errors) errors.after(retry);
+      else summary.after(retry);
+    }
+  } finally {
+    decorating = false;
+  }
 }

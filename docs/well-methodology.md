@@ -1,6 +1,10 @@
 # Well methodology
 
-Siteline Phases A through C screen **Cameron County, Texas** oil and natural gas wells for AI data center siting. This is a screening aid. It is not a title search, a capacity study, or an environmental opinion.
+Siteline screens oil and natural gas wells from state regulator feeds for data center siting. This is a screening aid. It is not a title search, a capacity study, or an environmental opinion.
+
+The public page is `/well-methodology.html`. The map card reads `tiles/gaswells-manifest.json` for the state under the center. Coverage is `live full status`, `partial status`, or `file snapshot`. A state with no verified source says "No public wells feed wired for this state yet" and is hatched. That hatch is not a count of zero wells.
+
+Texas RRC GIS is map-symbol status only. The popup says "Status not confirmed (RRC map symbol)". Producing status is not confirmed, and the layer has no operator or dates. Plugged counts stay on the card. Plugged wells are drawn after the nightly build.
 
 ## System of record
 
@@ -55,9 +59,9 @@ Well proximity is not gas deliverability, capacity, pressure, or service. Well p
 - Sites persist in `localStorage` (`siteline.well.site.v1`) and in the URL hash. The API also accepts `POST /api/sites` and returns `/gas-context`, `/oil-context`, and `/well-context`.
 - Corridor analysis around a line is deferred to v1.1.
 
-## Cameron fixture
+## State feeds
 
-The map ships `data/cameron-wells.geojson`, classified from `services/well-intel/fixtures/cameron/raw_wells.json`. Every feature is `dataset_origin: fixture` and the operator is Fixture Operator. It is a layout for Harlingen-Rio Hondo, not a live RRC extract. Replace it by running the ETL against `well061.zip` and the manual CSV imports described in `docs/adapters.md`.
+Nationwide wells are the PMTiles layer at `/tiles/gaswells.pmtiles`, with the manifest beside it. A county GeoJSON used during early layout work is not the wells layer on the map. Do not describe that file as live RRC data.
 
 ## Required statements
 

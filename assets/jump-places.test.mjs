@@ -57,7 +57,9 @@ test("opening Jump several times yields exactly one list", () => {
   assert.equal(new Set(ids).size, ids.length);
   assert.equal(ids.includes("cameron"), true);
   const cameron = rows.find((row) => row.dataset.jump === "cameron");
-  assert.match(cameron.children.map((child) => child.textContent).join(" "), /Sample/);
+  assert.match(cameron.children.map((child) => child.textContent).join(" "), /South Texas coast/);
+  assert.notEqual(cameron.attrs.role, "listitem");
+  assert.equal(lists[0].children[0].attrs.role, "listitem");
   for (const place of JUMP_PLACES) {
     assert.equal(place.name.includes("\u2014"), false);
     assert.equal((place.detail || "").includes("\u2014"), false);

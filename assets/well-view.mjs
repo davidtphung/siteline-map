@@ -1,7 +1,7 @@
 /** Header for the wells card from the current map center. */
 
 import { JUMP_PLACES } from "./jump-places.mjs";
-import { TEXAS_RRC_NOTE, viewHitsTexasOutsideCameron } from "./well-status.mjs";
+import { wellStateCard } from "./well-coverage.mjs";
 
 export function regionForView(center, places = JUMP_PLACES) {
   const lng = Number(center?.[0]);
@@ -31,20 +31,20 @@ export function sourceForView(center) {
   return "NETL";
 }
 
-export function wellViewHeader({ center, fixtureInView, places, notes }) {
+export function wellViewHeader({ center, manifest, places, notes }) {
+  const card = wellStateCard(manifest, center);
   const region = regionForView(center, places);
-  const sample = fixtureInView > 0 && (!region || region.id === "cameron");
-  const place = region?.name || "This view";
-  const source = sample ? "Sample data" : sourceForView(center);
   const bits = [];
-  if (!sample && notes?.nm && source === "NM OCD") bits.push(notes.nm);
-  if (!sample && notes?.co && source === "CO ECMC") bits.push(notes.co);
-  if (!sample && viewHitsTexasOutsideCameron(center)) bits.push(TEXAS_RRC_NOTE);
+  if (card.wired && card.coverage) bits.push(card.coverage);
+  if (card.note) bits.push(card.note);
+  if (!card.wired && notes?.nm && card.code === "NM") bits.push(notes.nm);
+  if (!card.wired && notes?.co && card.code === "CO") bits.push(notes.co);
   return {
-    place,
-    source,
-    sample,
-    sourceNote: bits.join(". "),
+    place: card.headline || region?.name || "This view",
+    source: card.wired ? card.agency || card.sourceName || "UNKNOWN" : "UNKNOWN",
+    sample: false,
+    sourceNote: card.message || bits.filter(Boolean).join(". "),
+    card,
   };
 }
 
