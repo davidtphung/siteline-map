@@ -9,6 +9,7 @@ import {
   rankHits,
   roadQueryWithPlace,
   texasHint,
+  pinConfirmLabel,
   viewboxParam,
 } from "./place-search.mjs";
 
@@ -318,4 +319,9 @@ test("rankHits keeps at most six and still prefers the map view", () => {
   const ranked = rankHits(hits, area, "Cameron, TX");
   assert.equal(ranked.length, 6);
   assert.equal(ranked[0].id, "here");
+});
+
+test("a pin confirms the place that was chosen", () => {
+  assert.equal(pinConfirmLabel("Midland, Texas"), "Pinned near Midland, TX (approximate)");
+  assert.equal(pinConfirmLabel(""), "Pinned (approximate)");
 });

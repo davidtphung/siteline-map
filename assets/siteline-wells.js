@@ -1,5 +1,5 @@
 /**
- * Cameron County oil and natural gas wells for Siteline site screening.
+ * Natural gas wells for Siteline site screening.
  * Distance and rings are EPSG:3081. EIA pipelines stay a separate public context layer.
  */
 import {
@@ -9,20 +9,17 @@ import {
   ringFeatureCollection,
 } from "./well-geo.mjs";
 import {
-  contextTitle,
-  countsByStatus,
   exportCollection,
   filterFeatures,
-  filterFeaturesByText,
   flagsFromSearch,
   flagsToSearch,
   resetGasFlags,
-  separatedCounts,
 } from "./well-context.mjs";
 import { bindLiveWells, labelClusters } from "./live-wells.js";
 import { bindGasWells } from "./gas-wells.js";
 import { PARTIAL_PLUG_NOTE, TEXAS_GIS_NOTE, coverageRows, pluggedToggleState } from "./gas-wells.mjs";
-import { featuresInBounds, wellViewHeader } from "./well-view.mjs";
+import { featuresInBounds } from "./well-view.mjs";
+import { formatCount, wellStateCard } from "./well-coverage.mjs";
 
 const SRC = "sl-wells-src";
 const LAYER = "sl-wells-pt";
@@ -137,9 +134,9 @@ function injectCss() {
 #sl-well-card .sl-card-summary {
   display: block;
   margin-top: 2px;
-  color: #94a3b8;
+  color: #cbd5e1;
   font-family: "JetBrains Mono", ui-monospace, monospace;
-  font-size: 0.62rem;
+  font-size: 11px;
   font-weight: 500;
   letter-spacing: 0.03em;
 }
@@ -160,15 +157,15 @@ function injectCss() {
 }
 #sl-well-card[data-open="0"] .sl-well-body { display: none; }
 #sl-well-card .sl-well-kicker, #sl-well-card .sl-well-note, #sl-well-card li {
-  color: #94a3b8;
-  font-size: 0.66rem;
+  color: #cbd5e1;
+  font-size: 11px;
   line-height: 1.4;
 }
 #sl-well-card .sl-well-source {
-  color: #94a3b8;
+  color: #cbd5e1;
   font-family: "JetBrains Mono", ui-monospace, monospace;
-  font-size: 0.58rem;
-  letter-spacing: 0.06em;
+  font-size: 11px;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 #sl-well-card .sl-well-kicker {
@@ -193,8 +190,8 @@ function injectCss() {
   min-height: 26px;
   padding: 0.15rem 0.45rem;
   font-family: "JetBrains Mono", ui-monospace, monospace;
-  font-size: 0.58rem;
-  letter-spacing: 0.06em;
+  font-size: 11px;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   cursor: pointer;
 }
@@ -217,9 +214,9 @@ function injectCss() {
 #sl-well-card .sl-well-find-label {
   display: block;
   margin-top: 0.15rem;
-  color: #94a3b8;
+  color: #cbd5e1;
   font-family: "JetBrains Mono", ui-monospace, monospace;
-  font-size: 0.58rem;
+  font-size: 11px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -242,7 +239,32 @@ function injectCss() {
 #sl-well-card .sl-well-hit:hover { background: rgba(255,255,255,0.05); }
 #sl-well-card a { color: #4da3ff; }
 #sl-well-card .sl-coverage-wrap { max-height: 180px; overflow: auto; margin: 0.3rem 0 0.5rem; }
-#sl-well-card .sl-coverage { width: 100%; border-collapse: collapse; font-size: 0.62rem; }
+#sl-well-card .sl-coverage { width: 100%; border-collapse: collapse; font-size: 11px; }
+#sl-wells-gap {
+  position: fixed;
+  z-index: 4;
+  left: 50%;
+  top: 46%;
+  transform: translate(-50%, -50%);
+  max-width: min(420px, calc(100vw - 32px));
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px dashed rgba(255,255,255,0.45);
+  border-radius: 12px;
+  background: repeating-linear-gradient(-45deg, rgba(5,6,8,0.72) 0 8px, rgba(255,255,255,0.08) 8px 10px);
+  color: #fff;
+  font: 500 13px/1.4 Inter, system-ui, sans-serif;
+  text-align: center;
+  pointer-events: none;
+}
+body.sl-wells-uncovered::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background: repeating-linear-gradient(-45deg, transparent 0 12px, rgba(255,255,255,0.05) 12px 13px);
+}
 #sl-well-card .sl-coverage th, #sl-well-card .sl-coverage td { text-align: left; padding: 2px 4px; border-bottom: 1px solid rgba(255,255,255,0.08); }
 .swatch.well-gas { background: #7dcea0; }
 .swatch.well-oil { background: #7aa2e3; }
@@ -258,26 +280,6 @@ function injectCss() {
 }
 `;
   document.head.appendChild(style);
-}
-
-function ensureCameronJump() {
-  if (document.getElementById("sl-jump-list")) return;
-  const row = document.querySelector("#sl-tray .sl-jump-row");
-  if (!row || document.getElementById("sl-jump-cameron")) return;
-  const btn = document.createElement("button");
-  btn.type = "button";
-  btn.className = "sl-chip sl-jump";
-  btn.id = "sl-jump-cameron";
-  btn.dataset.jump = "cameron";
-  btn.textContent = "Cameron";
-  btn.title = "Harlingen-Rio Hondo";
-  btn.addEventListener("click", () => {
-    const map = window.__SITELINE_MAP__;
-    const center = state.rules?.cameron?.center || [-97.66, 26.19];
-    const zoom = state.rules?.cameron?.zoom || 10;
-    map?.flyTo?.({ center, zoom, essential: true, duration: 1400 });
-  });
-  row.appendChild(btn);
 }
 
 function applyPluggedLabel() {
@@ -305,7 +307,7 @@ function ensureTrayToggles() {
     '<label class="sl-tray-row"><input type="checkbox" id="sl-well-mixed" /><span class="swatch well-mixed"></span><span>Mixed oil and gas</span></label>' +
     '<label class="sl-tray-row"><input type="checkbox" id="sl-well-other" /><span class="swatch well-other"></span><span>Other / unknown</span></label>' +
     '<label class="sl-tray-row"><input type="checkbox" id="sl-well-plugged" /><span class="swatch well-other"></span><span id="sl-well-plugged-label">Show plugged</span></label>' +
-    '<p class="sl-honesty-chip catalog" id="sl-well-honesty">RRC · Texas system of record</p>' +
+    '<p class="sl-honesty-chip catalog" id="sl-well-honesty">State oil and gas agencies. Coverage varies by state.</p>' +
     '<p class="sl-tray-note">EIA pipelines stay public pipeline context, separate from wells.</p>';
   const pipelines = pane.querySelector("#sl-gas-toggle")?.closest(".sl-tray-row");
   const label = pipelines?.previousElementSibling;
@@ -359,9 +361,54 @@ function siteCenter() {
 }
 
 function mapCenter() {
-  const center = state.map?.getCenter?.();
-  if (!center) return [-97.66, 26.19];
+  const center = state.map?.getCenter?.() || window.__SITELINE_MAP__?.getCenter?.();
+  if (!center) return [-98.5, 39.5];
   return [center.lng, center.lat];
+}
+
+function currentWellCard() {
+  return wellStateCard(window.__SITELINE_GAS_MANIFEST__, mapCenter());
+}
+
+function paintCoverageGap(model) {
+  document.body.classList.toggle("sl-wells-uncovered", !!model.gap);
+  let label = document.getElementById("sl-wells-gap");
+  if (!label) {
+    label = document.createElement("p");
+    label.id = "sl-wells-gap";
+    label.setAttribute("role", "status");
+    document.body.appendChild(label);
+  }
+  if (!model.gap) {
+    label.hidden = true;
+    label.textContent = "";
+    return;
+  }
+  label.hidden = false;
+  label.textContent = model.name + ": " + model.message + ". An empty area is not a count of zero wells.";
+}
+
+function stateCardBody(model) {
+  if (!model.wired) {
+    return "<p class=\"sl-well-note\">" + esc(model.message) + " An empty area is not a count of zero wells.</p>";
+  }
+  const counts =
+    "Active " + formatCount(model.active) +
+    " · Inactive " + formatCount(model.inactive) +
+    " · Plugged " + formatCount(model.plugged);
+  const link = model.sourceUrl
+    ? "<a href=\"" + esc(model.sourceUrl) + "\" target=\"_blank\" rel=\"noopener\">" + esc(model.sourceName || "Source") + "</a>"
+    : esc(model.sourceName || "Source UNKNOWN");
+  return (
+    "<p class=\"sl-well-note\">" + esc(model.agency) + "</p>" +
+    "<p class=\"sl-well-note\">Coverage: " + esc(model.coverage) + "</p>" +
+    "<p class=\"sl-well-note\">" + esc(counts) + "</p>" +
+    "<p class=\"sl-well-note\">data as of " + esc(model.sourceUpdated || "UNKNOWN") + "</p>" +
+    "<p class=\"sl-well-note\">Source: " + link + "</p>" +
+    (model.note ? "<p class=\"sl-well-note\">" + esc(model.note) + "</p>" : "") +
+    (model.code === "TX" ? "<p class=\"sl-well-note\">" + esc(TEXAS_GIS_NOTE) + "</p>" : "") +
+    "<p class=\"sl-well-note\">Plugged-well counts are in this card. The map shows plugged wells after the nightly build.</p>"
+  );
 }
 
 function mapBounds() {
@@ -531,19 +578,21 @@ function focusWell(id) {
   renderCard();
 }
 
-function renderOutsideCard() {
+function renderStateCard(model) {
   const card = ensureCard();
   card.dataset.open = state.cardOpen ? "1" : "0";
+  const summary = model.wired ? model.coverage + " · data as of " + (model.sourceUpdated || "UNKNOWN") : model.message;
   card.innerHTML =
     "<button type=\"button\" class=\"sl-card-toggle\" id=\"sl-well-toggle\" aria-expanded=\"" +
     (state.cardOpen ? "true" : "false") +
     "\" aria-controls=\"sl-well-body\">" +
     "<span class=\"sl-card-titles\"><span class=\"sl-well-kicker\">Wells</span>" +
-    "<span class=\"sl-card-title\" id=\"sl-well-title\">No well data loaded for this area</span>" +
-    "<span class=\"sl-card-summary\">Outside the Cameron fixture</span></span>" +
+    "<span class=\"sl-card-title\" id=\"sl-well-title\">" + esc(model.headline) + "</span>" +
+    "<span class=\"sl-card-summary\">" + esc(summary) + "</span></span>" +
     "<span class=\"sl-chevron\" aria-hidden=\"true\"></span></button>" +
     "<div class=\"sl-well-body\" id=\"sl-well-body\">" +
-    "<p class=\"sl-well-note\">No well data loaded for this area. Live Texas RRC data isn't wired yet.</p>" +
+    stateCardBody(model) +
+    "<p class=\"sl-well-note\"><a href=\"/well-methodology.html\">Data and limitations</a></p>" +
     "</div>";
   document.getElementById("sl-well-toggle").onclick = () => {
     state.cardOpen = !state.cardOpen;
@@ -553,244 +602,16 @@ function renderOutsideCard() {
 }
 
 function renderCard() {
-  const card = ensureCard();
-  const rules = state.rules;
-  if (!rules) return;
-  if (state.origin === "fixture" && !coverageApplies()) {
-    const liveInView = featuresInBounds(state.map?.getSource?.("sl-live-wells")?._data?.features || [], mapBounds());
-    if (!liveInView.length) {
-      renderOutsideCard();
-      return;
-    }
-  }
-  const title = contextTitle(state.flags, rules);
-  const visible = visibleFeatures();
-  const notes = window.__SITELINE_WELL_NOTES__ || {};
-  const viewHeader = wellViewHeader({
-    center: mapCenter(),
-    fixtureInView: visible.filter((feature) => feature.properties?.dataset_origin === "fixture").length,
-    notes,
-  });
-  const focus = scopedFeatures(visible);
-  const query = state.cardQuery.trim();
-  const matched = filterFeaturesByText(focus, query, rules);
-  const counts = countsByStatus(matched);
-  const separated = separatedCounts(focus);
-  const countLines = Object.entries(counts)
-    .map(([code, n]) => {
-      const label = rules.statuses[code]?.label || code;
-      return "<li>" + esc(label) + ": " + n + "</li>";
-    })
-    .join("");
-  const center = siteCenter();
-  let rings = "";
-  if (center) {
-    const milesList = rules.rings_miles || [0.25, 0.5, 1, 5, 10];
-    rings =
-      "<p class=\"sl-well-kicker\">Rings, EPSG:3081</p><ul>" +
-      milesList
-        .map((miles) => {
-          const n = visible.filter(
-            (f) => distanceMiles(center[0], center[1], f.geometry.coordinates[0], f.geometry.coordinates[1]) <= miles,
-          ).length;
-          return "<li>" + miles + " mi: " + n + "</li>";
-        })
-        .join("") +
-      "</ul>";
-  }
-  const selected = state.features.find((f) => f.properties.id === state.selectedId);
-  const selectedVisible = selected && matched.some((row) => row.properties.id === selected.properties.id);
-  const detail = selectedVisible
-    ? "<p class=\"sl-well-kicker\">Well</p><p>" +
-      esc(selected.properties.status_label) +
-      "</p><ul><li>API " +
-      esc(selected.properties.api_raw) +
-      "</li><li>" +
-      esc(selected.properties.commodity) +
-      " · " +
-      esc(selected.properties.freshness) +
-      "</li><li>" +
-      esc(selected.properties.operator_name) +
-      " · " +
-      esc(selected.properties.lease_name) +
-      "</li><li>Dataset " +
-      esc(selected.properties.dataset_origin) +
-      "</li></ul><p><a href=\"" +
-      esc(selected.properties.rrc_viewer_url) +
-      "\" target=\"_blank\" rel=\"noopener\">Open RRC GIS Viewer</a>. Search API " +
-      esc(selected.properties.api_normalized) +
-      ". Siteline does not scrape the viewer.</p>"
-    : "";
-  const liveInView = featuresInBounds(state.map?.getSource?.("sl-live-wells")?._data?.features || [], mapBounds());
-  const sampleCount = visible.filter((feature) => feature.properties?.dataset_origin === "fixture").length;
-  const inViewCount = visible.length + liveInView.length;
-  window.__SITELINE_WELL_COUNT__ = inViewCount;
+  const model = currentWellCard();
+  paintCoverageGap(model);
+  renderStateCard(model);
+  const inView = featuresInBounds(state.map?.getSource?.("sl-gaswells")?._data?.features || [], mapBounds());
+  window.__SITELINE_WELL_COUNT__ = inView.length;
   const badge = document.getElementById("sl-dock-wells-badge");
   if (badge) {
-    badge.hidden = inViewCount <= 0;
-    badge.textContent = String(inViewCount);
+    badge.hidden = true;
+    badge.textContent = "0";
   }
-  const headerSummary = query
-    ? matched.length + (matched.length === 1 ? " match in this view" : " matches in this view")
-    : sampleCount > 0 && liveInView.length === 0
-      ? sampleCount + " Sample"
-      : summaryLine(focus, separated);
-  const commodityNote = [
-    state.flags.include_gas ? "Gas " + separated.gas.well_count : "",
-    state.flags.include_oil ? "Oil " + separated.oil.well_count : "",
-    state.flags.include_mixed ? "Mixed " + separated.mixed.well_count : "",
-    state.flags.include_other ? "Other " + separated.other.well_count : "",
-  ]
-    .filter(Boolean)
-    .join(", ");
-  const findNote = query
-    ? "<p class=\"sl-well-note\">" +
-      matched.length +
-      " of " +
-      focus.length +
-      " wells match this text. Rings and export stay on the full area.</p>"
-    : "<p class=\"sl-well-note\">" +
-      focus.length +
-      " wells in this view. " +
-      commodityNote +
-      ". Disabled commodities are omitted from counts, rings, and export.</p>";
-  const hits =
-    query.length >= 2
-      ? "<ul class=\"sl-well-hits\">" +
-        matched
-          .slice(0, 6)
-          .map((row) => {
-            const props = row.properties;
-            return (
-              "<li><button type=\"button\" class=\"sl-well-hit\" data-well-id=\"" +
-              esc(props.id) +
-              "\">" +
-              esc(props.api_raw) +
-              " · " +
-              esc(props.status_label) +
-              " · " +
-              esc(props.operator_name || props.lease_name || "") +
-              "</button></li>"
-            );
-          })
-          .join("") +
-        "</ul>" +
-        (matched.length > 6 ? "<p class=\"sl-well-note\">6 shown. Narrow the text to see fewer.</p>" : "")
-      : "";
-  const active = document.activeElement;
-  const keepFind = active && card.contains(active) && (active.tagName === "INPUT" || active.tagName === "TEXTAREA" || active.tagName === "SELECT" || active.isContentEditable);
-  const caret = keepFind ? active.selectionStart : null;
-  const caretEnd = keepFind ? active.selectionEnd : null;
-  const keepId = keepFind ? active.id : "";
-  card.dataset.open = state.cardOpen ? "1" : "0";
-  card.innerHTML =
-    "<button type=\"button\" class=\"sl-card-toggle\" id=\"sl-well-toggle\" aria-expanded=\"" +
-    (state.cardOpen ? "true" : "false") +
-    "\" aria-controls=\"sl-well-body\">" +
-    "<span class=\"sl-card-titles\"><span class=\"sl-well-kicker\">" +
-    esc(viewHeader.place) +
-    "</span><span class=\"sl-well-source\">" +
-    esc(viewHeader.source) +
-    (viewHeader.sourceNote ? " · " + esc(viewHeader.sourceNote) : "") +
-    "</span><span class=\"sl-card-title\" id=\"sl-well-title\">" +
-    esc(title) +
-    "</span><span class=\"sl-card-summary\">" +
-    esc(headerSummary) +
-    "</span></span><span class=\"sl-chevron\" aria-hidden=\"true\"></span></button>" +
-    "<div class=\"sl-well-body\" id=\"sl-well-body\">" +
-    "<label class=\"sl-well-find-label\" for=\"sl-well-find\">Find in this view</label>" +
-    "<input id=\"sl-well-find\" type=\"search\" placeholder=\"Status, API, operator, lease\" autocomplete=\"off\" spellcheck=\"false\" value=\"" +
-    esc(state.cardQuery) +
-    "\" />" +
-    findNote +
-    hits +
-    (countLines
-      ? "<ul>" + countLines + "</ul>"
-      : "<p class=\"sl-well-note\">" + (query ? "No status rows match this text." : "No wells for the current toggles.") + "</p>") +
-    rings +
-    detail +
-    "<div class=\"sl-well-actions\">" +
-    "<button type=\"button\" id=\"sl-well-draw-poly\">Draw polygon</button>" +
-    "<button type=\"button\" id=\"sl-well-draw-radius\">Draw radius</button>" +
-    "<label class=\"file\">Upload GeoJSON<input id=\"sl-well-upload\" type=\"file\" accept=\".json,.geojson,application/geo+json\" hidden /></label>" +
-    "<button type=\"button\" id=\"sl-well-export\">Export</button>" +
-    "<button type=\"button\" id=\"sl-well-reset\">Reset to gas context</button>" +
-    "</div>" +
-    "<div class=\"sl-well-rings\">" +
-    (rules.rings_miles || [])
-      .map(
-        (miles) =>
-          "<button type=\"button\" data-miles=\"" +
-          miles +
-          "\" class=\"" +
-          (state.site?.radiusMiles === miles ? "on" : "") +
-          "\">" +
-          miles +
-          " mi</button>",
-      )
-      .join("") +
-    "<input id=\"sl-well-custom-mi\" type=\"number\" min=\"0.05\" max=\"100\" step=\"0.05\" placeholder=\"mi\" />" +
-    "</div>" +
-    "<p class=\"sl-well-note\">" +
-    (state.draw === "polygon"
-      ? "Click vertices. Double-click or Enter closes. Escape cancels."
-      : state.draw === "radius"
-        ? "Click a center. Rings use EPSG:3081 miles, not Web Mercator."
-        : "Upload a polygon, draw one, or pick a radius.") +
-    "</p>" +
-    coverageHtml() +
-    "<ul>" +
-    rules.disclaimers.map((line) => "<li>" + esc(line) + "</li>").join("") +
-    "</ul><p class=\"sl-well-note\"><a href=\"/well-methodology.html\">Data and limitations</a></p></div>";
-  document.getElementById("sl-well-toggle").onclick = () => {
-    state.cardOpen = !state.cardOpen;
-    renderCard();
-  };
-  const find = document.getElementById("sl-well-find");
-  find.oninput = (event) => {
-    state.cardQuery = event.target.value;
-    renderCard();
-  };
-  const restored = keepId ? document.getElementById(keepId) : find;
-  if (keepFind && restored) {
-    restored.focus();
-    const pos = caret == null ? restored.value.length : caret;
-    const end = caretEnd == null ? pos : caretEnd;
-    restored.setSelectionRange?.(pos, end);
-  }
-  card.querySelectorAll("[data-well-id]").forEach((btn) => {
-    btn.onclick = () => focusWell(btn.dataset.wellId);
-  });
-  document.getElementById("sl-well-draw-poly").onclick = () => {
-    state.draw = state.draw === "polygon" ? null : "polygon";
-    state.vertices = [];
-    renderCard();
-  };
-  document.getElementById("sl-well-draw-radius").onclick = () => {
-    state.draw = state.draw === "radius" ? null : "radius";
-    renderCard();
-  };
-  document.getElementById("sl-well-upload").onchange = (event) => {
-    const file = event.target.files?.[0];
-    if (file) readUpload(file);
-  };
-  document.getElementById("sl-well-export").onclick = exportView;
-  document.getElementById("sl-well-reset").onclick = () => {
-    state.flags = resetGasFlags();
-    state.status = "";
-    syncToggles();
-    persistView();
-    render();
-  };
-  card.querySelectorAll("[data-miles]").forEach((btn) => {
-    btn.onclick = () => setRadius(Number(btn.dataset.miles));
-  });
-  document.getElementById("sl-well-custom-mi").onchange = (event) => {
-    const miles = Number(event.target.value);
-    if (miles > 0) setRadius(miles);
-  };
-  publishArea();
-  syncStack();
 }
 
 function setRadius(miles) {
@@ -1116,7 +937,6 @@ async function loadData() {
 function boot() {
   injectCss();
   const tryMap = () => {
-    ensureCameronJump();
     ensureTrayToggles();
     const map = window.__SITELINE_MAP__;
     if (map && state.rules) bindMap(map);

@@ -3,11 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Siteline: pin a site, read the lines. Grid, power, fiber, and OpenInfraMap. NLT143 RESEARCH by David T Phung." />
+    <meta name="description" content="Siteline: pin a site in a US data center region and read the grid, power, fiber, water, and gas wells around it. Every layer shows its source." />
+    <link rel="canonical" href="https://siteline.nlt143.energy/" />
     <meta name="theme-color" content="#05070a" />
     <meta name="color-scheme" content="dark" />
     <title>Siteline | Pin a site. Read the grid, power, fiber, and wells.</title>
 
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
@@ -17,7 +19,7 @@
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Siteline" />
     <meta property="og:title" content="Siteline | Pin a site. Read the grid, power, fiber, and wells." />
-    <meta property="og:description" content="Pin a site. Read the lines. Grid, power, fiber, and OpenInfraMap." />
+    <meta property="og:description" content="Pin a site in a US data center region. Read the grid, power, fiber, water, and gas wells around it." />
     <meta property="og:url" content="https://siteline.nlt143.energy/" />
     <meta property="og:image" content="https://siteline.nlt143.energy/og-image.png?v=2" />
     <meta property="og:image:width" content="1200" />
@@ -26,7 +28,7 @@
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Siteline | Pin a site. Read the grid, power, fiber, and wells." />
-    <meta name="twitter:description" content="Pin a site. Read the lines. Grid, power, fiber, and OpenInfraMap." />
+    <meta name="twitter:description" content="Pin a site in a US data center region. Read the grid, power, fiber, water, and gas wells around it." />
     <meta name="twitter:image" content="https://siteline.nlt143.energy/og-image.png?v=2" />
     <meta name="twitter:creator" content="@davidtphung" />
 
@@ -34,7 +36,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" />
-    <link rel="stylesheet" href="./assets/siteline.css?v=layers-3" />
+    <link rel="stylesheet" href="./assets/siteline.css?v=review-2" />
     <script type="importmap">
       {
         "imports": {
@@ -48,11 +50,12 @@
     </script>
   </head>
   <body>
+    <a class="sl-skip" href="#root">Skip to map</a>
     <div id="root"></div>
     <script type="module" crossorigin src="./assets/index-CxleVYPI.js?v=rebase-1"></script>
-    <script type="module" src="./assets/siteline-enhance.js?v=search-3"></script>
-    <script type="module" src="./assets/siteline-wells.js?v=gaswells-5"></script>
-    <script type="module" src="./assets/siteline-layers.js?v=gaswells-5"></script>
-    <script type="module" src="./assets/siteline-dock.js?v=gaswells-4"></script>
+    <script type="module" src="./assets/siteline-enhance.js?v=review-2"></script>
+    <script type="module" src="./assets/siteline-wells.js?v=review-2"></script>
+    <script type="module" src="./assets/siteline-layers.js?v=review-2"></script>
+    <script type="module" src="./assets/siteline-dock.js?v=review-2"></script>
   </body>
 </html>

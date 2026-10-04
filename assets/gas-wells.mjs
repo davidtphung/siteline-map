@@ -2,7 +2,7 @@
 
 export const GAS_TILE_URLS = ["/tiles/gaswells.pmtiles", "/data/gaswells.pmtiles"];
 export const GAS_MANIFEST_URL = "/tiles/gaswells-manifest.json";
-export const TEXAS_GIS_NOTE = "Texas non-shut-in gas wells show as Active (RRC map symbol, producing status not confirmed). Shut-in gas shows as Inactive, shut-in (RRC). Data as of UNKNOWN. The RRC GIS layer has no operator or dates.";
+export const TEXAS_GIS_NOTE = "Texas non-shut-in gas wells show as Status not confirmed (RRC map symbol), producing status not confirmed. Shut-in gas shows as Inactive, shut-in (RRC). Data as of UNKNOWN. The RRC GIS layer has no operator or dates.";
 export const PARTIAL_PLUG_NOTE = "Kansas, Kentucky, Illinois, and Alaska non-plugged wells show as Not plugged (state reports plugged or not only).";
 
 export function sourceAsOf(props) {

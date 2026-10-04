@@ -131,16 +131,20 @@ test("gas well popup shows the dashed API, raw status, and a real date", () => {
     layer: { id: "sl-gaswells-pt", type: "circle" },
     properties: { api: "43934285", name: "3H", state: "TX", status_class: "active", status_raw: "Gas Well", status_date: "UNKNOWN", source_updated: "UNKNOWN" },
   });
-  assert.equal(texas.fields.find((row) => row[0] === "Status")[1], "Active (RRC map symbol, producing status not confirmed)");
+  assert.equal(texas.fields.find((row) => row[0] === "Status")[1], "Status not confirmed (RRC map symbol)");
   assert.equal(texas.vintage, "data as of UNKNOWN");
+  assert.equal(texas.headline, "Status not confirmed (RRC map symbol)");
   const kansas = featureSummary({
     layer: { id: "sl-gaswells-pt", type: "circle" },
     properties: { state: "KS", status_class: "active", status_raw: "GAS" },
   });
   assert.equal(kansas.fields.find((row) => row[0] === "Status")[1], "Not plugged (state reports plugged or not only)");
-  assert.equal(card.fields.find((row) => row[0] === "Type")[1], "gas");
+  assert.equal(card.fields.find((row) => row[0] === "Type")[1], "Natural gas");
+  assert.equal(card.fields.find((row) => row[0] === "Last status date")[1], "2026-07-01");
+  assert.equal(card.fields.some((row) => row[0] === "Date" || row[0] === "As of"), false);
   assert.equal(card.source, "New Mexico Oil Conservation Division");
-  assert.equal(card.vintage, "data as of 2026-07-01");
+  assert.equal(card.vintage, "data as of 2026-08-01");
+  assert.equal(card.headline, "Active");
   const dashed = featureSummary({
     layer: { id: "sl-gaswells-pt", type: "circle" },
     properties: { api: "30-015-20325", status_raw: "Temporary Abandonment", status_date: "UNKNOWN", source_updated: "2026-08-01", state: "NM" },

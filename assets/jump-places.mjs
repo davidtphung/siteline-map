@@ -11,7 +11,7 @@ export const JUMP_PLACES = [
   { id: "atlanta", name: "Atlanta, GA", detail: "", center: [-84.39, 33.75], zoom: 9.5 },
   { id: "memphis", name: "Memphis, TN", detail: "", center: [-90.05, 35.15], zoom: 9.5 },
   { id: "richland", name: "Richland Parish, LA", detail: "", center: [-91.76, 32.42], zoom: 9.5 },
-  { id: "cameron", name: "Cameron County, TX", detail: "Sample well data.", center: [-97.66, 26.19], zoom: 10 },
+  { id: "cameron", name: "Cameron County, TX", detail: "South Texas coast.", center: [-97.66, 26.19], zoom: 10 },
 ];
 
 export function jumpPlace(id) {
@@ -30,17 +30,18 @@ export function renderJumpList(pane) {
     : "";
   if (existing && pane.childElementCount === 1 && have === want) return existing;
   const doc = pane.ownerDocument;
-  const list = doc.createElement("div");
+  const list = doc.createElement("ul");
   list.id = "sl-jump-list";
   list.className = "sl-jump-list";
   list.setAttribute("role", "list");
   list.setAttribute("aria-label", "Jump");
   for (const place of JUMP_PLACES) {
+    const item = doc.createElement("li");
+    item.setAttribute("role", "listitem");
     const btn = doc.createElement("button");
     btn.type = "button";
     btn.className = "sl-jump-place";
     btn.dataset.jump = place.id;
-    btn.setAttribute("role", "listitem");
     const name = doc.createElement("span");
     name.className = "sl-jump-name";
     name.textContent = place.name;
@@ -51,7 +52,8 @@ export function renderJumpList(pane) {
       detail.textContent = place.detail;
       btn.append(detail);
     }
-    list.append(btn);
+    item.append(btn);
+    list.append(item);
   }
   pane.replaceChildren(list);
   return list;

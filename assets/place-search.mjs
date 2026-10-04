@@ -92,6 +92,21 @@ export function expandUsRoadQuery(query) {
   return { query: raw, expanded: false, kind: "" };
 }
 
+const ABBR_BY_NAME = {};
+for (const [abbr, name] of Object.entries(STATE_NAMES)) {
+  ABBR_BY_NAME[name.toLowerCase()] = abbr.toUpperCase();
+}
+
+export function pinConfirmLabel(title) {
+  let text = String(title || "").replace(/\s+/g, " ").trim();
+  if (!text) return "Pinned (approximate)";
+  text = text.replace(/,\s*([A-Za-z][A-Za-z .']+)$/, (all, state) => {
+    const abbr = ABBR_BY_NAME[state.toLowerCase().replace(/\./g, "").trim()];
+    return abbr ? ", " + abbr : all;
+  });
+  return "Pinned near " + text + " (approximate)";
+}
+
 export function canonicalState(input) {
   const key = String(input || "")
     .toLowerCase()

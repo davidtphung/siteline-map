@@ -1,6 +1,6 @@
 /** Nationwide natural gas wells from PMTiles. */
 
-import { Protocol } from "https://esm.sh/pmtiles@3.2.1";
+import { Protocol } from "./pmtiles.js";
 import { statusPaint } from "./well-status.mjs";
 import { GAS_MANIFEST_URL, GAS_TILE_URLS, pluggedToggleState, pointFilter, useCameronFixture } from "./gas-wells.mjs";
 
@@ -60,6 +60,25 @@ async function firstTileUrl() {
     } catch (_) {}
   }
   return "";
+}
+
+function ensureTileStatus(map) {
+  let el = document.getElementById("sl-tile-status");
+  if (!el) {
+    el = document.createElement("p");
+    el.id = "sl-tile-status";
+    el.textContent = "Loading tiles";
+    el.hidden = true;
+    document.body.appendChild(el);
+  }
+  if (map.__slTileStatus) return;
+  map.__slTileStatus = true;
+  map.on?.("dataloading", () => {
+    el.hidden = false;
+  });
+  map.on?.("idle", () => {
+    el.hidden = true;
+  });
 }
 
 function applyFilter(map) {
@@ -134,6 +153,7 @@ export async function bindGasWells(map) {
     });
   } catch (_) {}
   applyFilter(map);
+  ensureTileStatus(map);
   document.addEventListener("change", (event) => {
     const id = event.target?.id;
     if (id === "sl-well-gas" || id === "sl-well-plugged") applyFilter(map);

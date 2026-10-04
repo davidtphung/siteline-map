@@ -4,7 +4,7 @@
  */
 import { cardRects } from "./card-layout.mjs?v=slots-2";
 import { JUMP_PLACES, renderJumpList } from "./jump-places.mjs";
-import { DOCK_TABS, clusterStatusLine, cycleFeature, displayApi, dockTabMove, escapeInField, featureSummary, hitBox, isInteractiveFeature, isTypingTarget, keyboardResizeKeepsSheet, moreHereLine, normalizeMode, shouldCloseFromPointer, shouldCloseOnMapTap, shouldMoveDockTab, shouldSwipeClose, tapHandlerFor } from "./dock-mode.mjs?v=gaswells-4";
+import { DOCK_TABS, clusterStatusLine, displayApi, dockTabMove, escapeInField, featureSummary, hitBox, isInteractiveFeature, isTypingTarget, keyboardResizeKeepsSheet, normalizeMode, shouldCloseFromPointer, shouldCloseOnMapTap, shouldMoveDockTab, shouldSwipeClose, tapHandlerFor } from "./dock-mode.mjs?v=review-2";
 
 const STORE = "siteline.dock.v1";
 const TAB_META = {
@@ -139,7 +139,7 @@ function ensureStructure(tray) {
     bar.innerHTML =
       '<div class="sl-mode-toggle" role="group" aria-label="Map mode">' +
       '<button type="button" data-dock-mode="browse" aria-pressed="true">Browse</button>' +
-      '<button type="button" data-dock-mode="inspect" aria-pressed="false">Inspect</button>' +
+      '<button type="button" data-dock-mode="inspect" aria-pressed="false">Pin</button>' +
       '</div><div class="sl-dock-tabs" role="tablist" aria-label="Siteline">' +
       TABS.map((tab) => {
       const badge = tab.badge ? '<span class="sl-dock-badge" id="sl-dock-wells-badge" hidden>0</span>' : "";
@@ -304,12 +304,17 @@ function stackFloatingCards(tray) {
   }
   const brief = document.querySelector(".brief-panel");
   const wells = document.getElementById("sl-well-card");
+  const briefOpen = !!brief?.classList.contains("open");
+  const wellsOpen = !!(wells && (wells.dataset.open === "1" || (isOpen(tray) && tray.dataset.dockTab === "wells")));
   if (!phone) {
     tray.classList.remove("sl-stack");
-    const briefOpen = !!brief?.classList.contains("open");
-    const wellsOpen = !!(wells && (wells.dataset.open === "1" || (isOpen(tray) && tray.dataset.dockTab === "wells")));
     if (briefOpen && wellsOpen) {
-      placeDesktopSlots(brief, wells);
+      const fitted = cardRects(
+        { open: { brief: true, wells: true } },
+        { width: window.innerWidth, height: window.innerHeight },
+      );
+      slotCard(brief, fitted.rects.brief);
+      slotCard(wells, fitted.rects.wells);
       return;
     }
     clearSlot(brief);
@@ -318,8 +323,6 @@ function stackFloatingCards(tray) {
     parkBrief();
     return;
   }
-  const briefOpen = !!brief?.classList.contains("open");
-  const wellsOpen = !!(wells && (wells.dataset.open === "1" || (isOpen(tray) && tray.dataset.dockTab === "wells")));
   const fitted = cardRects(
     { open: { brief: briefOpen, wells: wellsOpen } },
     { width: window.innerWidth, height: window.innerHeight },
@@ -346,12 +349,11 @@ function heldInStack(node) {
 
 function parkWells(tray) {
   const card = document.getElementById("sl-well-card");
-  if (heldInStack(card)) return;
-  const inspect = document.getElementById("sl-pane-inspect");
+  if (heldInStack(card) || card?.dataset.slSlot === "1") return;
   const wells = document.getElementById("sl-pane-wells");
-  const dest = modeOf(tray) === "inspect" && isOpen(tray) ? inspect : wells;
-  if (!card || !dest || dest.contains(card)) return;
-  dest.appendChild(card);
+  if (!card || !wells || wells.contains(card)) return;
+  wells.appendChild(card);
+  if (tray) tray.dataset.slWellsParked = "wells";
 }
 
 function dismissBrief() {
@@ -570,7 +572,7 @@ function wireGlobal() {
     const onEmptyMap = !!(node && node.closest?.(".maplibregl-canvas, .maplibregl-map"));
     const fromCard = gestureFromCard || insideDock(event);
     if (!shouldCloseFromPointer({ insideCard: insideDock(event), fromCard, typing: typingInside })) return;
-    if (!shouldCloseOnMapTap({ mode: modeOf(tray), insideDock: fromCard, onEmptyMap })) return;
+    if (!shouldCloseOnMapTap({ mode: modeOf(tray), insideDock: fromCard, onEmptyMap, phone: phoneLayout() })) return;
     closeDock();
   };
   document.addEventListener("click", onPointer);
@@ -641,30 +643,56 @@ function distance2(map, point, feature) {
   return dx * dx + dy * dy;
 }
 
-function popupHtml(feature, total, index) {
+function dateLine(card, feature) {
+  const gas = String(feature?.layer?.id || "").startsWith("sl-gaswells");
+  if (!gas) return "<p>Vintage: " + esc(card.vintage) + "</p>";
+  const line = String(card.vintage || "");
+  return "<p>" + esc(line.startsWith("data as of") ? line : "data as of " + (line || "UNKNOWN")) + "</p>";
+}
+
+function colocatedHtml(hits) {
+  if (!hits || hits.length < 2) return "";
+  const shown = hits.slice(0, 8);
+  const rows = shown
+    .map((hit, index) => {
+      const card = featureSummary(hit);
+      const status = card.headline || card.fields.find((row) => row[0] === "Status")?.[1] || "";
+      return (
+        "<li><button type=\"button\" class=\"sl-colocated\" data-sl-index=\"" +
+        index +
+        "\">" +
+        esc(card.name) +
+        (status ? " · " + esc(status) : "") +
+        "</button></li>"
+      );
+    })
+    .join("");
+  const rest = hits.length > shown.length ? "<li class=\"sl-colocated-more\">" + (hits.length - shown.length) + " more at this point</li>" : "";
+  return "<ul class=\"sl-colocated-list\">" + rows + rest + "</ul>";
+}
+
+function popupHtml(feature, hits, index) {
   const card = featureSummary(feature);
   const rows = card.fields
+    .filter((row) => row[0] !== "Date" && row[0] !== "As of" && row[0] !== "Vintage")
+    .filter((row) => !(card.headline && row[0] === "Status"))
     .map((row) => "<p>" + esc(row[0]) + ": " + esc(row[1]) + "</p>")
     .join("");
   const refresh =
     feature?.properties?.state === "NM" && feature?.properties?.api
       ? "<button type=\"button\" class=\"sl-feature-more\" data-nm-refresh=\"" + esc(displayApi(feature.properties.api)) + "\">Refresh this well</button>"
       : "";
-  const sample = card.sample ? "<p>Sample data</p>" : "";
-  const more = moreHereLine(total - 1);
-  const cycle = more
-    ? "<button type=\"button\" class=\"sl-feature-more\" data-sl-more=\"1\">" + esc(more) + "</button>"
-    : "";
+  const headline = card.headline ? "<p class=\"sl-feature-status\">" + esc(card.headline) + "</p>" : "";
   return (
     "<div class=\"sl-feature-card\" data-feature-index=\"" + index + "\">" +
     "<p class=\"sl-feature-name\">" + esc(card.name) + "</p>" +
+    headline +
     "<p>Layer: " + esc(card.layer) + "</p>" +
     rows +
     "<p>Source: " + esc(card.source) + "</p>" +
-    "<p>Vintage: " + esc(card.vintage) + "</p>" +
-    sample +
+    dateLine(card, feature) +
     refresh +
-    cycle +
+    colocatedHtml(hits) +
     "</div>"
   );
 }
@@ -812,18 +840,21 @@ function showFeaturePopup(map, lngLat, point, hits, index) {
     className: "sl-feature-popup",
   })
     .setLngLat(at)
-    .setHTML(popupHtml(feature, hits.length, index))
+    .setHTML(popupHtml(feature, hits, index))
     .addTo(map);
   featurePopup.getElement?.()?.querySelector("[data-nm-refresh]")?.addEventListener("click", (event) => {
     event.preventDefault();
     event.stopPropagation();
     refreshNmWell(featurePopup, event.currentTarget.getAttribute("data-nm-refresh"));
   });
-  featurePopup.getElement?.()?.querySelector("[data-sl-more]")?.addEventListener("click", (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    const next = cycleFeature({ index: featureIndex, total: featureHits.length });
-    showFeaturePopup(map, lngLat, point, featureHits, next.index);
+  featurePopup.getElement?.()?.querySelectorAll("[data-sl-index]").forEach((button) => {
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const next = Number(button.getAttribute("data-sl-index"));
+      if (!Number.isFinite(next)) return;
+      showFeaturePopup(map, lngLat, point, featureHits, next);
+    });
   });
 }
 
@@ -842,15 +873,17 @@ function renderInspectFeature(hits) {
   }
   const feature = hits[0];
   const card = featureSummary(feature);
-  const extra = moreHereLine(hits.length - 1);
+  const rows = card.fields
+    .filter((row) => row[0] !== "Date" && row[0] !== "As of" && row[0] !== "Vintage")
+    .filter((row) => !(card.headline && row[0] === "Status"));
   box.innerHTML =
     "<p class=\"sl-feature-name\">" + esc(card.name) + "</p>" +
+    (card.headline ? "<p class=\"sl-feature-status\">" + esc(card.headline) + "</p>" : "") +
     "<p>Layer: " + esc(card.layer) + "</p>" +
-    card.fields.map((row) => "<p>" + esc(row[0]) + ": " + esc(row[1]) + "</p>").join("") +
+    rows.map((row) => "<p>" + esc(row[0]) + ": " + esc(row[1]) + "</p>").join("") +
     "<p>Source: " + esc(card.source) + "</p>" +
-    "<p>Vintage: " + esc(card.vintage) + "</p>" +
-    (card.sample ? "<p>Sample data</p>" : "") +
-    (extra ? "<p>" + esc(extra) + "</p>" : "");
+    dateLine(card, feature) +
+    colocatedHtml(hits);
 }
 
 function guardMapClicks() {
@@ -897,8 +930,40 @@ function guardMapClicks() {
   }
 }
 
+function ensureExplainer() {
+  if (document.getElementById("sl-explainer")) return;
+  const bar = document.createElement("div");
+  bar.id = "sl-explainer";
+  bar.innerHTML =
+    "<p>Pin any point in the US. Read the power, grid, fiber, water and gas wells around it. Every layer shows its source, and UNKNOWN where the data stops.</p>" +
+    "<div class=\"sl-explainer-chips\">" +
+    "<button type=\"button\" data-example=\"ashburn\">Ashburn, VA</button>" +
+    "<button type=\"button\" data-example=\"abilene\">Abilene, TX</button>" +
+    "<button type=\"button\" data-example=\"permian\">Permian Basin</button>" +
+    "<button type=\"button\" data-example=\"carlsbad\">Carlsbad, NM</button>" +
+    "</div>";
+  document.body.appendChild(bar);
+  const examples = {
+    ashburn: { center: [-77.49, 39.04], zoom: 9.5 },
+    abilene: { center: [-99.73, 32.45], zoom: 9.5 },
+    permian: { center: [-103.7, 32.4], zoom: 9 },
+    carlsbad: { center: [-104.228, 32.421], zoom: 11 },
+  };
+  bar.addEventListener("click", (event) => {
+    const button = event.target.closest?.("[data-example]");
+    if (!button) return;
+    const place = examples[button.getAttribute("data-example")];
+    const map = window.__SITELINE_MAP__;
+    if (!place || !map?.flyTo) return;
+    map.flyTo({ center: place.center, zoom: place.zoom, essential: true, duration: 1200 });
+    bar.hidden = true;
+    if (phoneLayout()) closeDock();
+  });
+}
+
 function boot() {
   injectCss();
+  ensureExplainer();
   const tray = document.getElementById("sl-tray");
   if (!tray || !tray.querySelector("#sl-pane-layers")) return false;
   ensureStructure(tray);
@@ -920,6 +985,7 @@ function boot() {
         const map = window.__SITELINE_MAP__;
         if (!place || !map?.flyTo) return;
         map.flyTo({ center: place.center, zoom: place.zoom, essential: true, duration: 1200 });
+        if (phoneLayout()) closeDock();
       });
     }
   }
@@ -996,13 +1062,37 @@ const DOCK_CSS = `
 }
 .sl-feature-popup.maplibregl-popup { z-index: 50; max-width: min(280px, calc(100vw - 24px)); }
 .sl-feature-popup .maplibregl-popup-content {
-  max-height: min(38vh, 220px);
+  max-height: min(52vh, 360px);
   overflow: auto;
   background: rgba(5, 6, 8, 0.96);
   color: #e7e5e4;
   border-radius: 12px;
   font: 500 12px/1.35 Inter, system-ui, sans-serif;
 }
+.sl-feature-popup .maplibregl-popup-close-button {
+  width: 36px;
+  height: 36px;
+  font-size: 18px;
+  line-height: 36px;
+  color: #fff;
+  padding: 0;
+}
+.sl-colocated-list { list-style: none; margin: 8px 0 0; padding: 0; }
+.sl-colocated {
+  display: block;
+  width: 100%;
+  min-height: 32px;
+  margin: 0;
+  padding: 6px 0;
+  border: 0;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  background: transparent;
+  color: #fff;
+  text-align: left;
+  font: 500 12px/1.3 Inter, system-ui, sans-serif;
+  cursor: pointer;
+}
+.sl-colocated-more { color: rgba(255,255,255,0.72); font-size: 11px; padding: 4px 0; }
 .sl-feature-popup .sl-feature-name { margin: 0 0 4px; font-size: 13px; color: #fff; }
 .sl-feature-popup p { margin: 0 0 3px; }
 .sl-cluster-row { display: block; width: 100%; margin: 0; padding: 0.35rem 0; border: 0; border-top: 1px solid rgba(255,255,255,0.08); background: transparent; color: #fff; text-align: left; font: inherit; cursor: pointer; }
@@ -1062,7 +1152,8 @@ const DOCK_CSS = `
   background: rgba(255,255,255,0.28);
 }
 #sl-tray.sl-dock .sl-tray-stage { display: block !important; padding: 4px 12px 12px; }
-#sl-pane-jump .sl-jump-list { display: flex; flex-direction: column; gap: 4px; }
+#sl-pane-jump .sl-jump-list { display: flex; flex-direction: column; gap: 4px; list-style: none; margin: 0; padding: 0; }
+#sl-pane-jump .sl-jump-list li { margin: 0; padding: 0; list-style: none; }
 #sl-pane-jump .sl-jump-place {
   appearance: none;
   display: flex;
@@ -1195,7 +1286,7 @@ const DOCK_CSS = `
   background: rgba(255,255,255,0.12);
   color: #fff;
   font-family: "JetBrains Mono", ui-monospace, monospace;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 500;
 }
 #sl-tray.sl-dock .sl-dock-chevron { margin-left: auto; min-width: 32px; padding: 0 8px; }
@@ -1278,9 +1369,28 @@ const DOCK_CSS = `
     padding: 0 0 env(safe-area-inset-bottom) !important;
   }
   #sl-tray.sl-dock .sl-dock-card {
-    max-height: min(60vh, calc(100dvh - 168px));
+    max-height: 60dvh;
     margin: 0 8px 8px;
     border-radius: 18px 18px 14px 14px;
+    overflow: hidden;
+  }
+  #sl-tray.sl-dock .sl-tray-stage,
+  #sl-tray.sl-dock #sl-pane-layers {
+    max-height: calc(60dvh - 36px);
+    overflow: auto;
+  }
+  #sl-tray .sl-tray-row {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  #sl-tray .sl-tray-row input {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+    margin: 0;
   }
   #sl-tray.sl-dock .sl-dock-handle { display: block !important; min-height: 28px; }
   #sl-tray.sl-dock .sl-dock-bar {
@@ -1300,6 +1410,50 @@ const DOCK_CSS = `
 }
 @media (prefers-reduced-motion: reduce) {
   #sl-tray.sl-dock .sl-dock-card { transition: none !important; }
+}
+#sl-explainer {
+  position: fixed;
+  z-index: 40;
+  top: 58px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(720px, calc(100vw - 24px));
+  padding: 8px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(5, 6, 8, 0.92);
+  color: #fff;
+  pointer-events: auto;
+}
+#sl-explainer p { margin: 0 0 8px; font: 500 13px/1.4 Inter, system-ui, sans-serif; }
+#sl-explainer .sl-explainer-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+#sl-explainer button {
+  min-height: 32px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.16);
+  background: transparent;
+  color: #fff;
+  font: 500 12px/1 Inter, system-ui, sans-serif;
+  cursor: pointer;
+}
+#sl-tile-status {
+  position: fixed;
+  z-index: 30;
+  right: 12px;
+  bottom: 12px;
+  margin: 0;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(5, 6, 8, 0.9);
+  color: #fff;
+  font: 500 11px/1.3 Inter, system-ui, sans-serif;
+  pointer-events: none;
+}
+@media (max-width: 700px) {
+  #sl-explainer { top: 104px; }
+  #sl-explainer button { min-height: 44px; }
+  #sl-tile-status { bottom: 120px; }
 }
 `;
 

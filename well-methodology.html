@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Siteline well methodology</title>
+    <link rel="canonical" href="https://siteline.nlt143.energy/well-methodology.html" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=JetBrains+Mono:wght@400;500&display=swap" />
     <style>
       body { margin: 0; background: #050608; color: #e2e8f0; font: 16px/1.5 Inter, system-ui, sans-serif; }
@@ -13,30 +14,40 @@
       a { color: #4da3ff; }
       code, .k { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 0.82rem; }
       li { margin: 0.35rem 0; }
-      .note { color: #94a3b8; }
+      .note { color: #cbd5e1; }
     </style>
   </head>
   <body>
     <main>
-      <p class="k">NLT143 RESEARCH · rules 2026-09-23.1</p>
+      <p class="k">NLT143 RESEARCH</p>
       <h1>Well data and limitations</h1>
-      <p class="note">Cameron County first. Screening aid for AI data center siting. Not a title search.</p>
-      <h2>Read this first</h2>
+      <p class="note">Nationwide screening from state oil and gas agencies. Not a title search, a capacity study, or an environmental opinion.</p>
+      <h2>How the map is built</h2>
+      <p>Gas wells come from each state's public regulator feed, drawn from vector tiles. The Wells card reads <span class="k">tiles/gaswells-manifest.json</span> for the state under the map: agency, coverage, active, inactive, and plugged counts, the source refresh date, and a link to the source.</p>
+      <p>Coverage has three levels:</p>
       <ul>
-        <li>Texas RRC is the system of record for Texas wells.</li>
-        <li>NETL, HIFLD, New Mexico OCD, and Colorado OGCC are not status authority for Texas.</li>
+        <li><span class="k">live full status</span>: the agency file includes a status Siteline can show, plus counts.</li>
+        <li><span class="k">partial status</span>: the file has a status, but it does not confirm producing, operator, or dates.</li>
+        <li><span class="k">file snapshot</span>: a downloaded agency file, not a live query.</li>
+      </ul>
+      <p>A state with no row in the verified catalog is labeled <span class="k">No public wells feed wired for this state yet</span> and hatched. An empty hatch is not a count of zero wells.</p>
+      <h2>Texas</h2>
+      <p>Texas wells in this layer come from Railroad Commission of Texas GIS map symbols. The headline status is <span class="k">Status not confirmed (RRC map symbol)</span>. Producing status is not confirmed. The layer has no operator and no dates. Shut-in gas is labeled Inactive, shut-in (RRC). Data as of stays UNKNOWN until the source file carries a refresh date.</p>
+      <p>NETL, HIFLD, New Mexico OCD, and Colorado OGCC are not the status authority for a Texas well.</p>
+      <h2>Plugged wells</h2>
+      <p>Plugged counts are in the manifest and on the Wells card. The preview tiles omit plugged wells. The map draws them after the nightly build, when the plugged toggle is available. A plugged map symbol alone is not confirmed plugged and abandoned.</p>
+      <h2>What the labels mean</h2>
+      <ul>
         <li>Inactive is not abandoned.</li>
         <li>Orphan is not abandoned.</li>
         <li>Historical and missing status are not abandoned.</li>
-        <li>Plugged and abandoned is confirmed only with explicit official RRC evidence.</li>
+        <li>Plugged and abandoned is confirmed only with explicit official evidence from that state's regulator.</li>
+        <li>Kansas, Kentucky, Illinois, and Alaska non-plugged wells show as Not plugged (state reports plugged or not only).</li>
         <li>Well proximity is not gas deliverability, capacity, pressure, or service.</li>
         <li>Well proximity is not oil liability.</li>
-        <li>EIA natural gas pipelines are public pipeline context, separate from wells.</li>
+        <li>Where a date, operator, or status is missing, the map says UNKNOWN.</li>
       </ul>
-      <h2>What the map shows</h2>
-      <p>Natural gas wells are on. Oil, mixed oil and gas, and other/unknown are off until you turn them on. Those toggles do not share counts, rings, or exports. The confirmed plug label is <span class="k">Plugged and abandoned, confirmed</span>. Anything short of an RRC plug date or a linkable plug document stays unconfirmed, including a plugged-well map symbol.</p>
-      <p>Rings are 0.25, 0.5, 1, 5, and 10 miles, measured in EPSG:3081 (Texas Centric Lambert), not Web Mercator. You can upload a GeoJSON polygon or draw one.</p>
-      <p>The Cameron points shipped with the site are fixtures for Harlingen-Rio Hondo (<span class="k">dataset_origin: fixture</span>). They are not a live RRC extract. See <span class="k">docs/well-methodology.md</span> and <span class="k">docs/adapters.md</span> in the repo for the MFT well layer (<span class="k">well061.zip</span>), schedule CSV path, and MapServer QA layers.</p>
+      <p>EIA natural gas pipelines are public pipeline context on their own layer. They are not wellbores.</p>
       <p><a href="/">Back to the map</a></p>
     </main>
   </body>

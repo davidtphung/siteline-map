@@ -892,7 +892,6 @@ function showLayerInfo(id) {
     health,
     shown,
   });
-  const sample = /Cameron fixture/i.test(document.querySelector(".sl-well-kicker")?.textContent || "");
   let grid = "";
   if (id === "sl-well-gas" && box._wells) {
     const counts = gasStatusSummary(box._wells);
@@ -931,7 +930,6 @@ function showLayerInfo(id) {
     "<p>Source: " + fact.source + "</p>" +
     "<p>Vintage: " + fact.vintage + "</p>" +
     "<p>Status: " + status + "</p>" +
-    (sample && id.startsWith("sl-well-") ? "<p>Sample fixture. Cameron County.</p>" : "") +
     grid;
   document.getElementById("sl-tray") && (document.getElementById("sl-dock-card")?.scrollTo?.(0, 0));
 }

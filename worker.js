@@ -8,6 +8,7 @@ const NM_WELLS = "https://gis.emnrd.nm.gov/arcgis/rest/services/OCDView/Wells_Pu
 const KARDASHEV_PATHS = new Set(["/api/kardashev/health"]);
 
 const BRAND_ROUTES = {
+  "/favicon.ico": ["/brand/favicon-32.png.b64"],
   "/favicon-16.png": ["/brand/favicon-16.png.b64"],
   "/favicon-32.png": ["/brand/favicon-32.png.b64"],
   "/apple-touch-icon.png": ["/brand/apple-touch-icon.png.b64"],
@@ -77,6 +78,14 @@ function securityHeaders() {
     "Referrer-Policy": "strict-origin-when-cross-origin",
     "Permissions-Policy": "camera=(), microphone=(), geolocation=(self)",
   };
+}
+
+function assetCacheControl(url) {
+  const path = url.pathname;
+  if (path === "/" || path.endsWith(".html")) return "no-cache";
+  if (/\/assets\/[^/]+-[A-Za-z0-9_-]{6,}\.(?:js|css)$/.test(path)) return "public, max-age=31536000, immutable";
+  if (/[?&]v=/.test(url.search)) return "public, max-age=31536000, immutable";
+  return "";
 }
 
 function withHeaders(response, extra) {
@@ -294,7 +303,7 @@ export default {
       return new Response("Not found", { status: 404, headers: { ...securityHeaders(), ...corsHeaders(request) } });
     }
 
-    if (env.ASSETS) return withHeaders(await env.ASSETS.fetch(request));
+    if (env.ASSETS) return withHeaders(await env.ASSETS.fetch(request), { "Cache-Control": assetCacheControl(url) });
     return new Response("ASSETS binding missing", { status: 500, headers: securityHeaders() });
   },
 };
