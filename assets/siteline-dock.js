@@ -985,6 +985,7 @@ function boot() {
         const map = window.__SITELINE_MAP__;
         if (!place || !map?.flyTo) return;
         map.flyTo({ center: place.center, zoom: place.zoom, essential: true, duration: 1200 });
+        document.getElementById("sl-explainer")?.setAttribute("hidden", "");
         if (phoneLayout()) closeDock();
       });
     }

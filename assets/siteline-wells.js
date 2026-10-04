@@ -16,7 +16,7 @@ import {
   resetGasFlags,
 } from "./well-context.mjs";
 import { bindLiveWells, labelClusters } from "./live-wells.js";
-import { bindGasWells } from "./gas-wells.js";
+import { bindGasWells } from "./gas-wells.js?v=review-3";
 import { PARTIAL_PLUG_NOTE, TEXAS_GIS_NOTE, coverageRows, pluggedToggleState } from "./gas-wells.mjs";
 import { featuresInBounds } from "./well-view.mjs";
 import { formatCount, wellStateCard } from "./well-coverage.mjs";

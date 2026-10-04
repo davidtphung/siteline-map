@@ -73,8 +73,8 @@ function ensureTileStatus(map) {
   }
   if (map.__slTileStatus) return;
   map.__slTileStatus = true;
-  map.on?.("dataloading", () => {
-    el.hidden = false;
+  map.on?.("dataloading", (event) => {
+    if (event?.sourceId === SRC) el.hidden = false;
   });
   map.on?.("idle", () => {
     el.hidden = true;
