@@ -2,8 +2,42 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://siteline.nlt143.energy/</loc>
+    <lastmod>2026-10-24</lastmod>
+  </url>
+  <url>
+    <loc>https://siteline.nlt143.energy/about</loc>
+    <lastmod>2026-10-24</lastmod>
+  </url>
+  <url>
+    <loc>https://siteline.nlt143.energy/regions</loc>
+    <lastmod>2026-10-24</lastmod>
   </url>
   <url>
     <loc>https://siteline.nlt143.energy/well-methodology</loc>
+    <lastmod>2026-10-24</lastmod>
+  </url>
+  <url>
+    <loc>https://siteline.nlt143.energy/llms.txt</loc>
+    <lastmod>2026-10-24</lastmod>
+  </url>
+  <url>
+    <loc>https://siteline.nlt143.energy/llms-full.txt</loc>
+    <lastmod>2026-10-24</lastmod>
+  </url>
+  <url>
+    <loc>https://siteline.nlt143.energy/regions/ashburn</loc>
+    <lastmod>2026-10-24</lastmod>
+  </url>
+  <url>
+    <loc>https://siteline.nlt143.energy/regions/abilene</loc>
+    <lastmod>2026-10-24</lastmod>
+  </url>
+  <url>
+    <loc>https://siteline.nlt143.energy/regions/permian</loc>
+    <lastmod>2026-10-24</lastmod>
+  </url>
+  <url>
+    <loc>https://siteline.nlt143.energy/regions/carlsbad</loc>
+    <lastmod>2026-10-24</lastmod>
   </url>
 </urlset>

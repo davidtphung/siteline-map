@@ -1,0 +1,54 @@
+# Siteline
+
+> Pin a site in a US region and read power, grid, fiber, water, gas wells, and flood layers. Every layer names its public source. Where the source stops, Siteline says UNKNOWN.
+
+Siteline is a public screening map from NLT143 RESEARCH by David T Phung (@davidtphung). It is not a title search, a capacity study, or an environmental opinion. The interactive map is a JavaScript application. This file, /about, and the region pages are the crawlable text.
+
+The map is https://siteline.nlt143.energy/.
+
+## How to use
+
+- Open https://siteline.nlt143.energy/ and pin a site, or search. Place search uses OpenStreetMap Nominatim, then Photon. It is approximate, not a survey pin.
+- Read the layer card. The card names the source.
+- Open a preset with a query parameter: https://siteline.nlt143.energy/?place=ashburn (also abilene, permian, carlsbad).
+- Aliases: nova and loudoun open Ashburn. senm and se-nm open the Permian window.
+- Or pass coordinates: https://siteline.nlt143.energy/?lat=39.04&lng=-77.49&z=9.5. If lat and lng are both set, they override place.
+
+## Preset regions
+
+- [Ashburn and Loudoun County, Virginia](https://siteline.nlt143.energy/regions/ashburn): camera longitude -77.49, latitude 39.04, zoom 9.5. Map: https://siteline.nlt143.energy/?place=ashburn.
+- [Abilene, Texas](https://siteline.nlt143.energy/regions/abilene): camera longitude -99.73, latitude 32.45, zoom 9.5. Map: https://siteline.nlt143.energy/?place=abilene.
+- [Permian Basin and southeast New Mexico](https://siteline.nlt143.energy/regions/permian): camera longitude -103.7, latitude 32.4, zoom 9. Map: https://siteline.nlt143.energy/?place=permian.
+- [Carlsbad, New Mexico](https://siteline.nlt143.energy/regions/carlsbad): camera longitude -104.228, latitude 32.421, zoom 11. Map: https://siteline.nlt143.energy/?place=carlsbad.
+
+## What Siteline will not invent
+
+- Live MW load: Megawatts on a plant are EIA catalog nameplate. They are not live output and not the pinned site's draw. When the nearest plant state is California, the brief may show CAISO system demand from the public CSV. That figure is the CAISO system, not the site. Other ISOs are not fetched.
+- Interconnection headroom: No queue, deliverability, or headroom layer is wired.
+- Transformer MVA: HIFLD substations on this map do not include transformer MVA.
+- As-built fiber: FCC BDC is reported broadband availability. OpenInfraMap telecom is OpenStreetMap. Neither is an as-built splice record.
+- Title and zoning: Siteline is not a title search and not a zoning determination.
+- Wildfire hazard: The wildfire row is labeled UNKNOWN. No wildfire layer is attached.
+
+## Sources, short
+
+- Power lines, substations, retail territories: HIFLD. https://hifld-geoplatform.opendata.arcgis.com/
+- Plant nameplate and natural gas pipelines: EIA. https://www.eia.gov/maps/layer_info-m.php
+- Broadband availability: FCC Broadband Data Collection. https://broadbandmap.fcc.gov/
+- Hydrography: USGS National Hydrography Dataset. https://www.usgs.gov/national-hydrography
+- Flood: FEMA National Flood Hazard Layer. https://www.fema.gov/flood-maps
+- Gas wells: state regulators, including the Texas Railroad Commission, Virginia Energy, and NM EMNRD OCD. Manifest: https://siteline.nlt143.energy/tiles/gaswells-manifest.json
+- NETL wells: optional catalog, not Texas status authority. https://edx.netl.doe.gov/
+- Mapped power, telecom, subsea cables, and data centers: OpenStreetMap via OpenInfraMap and Overpass. https://openinframap.org/ and https://www.openstreetmap.org/copyright
+- Wildfire hazard: UNKNOWN. The row is not wired.
+
+## Cite
+
+Siteline, NLT143 RESEARCH by David T Phung (@davidtphung), https://siteline.nlt143.energy/. Cite a layer fact to the source named on that layer.
+
+## Optional
+
+- [Full layer catalog](https://siteline.nlt143.energy/llms-full.txt)
+- [About](https://siteline.nlt143.energy/about)
+- [Well methodology](https://siteline.nlt143.energy/well-methodology)
+- [Preset regions](https://siteline.nlt143.energy/regions)

@@ -31,6 +31,521 @@
     <meta name="twitter:description" content="Pin a site in a US data center region. Read the grid, power, fiber, water, and gas wells around it." />
     <meta name="twitter:image" content="https://siteline.nlt143.energy/og-image.png?v=2" />
     <meta name="twitter:creator" content="@davidtphung" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <link rel="alternate" type="text/plain" href="https://siteline.nlt143.energy/llms.txt" title="Siteline for language models" />
+
+    <!-- siteline:jsonld -->
+<script type="application/ld+json" id="siteline-jsonld">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://siteline.nlt143.energy/#website",
+      "name": "Siteline",
+      "url": "https://siteline.nlt143.energy/",
+      "description": "Pin a site. Read power, grid, fiber, water, gas wells, and flood layers. Every layer names its source.",
+      "publisher": {
+        "@id": "https://siteline.nlt143.energy/#org"
+      }
+    },
+    {
+      "@type": "Organization",
+      "@id": "https://siteline.nlt143.energy/#org",
+      "name": "NLT143 RESEARCH",
+      "url": "https://siteline.nlt143.energy/",
+      "founder": {
+        "@id": "https://siteline.nlt143.energy/#david"
+      }
+    },
+    {
+      "@type": "Person",
+      "@id": "https://siteline.nlt143.energy/#david",
+      "name": "David T Phung",
+      "sameAs": "https://x.com/davidtphung",
+      "affiliation": {
+        "@id": "https://siteline.nlt143.energy/#org"
+      }
+    },
+    {
+      "@type": "DataCatalog",
+      "@id": "https://siteline.nlt143.energy/#catalog",
+      "name": "Siteline layer catalog",
+      "url": "https://siteline.nlt143.energy/llms-full.txt",
+      "description": "Public layers Siteline draws, each with the source Siteline actually requests.",
+      "publisher": {
+        "@id": "https://siteline.nlt143.energy/#org"
+      }
+    },
+    {
+      "@type": "WebApplication",
+      "@id": "https://siteline.nlt143.energy/#app",
+      "name": "Siteline",
+      "url": "https://siteline.nlt143.energy/",
+      "applicationCategory": "Geographic information system",
+      "operatingSystem": "Web",
+      "browserRequirements": "JavaScript for the interactive map. Text pages do not require JavaScript.",
+      "isAccessibleForFree": true,
+      "description": "Pin a site in a US region and read power, grid, fiber, water, gas wells, and flood layers. Every layer names its public source. Live MW load, interconnection headroom, transformer MVA, as-built fiber, title, zoning, and wildfire hazard stay UNKNOWN.",
+      "creator": {
+        "@id": "https://siteline.nlt143.energy/#org"
+      },
+      "author": {
+        "@id": "https://siteline.nlt143.energy/#david"
+      },
+      "featureList": [
+        "Transmission lines",
+        "Substations",
+        "Power plants",
+        "Electric retail service territories",
+        "OpenInfraMap power lines and substations",
+        "CAISO system demand",
+        "FCC broadband availability",
+        "OpenInfraMap telecom",
+        "Subsea cables",
+        "NHD flowlines and waterbodies",
+        "USGS streamflow",
+        "State regulator gas wells",
+        "Texas RRC wells",
+        "New Mexico OCD wells",
+        "Colorado ECMC wells",
+        "Virginia gas wells",
+        "NETL orphaned and operating wells",
+        "Natural gas pipelines",
+        "FEMA flood zones",
+        "Wildfire hazard",
+        "Topographic basemaps",
+        "Elevation contours",
+        "USGS elevation point",
+        "OSM data centers"
+      ]
+    },
+    {
+      "@type": "Dataset",
+      "@id": "https://siteline.nlt143.energy/#dataset-transmission",
+      "name": "Transmission lines",
+      "description": "High voltage transmission lines. Line weight follows voltage when the source has kV. The line is grey-amber when kV is missing. Not live load and not interconnection headroom.",
+      "creator": {
+        "@type": "Organization",
+        "name": "HIFLD"
+      },
+      "isAccessibleForFree": true,
+      "spatialCoverage": {
+        "@type": "Place",
+        "name": "United States"
+      },
+      "includedInDataCatalog": {
+        "@id": "https://siteline.nlt143.energy/#catalog"
+      },
+      "url": "https://services2.arcgis.com/LYMgRMwHfrWWEg3s/arcgis/rest/services/HIFLD_US_Electric_Power_Transmission_Lines/FeatureServer",
+      "citation": "https://hifld-geoplatform.opendata.arcgis.com/",
+      "license": "https://www.usa.gov/government-works"
+    },
+    {
+      "@type": "Dataset",
+      "@id": "https://siteline.nlt143.energy/#dataset-substations",
+      "name": "Substations",
+      "description": "Electric substations from the HIFLD catalog. Transformer MVA is not in this layer. It stays UNKNOWN.",
+      "creator": {
+        "@type": "Organization",
+        "name": "HIFLD"
+      },
+      "isAccessibleForFree": true,
+      "spatialCoverage": {
+        "@type": "Place",
+        "name": "United States"
+      },
+      "includedInDataCatalog": {
+        "@id": "https://siteline.nlt143.energy/#catalog"
+      },
+      "url": "https://services.arcgis.com/njFNhDsUCentVYJW/ArcGIS/rest/services/Substations/FeatureServer",
+      "citation": "https://hifld-geoplatform.opendata.arcgis.com/",
+      "license": "https://www.usa.gov/government-works"
+    },
+    {
+      "@type": "Dataset",
+      "@id": "https://siteline.nlt143.energy/#dataset-plants",
+      "name": "Power plants",
+      "description": "US power plants. The megawatt field is EIA catalog nameplate. Nameplate is not live output, not interconnection, and not the pinned site's draw.",
+      "creator": {
+        "@type": "Organization",
+        "name": "EIA"
+      },
+      "isAccessibleForFree": true,
+      "spatialCoverage": {
+        "@type": "Place",
+        "name": "United States"
+      },
+      "includedInDataCatalog": {
+        "@id": "https://siteline.nlt143.energy/#catalog"
+      },
+      "url": "https://services2.arcgis.com/FiaPA4ga0iQKduv3/arcgis/rest/services/Power_Plants_in_the_US/FeatureServer",
+      "citation": "https://www.eia.gov/maps/layer_info-m.php",
+      "license": "https://www.eia.gov/about/copyrights_reuse.php"
+    },
+    {
+      "@type": "Dataset",
+      "@id": "https://siteline.nlt143.energy/#dataset-territories",
+      "name": "Electric retail service territories",
+      "description": "Which utility sells retail power in an area. Service areas can lag. A territory is not a contract and not available capacity.",
+      "creator": {
+        "@type": "Organization",
+        "name": "HIFLD public copy"
+      },
+      "isAccessibleForFree": true,
+      "spatialCoverage": {
+        "@type": "Place",
+        "name": "United States"
+      },
+      "includedInDataCatalog": {
+        "@id": "https://siteline.nlt143.energy/#catalog"
+      },
+      "url": "https://services3.arcgis.com/OYP7N6mAJJCyH6hd/ArcGIS/rest/services/Electric_Retail_Service_Territories_HIFLD/FeatureServer/0",
+      "citation": "https://hifld-geoplatform.opendata.arcgis.com/",
+      "license": "https://www.usa.gov/government-works"
+    },
+    {
+      "@type": "Dataset",
+      "@id": "https://siteline.nlt143.energy/#dataset-oim-power",
+      "name": "OpenInfraMap power lines and substations",
+      "description": "Power lines and substations mapped in OpenStreetMap and drawn by OpenInfraMap. Mapped by OpenStreetMap contributors. Not an as-built utility record.",
+      "creator": {
+        "@type": "Organization",
+        "name": "OpenInfraMap / OpenStreetMap"
+      },
+      "isAccessibleForFree": true,
+      "spatialCoverage": {
+        "@type": "Place",
+        "name": "United States"
+      },
+      "includedInDataCatalog": {
+        "@id": "https://siteline.nlt143.energy/#catalog"
+      },
+      "url": "https://openinframap.org/",
+      "citation": "https://www.openstreetmap.org/copyright",
+      "license": "https://opendatacommons.org/licenses/odbl/1-0/"
+    },
+    {
+      "@type": "Dataset",
+      "@id": "https://siteline.nlt143.energy/#dataset-bdc",
+      "name": "FCC broadband availability",
+      "description": "Broadband service reported by location in the FCC Broadband Data Collection, December 2024 view. Reported availability. Not as-built fiber.",
+      "creator": {
+        "@type": "Organization",
+        "name": "FCC BDC"
+      },
+      "isAccessibleForFree": true,
+      "spatialCoverage": {
+        "@type": "Place",
+        "name": "United States"
+      },
+      "includedInDataCatalog": {
+        "@id": "https://siteline.nlt143.energy/#catalog"
+      },
+      "url": "https://services8.arcgis.com/peDZJliSvYims39Q/arcgis/rest/services/FCC_Broadband_Data_Collection_December_2024_View/FeatureServer",
+      "citation": "https://broadbandmap.fcc.gov/",
+      "license": "https://www.usa.gov/government-works"
+    },
+    {
+      "@type": "Dataset",
+      "@id": "https://siteline.nlt143.energy/#dataset-oim-telecom",
+      "name": "OpenInfraMap telecom",
+      "description": "Telecom lines mapped in OpenStreetMap and drawn by OpenInfraMap. Not an as-built fiber route or splice record.",
+      "creator": {
+        "@type": "Organization",
+        "name": "OpenInfraMap / OpenStreetMap"
+      },
+      "isAccessibleForFree": true,
+      "spatialCoverage": {
+        "@type": "Place",
+        "name": "United States"
+      },
+      "includedInDataCatalog": {
+        "@id": "https://siteline.nlt143.energy/#catalog"
+      },
+      "url": "https://openinframap.org/",
+      "citation": "https://www.openstreetmap.org/copyright",
+      "license": "https://opendatacommons.org/licenses/odbl/1-0/"
+    },
+    {
+      "@type": "Dataset",
+      "@id": "https://siteline.nlt143.energy/#dataset-subsea",
+      "name": "Subsea cables",
+      "description": "Communication lines in OpenStreetMap with location underwater, drawn from OpenInfraMap tiles. A mapped cable is not a landing-station contract or a lit capacity.",
+      "creator": {
+        "@type": "Organization",
+        "name": "OpenInfraMap / OpenStreetMap"
+      },
+      "isAccessibleForFree": true,
+      "spatialCoverage": {
+        "@type": "Place",
+        "name": "United States"
+      },
+      "includedInDataCatalog": {
+        "@id": "https://siteline.nlt143.energy/#catalog"
+      },
+      "url": "https://openinframap.org/",
+      "citation": "https://www.openstreetmap.org/copyright",
+      "license": "https://opendatacommons.org/licenses/odbl/1-0/"
+    },
+    {
+      "@type": "Dataset",
+      "@id": "https://siteline.nlt143.energy/#dataset-nhd",
+      "name": "NHD flowlines and waterbodies",
+      "description": "Rivers, streams, and waterbodies from the National Hydrography Dataset. Flowlines are National Map layer 6. Waterbodies are layer 12. Hydrography is not a water right and not a withdrawal volume.",
+      "creator": {
+        "@type": "Organization",
+        "name": "USGS NHD"
+      },
+      "isAccessibleForFree": true,
+      "spatialCoverage": {
+        "@type": "Place",
+        "name": "United States"
+      },
+      "includedInDataCatalog": {
+        "@id": "https://siteline.nlt143.energy/#catalog"
+      },
+      "url": "https://hydro.nationalmap.gov/arcgis/rest/services/nhd/MapServer",
+      "citation": "https://www.usgs.gov/national-hydrography",
+      "license": "https://www.usgs.gov/information-policies-and-instructions/copyrights-and-credits"
+    },
+    {
+      "@type": "Dataset",
+      "@id": "https://siteline.nlt143.energy/#dataset-gas-wells",
+      "name": "State regulator gas wells",
+      "description": "Nationwide natural gas wells from each state's public regulator feed, drawn from vector tiles. The card reads the manifest for the state under the map: agency, coverage, and source date. Coverage is live full status, partial status, or file snapshot. A state with no verified feed is hatched and labeled. The hatch is not a count of zero wells. Well proximity is not gas deliverability, capacity, pressure, or service. Counts on a state row are statewide feed counts, not a preset-window count.",
+      "creator": {
+        "@type": "Organization",
+        "name": "State oil and gas agencies"
+      },
+      "isAccessibleForFree": true,
+      "spatialCoverage": {
+        "@type": "Place",
+        "name": "United States"
+      },
+      "includedInDataCatalog": {
+        "@id": "https://siteline.nlt143.energy/#catalog"
+      },
+      "url": "https://siteline.nlt143.energy/tiles/gaswells-manifest.json",
+      "citation": "https://siteline.nlt143.energy/well-methodology",
+      "license": "https://siteline.nlt143.energy/well-methodology"
+    },
+    {
+      "@type": "Dataset",
+      "@id": "https://siteline.nlt143.energy/#dataset-rrc",
+      "name": "Texas RRC wells",
+      "description": "Texas wells come from Railroad Commission of Texas GIS map symbols. The manifest classifies Texas as partial status. The headline status is Status not confirmed (RRC map symbol). Producing status is not confirmed. The layer has no operator and no dates. Data as of stays UNKNOWN until the source file carries a refresh date. NETL, HIFLD, New Mexico OCD, and Colorado OGCC are not the status authority for a Texas well. Inactive is not abandoned. A plugged map symbol alone is not confirmed plugged and abandoned.",
+      "creator": {
+        "@type": "Organization",
+        "name": "Railroad Commission of Texas"
+      },
+      "isAccessibleForFree": true,
+      "spatialCoverage": {
+        "@type": "Place",
+        "name": "United States"
+      },
+      "includedInDataCatalog": {
+        "@id": "https://siteline.nlt143.energy/#catalog"
+      },
+      "url": "https://gis.rrc.texas.gov/server/rest/services/rrc_public/RRC_Public_Viewer_Srvs/MapServer/1",
+      "citation": "https://www.rrc.texas.gov/resource-center/research/data-sets-available-for-download/",
+      "license": "https://www.rrc.texas.gov/resource-center/research/data-sets-available-for-download/"
+    },
+    {
+      "@type": "Dataset",
+      "@id": "https://siteline.nlt143.energy/#dataset-nm-ocd",
+      "name": "New Mexico OCD wells",
+      "description": "Public wells from the NM EMNRD Oil Conservation Division OCDView service. The manifest classifies this feed as live full status and records the source date 2026-08-01. This is not the status authority for a Texas well. This page does not state a well count.",
+      "creator": {
+        "@type": "Organization",
+        "name": "NM EMNRD Oil Conservation Division"
+      },
+      "isAccessibleForFree": true,
+      "spatialCoverage": {
+        "@type": "Place",
+        "name": "United States"
+      },
+      "includedInDataCatalog": {
+        "@id": "https://siteline.nlt143.energy/#catalog"
+      },
+      "url": "https://gis.emnrd.nm.gov/arcgis/rest/services/OCDView/Wells_Public/FeatureServer/0",
+      "citation": "https://www.emnrd.nm.gov/ocd/",
+      "license": "https://gis.emnrd.nm.gov/arcgis/rest/services/OCDView/Wells_Public/FeatureServer/0"
+    },
+    {
+      "@type": "Dataset",
+      "@id": "https://siteline.nlt143.energy/#dataset-co-ecmc",
+      "name": "Colorado ECMC wells",
+      "description": "Colorado public wells. Commodity is unconfirmed on this layer. Status dates in the product run through 2025-03-26. Not the status authority for a Texas well.",
+      "creator": {
+        "@type": "Organization",
+        "name": "Colorado ECMC"
+      },
+      "isAccessibleForFree": true,
+      "spatialCoverage": {
+        "@type": "Place",
+        "name": "United States"
+      },
+      "includedInDataCatalog": {
+        "@id": "https://siteline.nlt143.energy/#catalog"
+      },
+      "url": "https://data.dnrgis.state.co.us/arcgis/rest/services/DNR_Public/OGCC_Wells/FeatureServer/0",
+      "citation": "https://ecmc.state.co.us/documents/data/downloads/gis/WELLS_SHP.ZIP",
+      "license": "https://ecmc.state.co.us/"
+    },
+    {
+      "@type": "Dataset",
+      "@id": "https://siteline.nlt143.energy/#dataset-va-dgo",
+      "name": "Virginia gas wells",
+      "description": "Virginia wells from Virginia Energy, Division of Gas and Oil. The manifest classifies this statewide feed as live full status and records the source date 2026-09-22. The source date describes the statewide feed, not a count of wells in Loudoun County.",
+      "creator": {
+        "@type": "Organization",
+        "name": "Virginia Energy, Division of Gas and Oil"
+      },
+      "isAccessibleForFree": true,
+      "spatialCoverage": {
+        "@type": "Place",
+        "name": "United States"
+      },
+      "includedInDataCatalog": {
+        "@id": "https://siteline.nlt143.energy/#catalog"
+      },
+      "url": "https://energy.virginia.gov/gis/rest/services/DGO/DGO_wells/FeatureServer/0",
+      "citation": "https://energy.virginia.gov/",
+      "license": "https://energy.virginia.gov/gis/rest/services/DGO/DGO_wells/FeatureServer/0"
+    },
+    {
+      "@type": "Dataset",
+      "@id": "https://siteline.nlt143.energy/#dataset-netl",
+      "name": "NETL orphaned and operating wells",
+      "description": "Optional well catalogs from NETL. Orphaned wells are Hosted/Orphaned_Wells_v2. Operating wells are Hosted/Integrated_Public_Wells_AugEY25. Not the status authority for a Texas well. Commodity on the orphaned catalog is not confirmed.",
+      "creator": {
+        "@type": "Organization",
+        "name": "NETL / DOE"
+      },
+      "isAccessibleForFree": true,
+      "spatialCoverage": {
+        "@type": "Place",
+        "name": "United States"
+      },
+      "includedInDataCatalog": {
+        "@id": "https://siteline.nlt143.energy/#catalog"
+      },
+      "url": "https://edx.netl.doe.gov/",
+      "citation": "https://arcgis.netl.doe.gov/server/rest/services/Hosted/Orphaned_Wells_v2/FeatureServer/113",
+      "license": "https://www.usa.gov/government-works"
+    },
+    {
+      "@type": "Dataset",
+      "@id": "https://siteline.nlt143.energy/#dataset-pipelines",
+      "name": "Natural gas pipelines",
+      "description": "Interstate and intrastate natural gas transmission lines from the EIA catalog. Public pipeline context. Not wellbores and not capacity.",
+      "creator": {
+        "@type": "Organization",
+        "name": "EIA"
+      },
+      "isAccessibleForFree": true,
+      "spatialCoverage": {
+        "@type": "Place",
+        "name": "United States"
+      },
+      "includedInDataCatalog": {
+        "@id": "https://siteline.nlt143.energy/#catalog"
+      },
+      "url": "https://services2.arcgis.com/FiaPA4ga0iQKduv3/arcgis/rest/services/Natural_Gas_Interstate_and_Intrastate_Pipelines_1/FeatureServer/0",
+      "citation": "https://www.eia.gov/maps/layer_info-m.php",
+      "license": "https://www.eia.gov/about/copyrights_reuse.php"
+    },
+    {
+      "@type": "Dataset",
+      "@id": "https://siteline.nlt143.energy/#dataset-flood",
+      "name": "FEMA flood zones",
+      "description": "Flood hazard zones from the National Flood Hazard Layer, public MapServer layer 28. A flood zone on this map is not an elevation certificate and not a title exception.",
+      "creator": {
+        "@type": "Organization",
+        "name": "FEMA"
+      },
+      "isAccessibleForFree": true,
+      "spatialCoverage": {
+        "@type": "Place",
+        "name": "United States"
+      },
+      "includedInDataCatalog": {
+        "@id": "https://siteline.nlt143.energy/#catalog"
+      },
+      "url": "https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/28",
+      "citation": "https://www.fema.gov/flood-maps",
+      "license": "https://www.fema.gov/about/openfema/data-sets"
+    },
+    {
+      "@type": "Dataset",
+      "@id": "https://siteline.nlt143.energy/#dataset-wildfire",
+      "name": "Wildfire hazard",
+      "description": "The wildfire row is on the layer list and switched off. No wildfire layer is attached. Wildfire hazard is UNKNOWN.",
+      "creator": {
+        "@type": "Organization",
+        "name": "UNKNOWN"
+      },
+      "isAccessibleForFree": true,
+      "spatialCoverage": {
+        "@type": "Place",
+        "name": "United States"
+      },
+      "includedInDataCatalog": {
+        "@id": "https://siteline.nlt143.energy/#catalog"
+      }
+    },
+    {
+      "@type": "Dataset",
+      "@id": "https://siteline.nlt143.energy/#dataset-datacenters",
+      "name": "OSM data centers",
+      "description": "Points OpenStreetMap has tagged as data centers, from Overpass. Partial crowd-sourced catalog. Not a complete inventory and not a capacity.",
+      "creator": {
+        "@type": "Organization",
+        "name": "OpenStreetMap"
+      },
+      "isAccessibleForFree": true,
+      "spatialCoverage": {
+        "@type": "Place",
+        "name": "United States"
+      },
+      "includedInDataCatalog": {
+        "@id": "https://siteline.nlt143.energy/#catalog"
+      },
+      "url": "https://overpass-api.de/api/interpreter",
+      "citation": "https://www.openstreetmap.org/copyright",
+      "license": "https://opendatacommons.org/licenses/odbl/1-0/"
+    }
+  ]
+}
+</script>
+<!-- /siteline:jsonld -->
+
+    <style>
+      .sl-crawler-summary {
+        position: absolute !important;
+        width: 1px !important;
+        height: 1px !important;
+        padding: 0 !important;
+        margin: -1px !important;
+        overflow: hidden !important;
+        clip: rect(0, 0, 0, 0) !important;
+        clip-path: inset(50%) !important;
+        white-space: nowrap !important;
+        border: 0 !important;
+        pointer-events: none !important;
+      }
+      .sl-noscript {
+        position: relative;
+        z-index: 2;
+        max-width: 42rem;
+        margin: 0 auto;
+        padding: 2rem 1.2rem 3rem;
+        color: #e7e5e4;
+        font: 16px/1.5 Inter, system-ui, sans-serif;
+      }
+      .sl-noscript a { color: #4da3ff; }
+    </style>
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -52,10 +567,32 @@
   <body>
     <a class="sl-skip" href="#root">Skip to map</a>
     <div id="root"></div>
+    <!-- siteline:summary -->
+    <div class="sl-crawler-summary" id="siteline-summary">
+      <p>Siteline, NLT143 RESEARCH by David T Phung (@davidtphung). https://siteline.nlt143.energy/</p>
+      <h2>What is Siteline?</h2><p>Siteline is a public screening map. You pin a site in the United States and read the power, grid, fiber, water, gas wells, and flood layers around it. Every layer names its public source. Where the source stops, Siteline says UNKNOWN. It is not a title search, a capacity study, or an environmental opinion. Siteline is from NLT143 RESEARCH by David T Phung (@davidtphung).</p><h2>Which layers can I read?</h2><p>The map can show HIFLD transmission lines, HIFLD substations, HIFLD electric retail service territories, EIA power plants at catalog nameplate, OpenInfraMap power lines, FCC Broadband Data Collection availability, OpenInfraMap telecom, OpenStreetMap subsea cables, National Hydrography Dataset flowlines and waterbodies, USGS streamflow when a gage is returned, state regulator gas wells, Texas Railroad Commission wells, NETL orphaned and operating wells, New Mexico OCD wells, Colorado ECMC wells, Virginia Energy gas wells, EIA natural gas pipelines, FEMA flood zones, topographic basemaps, DEM-derived contours, a USGS elevation point, and OpenStreetMap data center points. The wildfire row is on the list and switched off. It is UNKNOWN because no wildfire layer is attached.</p><h2>Where do the layers come from?</h2><p>Transmission, substations, and retail service territories come from HIFLD. Power plant nameplate and natural gas pipelines come from EIA. Broadband availability comes from the FCC Broadband Data Collection. Hydrography comes from the USGS National Hydrography Dataset on the National Map. Flood zones come from the FEMA National Flood Hazard Layer. Gas wells come from state regulators, including the Railroad Commission of Texas, Virginia Energy, and the New Mexico EMNRD Oil Conservation Division. NETL is an optional well catalog and is not the status authority for a Texas well. OpenInfraMap power and telecom are OpenStreetMap features, not as-built records. Source and license URLs are listed on this page and in the full LLM text.</p><h2>What does Siteline leave as UNKNOWN?</h2><p>Live MW load at the pin, interconnection headroom, transformer MVA, as-built fiber, title, zoning, and wildfire hazard. Plant megawatts are EIA catalog nameplate, not live output and not the site draw. A CAISO figure, when shown, is CAISO system demand, not the site. HIFLD substations on this map do not include transformer MVA. FCC BDC is reported availability, not an as-built fiber map.</p><h2>How do I use Siteline?</h2><p>Open the map. Search for a place or pin a point. Place search uses OpenStreetMap Nominatim, then Photon if that fails. The result is approximate, not a survey pin. Turn layers on in the tray and read the card. Each card names the source. You can also open a preset view for Ashburn and Loudoun County in Virginia, Abilene in Texas, the Permian Basin and southeast New Mexico, or Carlsbad in New Mexico. Each preset has a text page and a deep link such as /?place=ashburn. The same camera accepts latitude, longitude, and zoom query parameters. If lat and lng are both set, they override place.</p>
+      <h2>Preset regions</h2>
+      <ul><li><a tabindex="-1" href="/regions/ashburn">Ashburn and Loudoun County, Virginia</a> (<a tabindex="-1" href="/?place=ashburn">map</a>)</li><li><a tabindex="-1" href="/regions/abilene">Abilene, Texas</a> (<a tabindex="-1" href="/?place=abilene">map</a>)</li><li><a tabindex="-1" href="/regions/permian">Permian Basin and southeast New Mexico</a> (<a tabindex="-1" href="/?place=permian">map</a>)</li><li><a tabindex="-1" href="/regions/carlsbad">Carlsbad, New Mexico</a> (<a tabindex="-1" href="/?place=carlsbad">map</a>)</li></ul>
+      <h2>UNKNOWN</h2>
+      <ul><li>Live MW load: Megawatts on a plant are EIA catalog nameplate. They are not live output and not the pinned site's draw. When the nearest plant state is California, the brief may show CAISO system demand from the public CSV. That figure is the CAISO system, not the site. Other ISOs are not fetched.</li><li>Interconnection headroom: No queue, deliverability, or headroom layer is wired.</li><li>Transformer MVA: HIFLD substations on this map do not include transformer MVA.</li><li>As-built fiber: FCC BDC is reported broadband availability. OpenInfraMap telecom is OpenStreetMap. Neither is an as-built splice record.</li><li>Title and zoning: Siteline is not a title search and not a zoning determination.</li><li>Wildfire hazard: The wildfire row is labeled UNKNOWN. No wildfire layer is attached.</li></ul>
+      <p><a tabindex="-1" href="/about">About Siteline</a> <a tabindex="-1" href="/llms.txt">llms.txt</a> <a tabindex="-1" href="/llms-full.txt">llms-full.txt</a> <a tabindex="-1" href="/well-methodology">Well methodology</a></p>
+    </div>
+    <noscript>
+      <main class="sl-noscript">
+        <p class="kicker">NLT143 RESEARCH</p>
+        <h1>Siteline</h1>
+        <p>The interactive map needs JavaScript. The same facts are on the text pages.</p>
+        <h2>What is Siteline?</h2><p>Siteline is a public screening map. You pin a site in the United States and read the power, grid, fiber, water, gas wells, and flood layers around it. Every layer names its public source. Where the source stops, Siteline says UNKNOWN. It is not a title search, a capacity study, or an environmental opinion. Siteline is from NLT143 RESEARCH by David T Phung (@davidtphung).</p><h2>Which layers can I read?</h2><p>The map can show HIFLD transmission lines, HIFLD substations, HIFLD electric retail service territories, EIA power plants at catalog nameplate, OpenInfraMap power lines, FCC Broadband Data Collection availability, OpenInfraMap telecom, OpenStreetMap subsea cables, National Hydrography Dataset flowlines and waterbodies, USGS streamflow when a gage is returned, state regulator gas wells, Texas Railroad Commission wells, NETL orphaned and operating wells, New Mexico OCD wells, Colorado ECMC wells, Virginia Energy gas wells, EIA natural gas pipelines, FEMA flood zones, topographic basemaps, DEM-derived contours, a USGS elevation point, and OpenStreetMap data center points. The wildfire row is on the list and switched off. It is UNKNOWN because no wildfire layer is attached.</p><h2>Where do the layers come from?</h2><p>Transmission, substations, and retail service territories come from HIFLD. Power plant nameplate and natural gas pipelines come from EIA. Broadband availability comes from the FCC Broadband Data Collection. Hydrography comes from the USGS National Hydrography Dataset on the National Map. Flood zones come from the FEMA National Flood Hazard Layer. Gas wells come from state regulators, including the Railroad Commission of Texas, Virginia Energy, and the New Mexico EMNRD Oil Conservation Division. NETL is an optional well catalog and is not the status authority for a Texas well. OpenInfraMap power and telecom are OpenStreetMap features, not as-built records. Source and license URLs are listed on this page and in the full LLM text.</p><h2>What does Siteline leave as UNKNOWN?</h2><p>Live MW load at the pin, interconnection headroom, transformer MVA, as-built fiber, title, zoning, and wildfire hazard. Plant megawatts are EIA catalog nameplate, not live output and not the site draw. A CAISO figure, when shown, is CAISO system demand, not the site. HIFLD substations on this map do not include transformer MVA. FCC BDC is reported availability, not an as-built fiber map.</p><h2>How do I use Siteline?</h2><p>Open the map. Search for a place or pin a point. Place search uses OpenStreetMap Nominatim, then Photon if that fails. The result is approximate, not a survey pin. Turn layers on in the tray and read the card. Each card names the source. You can also open a preset view for Ashburn and Loudoun County in Virginia, Abilene in Texas, the Permian Basin and southeast New Mexico, or Carlsbad in New Mexico. Each preset has a text page and a deep link such as /?place=ashburn. The same camera accepts latitude, longitude, and zoom query parameters. If lat and lng are both set, they override place.</p>
+        <p><a href="/about">About Siteline</a></p>
+        <ul><li><a href="/regions/ashburn">Ashburn and Loudoun County, Virginia</a> (<a href="/?place=ashburn">map</a>)</li><li><a href="/regions/abilene">Abilene, Texas</a> (<a href="/?place=abilene">map</a>)</li><li><a href="/regions/permian">Permian Basin and southeast New Mexico</a> (<a href="/?place=permian">map</a>)</li><li><a href="/regions/carlsbad">Carlsbad, New Mexico</a> (<a href="/?place=carlsbad">map</a>)</li></ul>
+      </main>
+    </noscript>
+<!-- /siteline:summary -->
     <script type="module" crossorigin src="./assets/index-CxleVYPI.js?v=rebase-1"></script>
     <script type="module" src="./assets/siteline-enhance.js?v=review-3"></script>
     <script type="module" src="./assets/siteline-wells.js?v=review-3"></script>
     <script type="module" src="./assets/siteline-layers.js?v=review-3"></script>
     <script type="module" src="./assets/siteline-dock.js?v=review-3"></script>
+    <script type="module" src="./assets/siteline-view.js?v=discover-1"></script>
   </body>
 </html>

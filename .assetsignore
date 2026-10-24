@@ -6,5 +6,6 @@
 worker.js
 wrangler.toml
 docs
+scripts
 services
 .wrangler/**
