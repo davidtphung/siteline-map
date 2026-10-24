@@ -1,0 +1,107 @@
+# Siteline, full layer catalog
+
+> NLT143 RESEARCH by David T Phung (@davidtphung). Screening map at https://siteline.nlt143.energy/. This file is the long public description for answer engines. It does not add measurements that are not in the layers.
+
+Siteline pins a site and draws public infrastructure layers. The honesty labels in the product are CATALOG, OSM_MAPPED, DEM-derived, LIVE, RRC, and UNKNOWN.
+
+Texas wells are map symbol status only. The headline is Status not confirmed (RRC map symbol). Producing status is not confirmed. Inactive is not abandoned. Orphan is not abandoned. Historical and missing status are not abandoned. Plugged and abandoned is confirmed only with explicit official evidence. Well proximity is not gas deliverability, capacity, pressure, or service. Well proximity is not oil liability. EIA natural gas pipelines are public pipeline context, separate from wells.
+
+A state with no verified gas well feed is labeled "No public wells feed wired for this state yet" and hatched. The hatch is not a count of zero wells.
+
+## Every layer
+
+- Transmission lines (CATALOG). Source: HIFLD, https://services2.arcgis.com/LYMgRMwHfrWWEg3s/arcgis/rest/services/HIFLD_US_Electric_Power_Transmission_Lines/FeatureServer. License: US government work, https://www.usa.gov/government-works. High voltage transmission lines. Line weight follows voltage when the source has kV. The line is grey-amber when kV is missing. Not live load and not interconnection headroom.
+- Substations (CATALOG). Source: HIFLD, https://services.arcgis.com/njFNhDsUCentVYJW/ArcGIS/rest/services/Substations/FeatureServer. License: US government work, https://www.usa.gov/government-works. Electric substations from the HIFLD catalog. Transformer MVA is not in this layer. It stays UNKNOWN.
+- Power plants (CATALOG). Source: EIA, https://services2.arcgis.com/FiaPA4ga0iQKduv3/arcgis/rest/services/Power_Plants_in_the_US/FeatureServer. License: EIA public domain, https://www.eia.gov/about/copyrights_reuse.php. US power plants. The megawatt field is EIA catalog nameplate. Nameplate is not live output, not interconnection, and not the pinned site's draw.
+- Electric retail service territories (CATALOG). Source: HIFLD public copy, https://services3.arcgis.com/OYP7N6mAJJCyH6hd/ArcGIS/rest/services/Electric_Retail_Service_Territories_HIFLD/FeatureServer/0. License: US government work, https://www.usa.gov/government-works. Which utility sells retail power in an area. Service areas can lag. A territory is not a contract and not available capacity.
+- OpenInfraMap power lines and substations (OSM_MAPPED). Source: OpenInfraMap / OpenStreetMap, https://openinframap.org/. License: Open Database License, https://opendatacommons.org/licenses/odbl/1-0/. Power lines and substations mapped in OpenStreetMap and drawn by OpenInfraMap. Mapped by OpenStreetMap contributors. Not an as-built utility record.
+- CAISO system demand (LIVE). Source: CAISO, https://www.caiso.com/outlook/current/systemstatus.csv. License: See the CAISO outlook page, https://www.caiso.com/outlook/current. Current CAISO system demand from the public outlook CSV. The brief requests it only when the nearest EIA plant state is California. System demand for CAISO. Not the pinned site's MW draw. Texas shows an ERCOT label only as a proxy from a Texas plant state, and that path does not fetch live demand.
+- FCC broadband availability (CATALOG). Source: FCC BDC, https://services8.arcgis.com/peDZJliSvYims39Q/arcgis/rest/services/FCC_Broadband_Data_Collection_December_2024_View/FeatureServer. License: US government work, https://www.usa.gov/government-works. Broadband service reported by location in the FCC Broadband Data Collection, December 2024 view. Reported availability. Not as-built fiber.
+- OpenInfraMap telecom (OSM_MAPPED). Source: OpenInfraMap / OpenStreetMap, https://openinframap.org/. License: Open Database License, https://opendatacommons.org/licenses/odbl/1-0/. Telecom lines mapped in OpenStreetMap and drawn by OpenInfraMap. Not an as-built fiber route or splice record.
+- Subsea cables (OSM_MAPPED). Source: OpenInfraMap / OpenStreetMap, https://openinframap.org/. License: Open Database License, https://opendatacommons.org/licenses/odbl/1-0/. Communication lines in OpenStreetMap with location underwater, drawn from OpenInfraMap tiles. A mapped cable is not a landing-station contract or a lit capacity.
+- NHD flowlines and waterbodies (CATALOG). Source: USGS NHD, https://hydro.nationalmap.gov/arcgis/rest/services/nhd/MapServer. License: USGS public domain, https://www.usgs.gov/information-policies-and-instructions/copyrights-and-credits. Rivers, streams, and waterbodies from the National Hydrography Dataset. Flowlines are National Map layer 6. Waterbodies are layer 12. Hydrography is not a water right and not a withdrawal volume.
+- USGS streamflow (LIVE). Source: USGS NWIS, https://waterservices.usgs.gov/nwis/iv/. License: USGS public domain, https://www.usgs.gov/information-policies-and-instructions/copyrights-and-credits. Instantaneous streamflow, parameter 00060, when the National Water Information System returns a gage in the search window. A gage reading is not a water right. Data center withdrawal volume is UNKNOWN.
+- State regulator gas wells (CATALOG). Source: State oil and gas agencies, https://siteline.nlt143.energy/tiles/gaswells-manifest.json. License: Public agency records. Terms are on each state source., https://siteline.nlt143.energy/well-methodology. Nationwide natural gas wells from each state's public regulator feed, drawn from vector tiles. The card reads the manifest for the state under the map: agency, coverage, and source date. Coverage is live full status, partial status, or file snapshot. A state with no verified feed is hatched and labeled. The hatch is not a count of zero wells. Well proximity is not gas deliverability, capacity, pressure, or service. Counts on a state row are statewide feed counts, not a preset-window count.
+- Texas RRC wells (RRC). Source: Railroad Commission of Texas, https://gis.rrc.texas.gov/server/rest/services/rrc_public/RRC_Public_Viewer_Srvs/MapServer/1. License: Texas RRC public GIS. See the download page., https://www.rrc.texas.gov/resource-center/research/data-sets-available-for-download/. Texas wells come from Railroad Commission of Texas GIS map symbols. The manifest classifies Texas as partial status. The headline status is Status not confirmed (RRC map symbol). Producing status is not confirmed. The layer has no operator and no dates. Data as of stays UNKNOWN until the source file carries a refresh date. NETL, HIFLD, New Mexico OCD, and Colorado OGCC are not the status authority for a Texas well. Inactive is not abandoned. A plugged map symbol alone is not confirmed plugged and abandoned.
+- New Mexico OCD wells (CATALOG). Source: NM EMNRD Oil Conservation Division, https://gis.emnrd.nm.gov/arcgis/rest/services/OCDView/Wells_Public/FeatureServer/0. License: New Mexico public GIS. See the agency service., https://gis.emnrd.nm.gov/arcgis/rest/services/OCDView/Wells_Public/FeatureServer/0. Public wells from the NM EMNRD Oil Conservation Division OCDView service. The manifest classifies this feed as live full status and records the source date 2026-08-01. This is not the status authority for a Texas well. This page does not state a well count.
+- Colorado ECMC wells (CATALOG). Source: Colorado ECMC, https://data.dnrgis.state.co.us/arcgis/rest/services/DNR_Public/OGCC_Wells/FeatureServer/0. License: Colorado public GIS. See the agency download., https://ecmc.state.co.us/. Colorado public wells. Commodity is unconfirmed on this layer. Status dates in the product run through 2025-03-26. Not the status authority for a Texas well.
+- Virginia gas wells (CATALOG). Source: Virginia Energy, Division of Gas and Oil, https://energy.virginia.gov/gis/rest/services/DGO/DGO_wells/FeatureServer/0. License: Virginia public GIS. See the agency service., https://energy.virginia.gov/gis/rest/services/DGO/DGO_wells/FeatureServer/0. Virginia wells from Virginia Energy, Division of Gas and Oil. The manifest classifies this statewide feed as live full status and records the source date 2026-09-22. The source date describes the statewide feed, not a count of wells in Loudoun County.
+- NETL orphaned and operating wells (CATALOG). Source: NETL / DOE, https://edx.netl.doe.gov/. License: US government work, https://www.usa.gov/government-works. Optional well catalogs from NETL. Orphaned wells are Hosted/Orphaned_Wells_v2. Operating wells are Hosted/Integrated_Public_Wells_AugEY25. Not the status authority for a Texas well. Commodity on the orphaned catalog is not confirmed.
+- Natural gas pipelines (CATALOG). Source: EIA, https://services2.arcgis.com/FiaPA4ga0iQKduv3/arcgis/rest/services/Natural_Gas_Interstate_and_Intrastate_Pipelines_1/FeatureServer/0. License: EIA public domain, https://www.eia.gov/about/copyrights_reuse.php. Interstate and intrastate natural gas transmission lines from the EIA catalog. Public pipeline context. Not wellbores and not capacity.
+- FEMA flood zones (CATALOG). Source: FEMA, https://hazards.fema.gov/arcgis/rest/services/public/NFHL/MapServer/28. License: US government work, https://www.fema.gov/about/openfema/data-sets. Flood hazard zones from the National Flood Hazard Layer, public MapServer layer 28. A flood zone on this map is not an elevation certificate and not a title exception.
+- Wildfire hazard (UNKNOWN). Source: UNKNOWN, UNKNOWN. License: UNKNOWN, UNKNOWN. The wildfire row is on the layer list and switched off. No wildfire layer is attached. Wildfire hazard is UNKNOWN.
+- Topographic basemaps (CATALOG). Source: USGS, Esri, OpenTopoMap, https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer. License: USGS public domain. Esri and OpenTopoMap keep their own terms., https://www.usgs.gov/information-policies-and-instructions/copyrights-and-credits. USGS National Map topo tiles, an Esri World Topo blend, and OpenTopoMap. Context imagery. Not a boundary survey.
+- Elevation contours (DEM-derived). Source: AWS Terrain Tiles / maplibre-contour, https://registry.opendata.aws/terrain-tiles/. License: Source-dependent attribution on the Tilezen joerd page, https://github.com/tilezen/joerd/blob/master/docs/attribution.md. Isolines derived from AWS Terrain Tiles (Terrarium DEM) with maplibre-contour. Contours are hidden below zoom 12. DEM-derived. Not a survey.
+- USGS elevation point (LIVE). Source: USGS EPQS, https://epqs.nationalmap.gov/v1/json. License: USGS public domain, https://www.usgs.gov/information-policies-and-instructions/copyrights-and-credits. Elevation in feet for one point from the USGS Elevation Point Query Service. A point elevation is not a survey and not a flood elevation certificate.
+- OSM data centers (OSM_MAPPED). Source: OpenStreetMap, https://overpass-api.de/api/interpreter. License: Open Database License, https://opendatacommons.org/licenses/odbl/1-0/. Points OpenStreetMap has tagged as data centers, from Overpass. Partial crowd-sourced catalog. Not a complete inventory and not a capacity.
+
+## UNKNOWN gaps
+
+- Live MW load: Megawatts on a plant are EIA catalog nameplate. They are not live output and not the pinned site's draw. When the nearest plant state is California, the brief may show CAISO system demand from the public CSV. That figure is the CAISO system, not the site. Other ISOs are not fetched.
+- Interconnection headroom: No queue, deliverability, or headroom layer is wired.
+- Transformer MVA: HIFLD substations on this map do not include transformer MVA.
+- As-built fiber: FCC BDC is reported broadband availability. OpenInfraMap telecom is OpenStreetMap. Neither is an as-built splice record.
+- Title and zoning: Siteline is not a title search and not a zoning determination.
+- Wildfire hazard: The wildfire row is labeled UNKNOWN. No wildfire layer is attached.
+
+## Preset regions
+
+## Ashburn and Loudoun County, Virginia
+
+Camera: longitude -77.49, latitude 39.04, zoom 9.5.
+Text: https://siteline.nlt143.energy/regions/ashburn
+Map: https://siteline.nlt143.energy/?place=ashburn
+
+This is the Ashburn and Loudoun County, Virginia preset. The map opens at longitude -77.49, latitude 39.04, zoom 9.5. Those are the camera values used by the preset chips. They are not a parcel corner and not a surveyed site pin.
+
+Power lines and substations in the view come from HIFLD. Plant points come from the EIA catalog and show nameplate, not live output. Retail electric service territories come from the HIFLD public copy. Broadband shading comes from FCC Broadband Data Collection reported availability. Telecom lines and extra power lines come from OpenInfraMap, which draws OpenStreetMap and is not as-built fiber. Water lines and waterbodies come from the National Hydrography Dataset. Flood zones come from the FEMA National Flood Hazard Layer. Data center points appear only where OpenStreetMap has mapped them. A point on that layer is not a capacity and not a complete inventory.
+
+Gas wells in Virginia come from Virginia Energy, Division of Gas and Oil. The wells manifest classifies that statewide feed as live full status and records the source date 2026-09-22. That class and that date describe the statewide feed. They are not a count of wells in Loudoun County. This page does not state a well count.
+
+The site brief has no free national balancing authority polygon. The ISO hint is a named proxy only when the nearest EIA plant state is California, Texas, or New York. Virginia is not one of those three. Unless a nearer plant falls in one of them, the ISO hint stays UNKNOWN. Live site load stays UNKNOWN either way.
+
+## Abilene, Texas
+
+Camera: longitude -99.73, latitude 32.45, zoom 9.5.
+Text: https://siteline.nlt143.energy/regions/abilene
+Map: https://siteline.nlt143.energy/?place=abilene
+
+This is the Abilene, Texas preset. The map opens at longitude -99.73, latitude 32.45, zoom 9.5. Those are the camera values used by the preset chips. They are not a parcel corner and not a surveyed site pin.
+
+Texas wells in the nationwide layer come from Railroad Commission of Texas GIS map symbols. The wells manifest classifies Texas as partial status. The headline status is Status not confirmed (RRC map symbol). Producing status is not confirmed. This layer has no operator and no dates. Data as of stays UNKNOWN until the source file carries a refresh date. NETL, HIFLD, New Mexico OCD, and Colorado OGCC are not the status authority for a Texas well. Inactive is not abandoned. A plugged map symbol alone is not confirmed plugged and abandoned.
+
+EIA natural gas pipelines are a separate catalog layer. They are public pipeline context. They are not wellbores and not pipeline capacity.
+
+If the nearest EIA plant in the brief is in Texas, the balancing authority hint reads ERCOT (PROXY from nearest EIA plant state). That hint is a proxy from the plant state. It is not proof of interconnection. Live ERCOT demand is not fetched. Live site load stays UNKNOWN. Power, broadband, water, and flood layers are the same national catalogs used on the rest of the map.
+
+## Permian Basin and southeast New Mexico
+
+Camera: longitude -103.7, latitude 32.4, zoom 9.
+Text: https://siteline.nlt143.energy/regions/permian
+Map: https://siteline.nlt143.energy/?place=permian
+
+This is the Permian Basin and southeast New Mexico preset. The map opens at longitude -103.7, latitude 32.4, zoom 9. The camera is a screening window. It is not a surveyed basin outline and not a parcel.
+
+The window covers ground in Texas and in New Mexico, so two well authorities can appear. On the Texas side, status is the Railroad Commission of Texas map symbol: partial status, producing status not confirmed, no operator, no dates, and data as of UNKNOWN. NETL and the New Mexico service are not the status authority for a Texas well. On the New Mexico side, wells come from the NM EMNRD Oil Conservation Division public service. The wells manifest classifies that feed as live full status and records the source date 2026-08-01. This page does not state a well count for either state or for the view.
+
+EIA pipeline geometry is catalog context, not capacity. HIFLD power, FCC broadband, National Hydrography Dataset water, and FEMA flood zones are the same national catalogs as the rest of Siteline. Live site load, interconnection headroom, transformer MVA, as-built fiber, title, zoning, and wildfire hazard stay UNKNOWN.
+
+## Carlsbad, New Mexico
+
+Camera: longitude -104.228, latitude 32.421, zoom 11.
+Text: https://siteline.nlt143.energy/regions/carlsbad
+Map: https://siteline.nlt143.energy/?place=carlsbad
+
+This is the Carlsbad, New Mexico preset. The map opens at longitude -104.228, latitude 32.421, zoom 11. It is a closer camera on the southeast New Mexico side of the Permian preset. The coordinates are the preset chips, not a parcel corner.
+
+Wells here use the New Mexico EMNRD Oil Conservation Division public service. The wells manifest classifies that statewide feed as live full status and records the source date 2026-08-01. This page does not state a well count. Texas Railroad Commission records are not the status authority for a New Mexico well.
+
+New Mexico is not California, Texas, or New York, so the brief does not assign a named ISO proxy from the state alone. The balancing authority hint stays UNKNOWN unless the nearest EIA plant falls in one of those three states. Live site load stays UNKNOWN. Power, broadband, water, flood, and OpenStreetMap layers are the same national catalogs as the rest of Siteline.
+
+## Use
+
+Open https://siteline.nlt143.energy/. Presets: place=ashburn, place=abilene, place=permian, place=carlsbad. Coordinates: lat, lng, and z. If lat and lng are both present they override place.
+
+Well methodology: https://siteline.nlt143.energy/well-methodology
+
+Cite Siteline, NLT143 RESEARCH by David T Phung (@davidtphung), https://siteline.nlt143.energy/. Cite layer facts to the source URL on that layer.

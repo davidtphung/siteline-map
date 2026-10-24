@@ -22,6 +22,7 @@ const BLOCKED = [
   /^\/package\.json$/i,
   /^\/package-lock\.json$/i,
   /^\/docs(?:\/|$)/i,
+  /^\/scripts(?:\/|$)/i,
   /^\/services(?:\/|$)/i,
   /\.md$/i,
   /\.src\.js$/i,
@@ -82,9 +83,29 @@ function securityHeaders() {
 
 function assetCacheControl(url) {
   const path = url.pathname;
-  if (path === "/" || path.endsWith(".html")) return "no-cache";
+  if (
+    path === "/" ||
+    path.endsWith(".html") ||
+    path === "/about" ||
+    path === "/regions" ||
+    path.startsWith("/regions/") ||
+    path === "/well-methodology" ||
+    path === "/robots.txt" ||
+    path === "/sitemap.xml" ||
+    path === "/llms.txt" ||
+    path === "/llms-full.txt"
+  ) {
+    return "no-cache";
+  }
   if (/\/assets\/[^/]+-[A-Za-z0-9_-]{6,}\.(?:js|css)$/.test(path)) return "public, max-age=31536000, immutable";
   if (/[?&]v=/.test(url.search)) return "public, max-age=31536000, immutable";
+  return "";
+}
+
+function assetContentType(url) {
+  const path = url.pathname;
+  if (path === "/sitemap.xml") return "application/xml; charset=utf-8";
+  if (path === "/robots.txt" || path.endsWith(".txt")) return "text/plain; charset=utf-8";
   return "";
 }
 
@@ -303,7 +324,12 @@ export default {
       return new Response("Not found", { status: 404, headers: { ...securityHeaders(), ...corsHeaders(request) } });
     }
 
-    if (env.ASSETS) return withHeaders(await env.ASSETS.fetch(request), { "Cache-Control": assetCacheControl(url) });
+    if (env.ASSETS) {
+      return withHeaders(await env.ASSETS.fetch(request), {
+        "Cache-Control": assetCacheControl(url),
+        "Content-Type": assetContentType(url),
+      });
+    }
     return new Response("ASSETS binding missing", { status: 500, headers: securityHeaders() });
   },
 };

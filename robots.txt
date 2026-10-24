@@ -1,3 +1,53 @@
+# Siteline is public. User-agent * allows every client.
+# The groups below repeat that allow for answer engine crawlers.
+# xAI has not published an official robots token. Grok, GrokBot, xAI, and xAI-Grok are allowed by name.
+# LLM description: https://siteline.nlt143.energy/llms.txt
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-SearchBot
+Allow: /
+
+User-agent: Claude-User
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Perplexity-User
+Allow: /
+
+User-agent: Grok
+Allow: /
+
+User-agent: GrokBot
+Allow: /
+
+User-agent: xAI
+Allow: /
+
+User-agent: xAI-Grok
+Allow: /
+
+User-agent: Googlebot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
 User-agent: *
 Allow: /
 
