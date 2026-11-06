@@ -33,22 +33,23 @@ test("open Layers, toggle 3 layers, card stays open and scroll is unchanged", ()
   assert.equal(state.scroll, 140);
 });
 
-test("dock tabs run Layers, Jump, Inspect, Wells, About", () => {
+test("dock tabs run Layers, Jump, Inspect, Wells, Terrain, About", () => {
   assert.deepEqual(
     DOCK_TABS.map((tab) => tab.id),
-    ["layers", "jump", "inspect", "wells", "about"],
+    ["layers", "jump", "inspect", "wells", "terrain", "about"],
   );
   assert.deepEqual(
     DOCK_TABS.map((tab) => tab.pane),
-    ["sl-pane-layers", "sl-pane-jump", "sl-pane-inspect", "sl-pane-wells", "sl-pane-about"],
+    ["sl-pane-layers", "sl-pane-jump", "sl-pane-inspect", "sl-pane-wells", "sl-pane-terrain", "sl-pane-about"],
   );
   const wells = DOCK_TABS.find((tab) => tab.id === "wells");
   assert.equal(wells.badge, true);
   assert.equal(DOCK_TABS.find((tab) => tab.id === "about").badge, undefined);
+  assert.equal(DOCK_TABS.find((tab) => tab.id === "terrain").pane, "sl-pane-terrain");
   const inspect = DOCK_TABS.findIndex((tab) => tab.id === "inspect");
   assert.equal(DOCK_TABS[dockTabMove(inspect, "ArrowRight")].id, "wells");
-  assert.equal(DOCK_TABS[dockTabMove(inspect + 1, "ArrowRight")].id, "about");
-  assert.equal(DOCK_TABS[dockTabMove(DOCK_TABS.length - 1, "ArrowLeft")].id, "wells");
+  assert.equal(DOCK_TABS[dockTabMove(inspect + 1, "ArrowRight")].id, "terrain");
+  assert.equal(DOCK_TABS[dockTabMove(DOCK_TABS.length - 1, "ArrowLeft")].id, "terrain");
   assert.equal(DOCK_TABS[dockTabMove(2, "Home")].id, "layers");
   assert.equal(DOCK_TABS[dockTabMove(0, "End")].id, "about");
 });

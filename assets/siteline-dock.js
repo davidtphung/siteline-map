@@ -4,7 +4,7 @@
  */
 import { cardRects } from "./card-layout.mjs?v=slots-2";
 import { JUMP_PLACES, renderJumpList } from "./jump-places.mjs";
-import { DOCK_TABS, clusterStatusLine, displayApi, dockTabMove, escapeInField, featureSummary, hitBox, isInteractiveFeature, isTypingTarget, keyboardResizeKeepsSheet, normalizeMode, shouldCloseFromPointer, shouldCloseOnMapTap, shouldMoveDockTab, shouldSwipeClose, tapHandlerFor } from "./dock-mode.mjs?v=review-2";
+import { DOCK_TABS, clusterStatusLine, displayApi, dockTabMove, escapeInField, featureSummary, hitBox, isInteractiveFeature, isTypingTarget, keyboardResizeKeepsSheet, normalizeMode, shouldCloseFromPointer, shouldCloseOnMapTap, shouldMoveDockTab, shouldSwipeClose, tapHandlerFor } from "./dock-mode.mjs?v=terrain-1";
 
 const STORE = "siteline.dock.v1";
 const TAB_META = {
@@ -12,6 +12,7 @@ const TAB_META = {
   jump: { label: "Jump", icon: "jump" },
   inspect: { label: "Inspect", icon: "inspect" },
   wells: { label: "Wells", icon: "wells" },
+  terrain: { label: "Terrain", icon: "terrain" },
   about: { label: "About", icon: "about" },
 };
 const TABS = DOCK_TABS.map((tab) => ({ ...tab, ...TAB_META[tab.id] }));
@@ -27,6 +28,8 @@ const ICONS = {
     '<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6"/><path d="M8 7.2V11.4M8 4.8h.01"/></svg>',
   wells:
     '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.6c2.6 3 4.2 5 4.2 7.2a4.2 4.2 0 1 1-8.4 0C3.8 6.6 5.4 4.6 8 1.6Z"/></svg>',
+  terrain:
+    '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 12.5 6 6.5l2.2 2.6L11 6l3.5 6.5"/><path d="M1.5 12.5h13"/></svg>',
 };
 
 let applying = false;
@@ -127,6 +130,18 @@ function ensureStructure(tray) {
     wells.setAttribute("aria-labelledby", "sl-dock-tab-wells");
     wells.hidden = true;
     stage.appendChild(wells);
+  }
+
+  let terrain = document.getElementById("sl-pane-terrain");
+  if (!terrain) {
+    terrain = document.createElement("div");
+    terrain.id = "sl-pane-terrain";
+    terrain.className = "sl-tray-pane";
+    terrain.dataset.pane = "terrain";
+    terrain.setAttribute("role", "tabpanel");
+    terrain.setAttribute("aria-labelledby", "sl-dock-tab-terrain");
+    terrain.hidden = true;
+    stage.appendChild(terrain);
   }
 
   let bar = document.getElementById("sl-dock-bar");
@@ -1199,7 +1214,8 @@ const DOCK_CSS = `
   background: rgba(5, 6, 8, 0.96);
   box-shadow: 0 10px 28px rgba(0,0,0,0.45);
 }
-#sl-tray.sl-dock .sl-dock-tabs { display: flex; align-items: center; gap: 2px; width: 100%; }
+#sl-tray.sl-dock .sl-dock-tabs { display: flex; align-items: center; gap: 0; width: 100%; overflow-x: auto; scrollbar-width: none; }
+#sl-tray.sl-dock .sl-dock-tabs::-webkit-scrollbar { display: none; }
 #sl-tray.sl-dock .sl-mode-toggle { display: flex; gap: 4px; }
 #sl-tray.sl-dock .sl-mode-toggle button {
   appearance: none;
@@ -1247,16 +1263,16 @@ const DOCK_CSS = `
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 5px;
+  gap: 3px;
   min-height: 36px;
   margin: 0;
-  padding: 0 8px;
+  padding: 0 4px;
   border: 0;
   border-radius: 12px;
   background: transparent;
   color: rgba(255,255,255,0.78);
   font-family: Inter, system-ui, sans-serif;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
   letter-spacing: 0;
   text-transform: none;
