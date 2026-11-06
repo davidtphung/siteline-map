@@ -34,6 +34,7 @@ export const DOCK_TABS = [
   { id: "jump", pane: "sl-pane-jump" },
   { id: "inspect", pane: "sl-pane-inspect" },
   { id: "wells", pane: "sl-pane-wells", badge: true },
+  { id: "terrain", pane: "sl-pane-terrain" },
   { id: "about", pane: "sl-pane-about" },
 ];
 
@@ -145,6 +146,7 @@ export function isInteractiveFeature(feature) {
   const id = feature?.layer?.id || "";
   if (!INTERACTIVE_TYPES.has(type)) return false;
   if (SKIP_LAYERS.has(id)) return false;
+  if (id.startsWith("sl-terrain")) return false;
   return true;
 }
 

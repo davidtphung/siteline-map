@@ -93,6 +93,13 @@ const ABOUT_SOURCES = [
     honesty: "DEM-derived",
   },
   {
+    name: "USGS 3DEP bare earth elevation",
+    org: "USGS",
+    url: "https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer",
+    cadence: "lidar estimate, not a survey. Flight date when the index has one.",
+    honesty: "DEM-derived",
+  },
+  {
     name: "USGS EPQS elevation",
     org: "USGS National Map",
     url: "https://epqs.nationalmap.gov/v1/json",
